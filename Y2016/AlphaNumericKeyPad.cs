@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 
 namespace Y2016 {
     public class AlphaNumericKeyPad {
@@ -8,8 +7,7 @@ namespace Y2016 {
             var key = "5";
             var code = "";
             foreach (var line in input) {
-                var movements = line.Select(c => c.ToMovement());
-                foreach (var movement in movements) {
+                foreach (var movement in line) {
                     key = Move(key, movement);
                 }
                 code = code + key;
@@ -17,9 +15,9 @@ namespace Y2016 {
             return code;
         }
 
-        public static string Move(string key, Movement movement) {
+        public static string Move(string key, char movement) {
             switch (movement) {
-                case Movement.Up:
+                case 'U':
                     switch (key) {
                         case "1":
                         case "2":
@@ -47,7 +45,7 @@ namespace Y2016 {
                             throw new InvalidOperationException();
                     }
 
-                case Movement.Right:
+                case 'R':
                     switch (key) {
                         case "1":
                         case "4":
@@ -74,7 +72,7 @@ namespace Y2016 {
                         default:
                             throw new InvalidOperationException();
                     }
-                case Movement.Down:
+                case 'D':
                     switch (key) {
                         case "5":
                         case "9":
@@ -101,7 +99,7 @@ namespace Y2016 {
                         default:
                             throw new InvalidOperationException();
                     }
-                case Movement.Left:
+                case 'L':
                     switch (key) {
                         case "1":
                         case "2":
