@@ -5,7 +5,7 @@ namespace Y2016.Day2 {
     public class Tests {
         [Fact]
         public void Problem1_Example1() {
-            var input = new List<string> {
+            var input = new [] {
                 "ULL",
                 "RRDDD",
                 "LURDL",

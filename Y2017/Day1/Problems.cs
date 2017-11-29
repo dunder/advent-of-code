@@ -1,5 +1,4 @@
-﻿using System.IO;
-using Xunit;
+﻿using Xunit;
 using Xunit.Abstractions;
 
 namespace Y2017.Day1 {

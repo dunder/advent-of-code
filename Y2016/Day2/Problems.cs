@@ -15,7 +15,7 @@ namespace Y2016.Day2 {
         public void Problem1() {
             string[] input = File.ReadAllLines(@".\Day2\input.txt");
 
-            var result = KeyPad.Crack(input.ToList());
+            var result = KeyPad.Crack(input);
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }

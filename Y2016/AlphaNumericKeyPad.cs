@@ -10,16 +10,14 @@ namespace Y2016 {
             foreach (var line in input) {
                 var movements = line.Select(c => c.ToMovement());
                 foreach (var movement in movements) {
-                    key = key.Move(movement);
+                    key = Move(key, movement);
                 }
                 code = code + key;
             }
             return code;
         }
-    }
 
-    public static class AlphaNumericKeyExtensions {
-        public static string Move(this string key, Movement movement) {
+        public static string Move(string key, Movement movement) {
             switch (movement) {
                 case Movement.Up:
                     switch (key) {
