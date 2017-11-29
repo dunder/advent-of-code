@@ -1,16 +1,15 @@
 ﻿using System.Drawing;
 using Xunit;
 
-namespace Y2016.Tests {
-    public class Day1Tests {
-
+namespace Y2016.Day1 {
+    public class Tests {
         [Theory]
         [InlineData("R2, L3", 5)]
         [InlineData("R2, R2, R2", 2)]
         [InlineData("R5, L5, R5, R3", 12)]
         public void Day1_Problem1(string movements, int expectedDistance) {
-            
-            var distance = TaxiMap.ShortestPath(new Point(0,0), Direction.North, movements);
+
+            var distance = TaxiMap.ShortestPath(new Point(0, 0), Direction.North, movements);
 
             Assert.Equal(expectedDistance, distance);
         }

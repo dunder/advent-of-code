@@ -25,18 +25,12 @@ namespace Y2016 {
             foreach ((Turn turn, int length) in movements.SplitOnCommaSpaceSeparated().Select(ToMovement)) {
                 facing = facing.Turn(turn);
 
-                var found = false;
                 for (var i = 0; i < length; i++) {
                     currentPosition = facing.Move(currentPosition, 1);
                     if (visitedPoints.Contains(currentPosition)) {
-                        found = true;
-                        break;
+                        return Distance(from, currentPosition);
                     }
                     visitedPoints.Add(currentPosition);
-                }
-
-                if (found) {
-                    break;
                 }
             }
 

@@ -4,11 +4,11 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Y2016.Day1 {
-    public class Day1 {
-        private readonly ITestOutputHelper output;
+    public class Problems {
+        private readonly ITestOutputHelper _output;
 
-        public Day1(ITestOutputHelper output) {
-            this.output = output;
+        public Problems(ITestOutputHelper output) {
+            _output = output;
         }
 
         [Fact]
@@ -17,7 +17,7 @@ namespace Y2016.Day1 {
             string input = File.ReadAllText(@".\Day1\input.txt");
             var result = TaxiMap.ShortestPath(new Point(0, 0), Direction.North, input);
 
-            output.WriteLine($"Day 1 problem 1: {result}");
+            _output.WriteLine($"Day 1 problem 1: {result}");
         }
 
         [Fact]
@@ -26,7 +26,7 @@ namespace Y2016.Day1 {
 
             var result = TaxiMap.DistanceToFirstIntersection(new Point(0, 0), Direction.North, input);
 
-            output.WriteLine($"Day 1 problem 2: {result}");
+            _output.WriteLine($"Day 1 problem 2: {result}");
         }
     }
 }
