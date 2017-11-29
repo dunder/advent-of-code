@@ -1,103 +1,56 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 
 namespace Y2016 {
     public class TaxiMap {
-        public Point Position { get; private set; }
-        public Direction Facing { get; private set; }
 
-        public TaxiMap(Point position, Direction facing) {
-            Position = position;
-            Facing = facing;
-        }
+        public static int ShortestPath(Point from, Direction facing, string movements) {
+            var currentPosition = from;
 
-        public int ShortestPath(string movements) {
-            var movementsList = movements.Split(new[] {',', ' '}, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var movement in movementsList) {
-                var turn = movement.Substring(0, 1).TurnFromString();
-                var length = int.Parse(movement.Substring(1));
-                Facing = Facing.Turn(turn);
-                Position = Facing.Move(Position, length);
+            foreach ((Turn turn, int length) in movements.SplitOnCommaSpaceSeparated().Select(ToMovement)) {
+                facing = facing.Turn(turn);
+                currentPosition = facing.Move(currentPosition, length);
             }
-            return Math.Abs(Position.X) + Math.Abs(Position.Y);
+
+            return Distance(from, currentPosition);
         }
 
-        public int DistanceToFirstRoundabout(string movements) {
-            var movementsList = movements.Split(new[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
+        public static int DistanceToFirstIntersection(Point from, Direction facing, string movements) {
+            var currentPosition = from;
             var visitedPoints = new HashSet<Point>();
 
-            foreach (var movement in movementsList) {
-                var turn = movement.Substring(0, 1).TurnFromString();
-                var length = int.Parse(movement.Substring(1));
-                Facing = Facing.Turn(turn);
-                Position = Facing.Move(Position, length);
-                if (visitedPoints.Contains(Position)) {
+            foreach ((Turn turn, int length) in movements.SplitOnCommaSpaceSeparated().Select(ToMovement)) {
+                facing = facing.Turn(turn);
+
+                var found = false;
+                for (var i = 0; i < length; i++) {
+                    currentPosition = facing.Move(currentPosition, 1);
+                    if (visitedPoints.Contains(currentPosition)) {
+                        found = true;
+                        break;
+                    }
+                    visitedPoints.Add(currentPosition);
+                }
+
+                if (found) {
                     break;
                 }
-                visitedPoints.Add(Position);
             }
-            return Math.Abs(Position.X) + Math.Abs(Position.Y);
-        }
-    }
 
-    public enum Direction {
-        North,
-        East,
-        South,
-        West
-    }
-
-    public enum Turn {
-        Left,
-        Right
-    }
-
-    public static class TurnExtensions {
-        public static Turn TurnFromString(this string turn) {
-            switch (turn) {
-                case "R":
-                    return Turn.Right;
-                case "L":
-                    return Turn.Left;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-        }
-    }
-
-    public static class DirectionExtensions {
-
-        public static Direction Turn(this Direction direction, Turn turn) {
-            switch (direction) {
-                case Direction.North:
-                    return turn == Y2016.Turn.Right ? Direction.West : Direction.East;
-                case Direction.East:
-                    return turn == Y2016.Turn.Right ? Direction.North : Direction.South;
-                case Direction.South:
-                    return turn == Y2016.Turn.Right ? Direction.East : Direction.West;
-                case Direction.West:
-                    return turn == Y2016.Turn.Right ? Direction.South : Direction.North;
-                default:
-                    throw new InvalidOperationException();
-            }
+            return Distance(from, currentPosition);
         }
 
-        public static Point Move(this Direction direction, Point position, int distance) {
-            switch (direction) {
-                case Direction.North:
-                    return new Point(position.X, position.Y + distance);
-                case Direction.East:
-                    return new Point(position.X + distance, position.Y);
-                case Direction.South:
-                    return new Point(position.X, position.Y - distance);
-                case Direction.West:
-                    return new Point(position.X - distance, position.Y);
-                default:
-                    throw new InvalidOperationException();
-            }
+        private static (Turn, int) ToMovement(string movementDescriptor) {
+            var turn = movementDescriptor.Substring(0, 1).TurnFromString();
+            var length = int.Parse(movementDescriptor.Substring(1));
+            return (turn, length);
         }
-    }   
+
+        private static int Distance(Point from, Point to) {
+            return Math.Abs(from.X - to.X) + Math.Abs(from.Y - to.Y);
+        }
+    }
 }

@@ -15,9 +15,7 @@ namespace Y2016.Day1 {
         public void Problem1() {
 
             string input = File.ReadAllText(@".\Day1\input.txt");
-            var taxiMap = new TaxiMap(new Point(0,0), Direction.North);
-            var result = taxiMap.ShortestPath(input);
-
+            var result = TaxiMap.ShortestPath(new Point(0, 0), Direction.North, input);
 
             output.WriteLine($"Day 1 problem 1: {result}");
         }
@@ -25,9 +23,8 @@ namespace Y2016.Day1 {
         [Fact]
         public void Problem2() {
             string input = File.ReadAllText(@".\Day1\input.txt");
-            var taxiMap = new TaxiMap(new Point(0, 0), Direction.North);
 
-            var result = "Not solved yet";
+            var result = TaxiMap.DistanceToFirstIntersection(new Point(0, 0), Direction.North, input);
 
             output.WriteLine($"Day 1 problem 2: {result}");
         }

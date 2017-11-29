@@ -10,21 +10,16 @@ namespace Y2016.Tests {
         [InlineData("R5, L5, R5, R3", 12)]
         public void Day1_Problem1(string movements, int expectedDistance) {
             
-            var taxiMap = new TaxiMap(new Point(0,0), Direction.North);
-
-            var distance = taxiMap.ShortestPath(movements);
+            var distance = TaxiMap.ShortestPath(new Point(0,0), Direction.North, movements);
 
             Assert.Equal(expectedDistance, distance);
         }
-
 
         [Theory]
         [InlineData("R8, R4, R4, R8", 4)]
         public void Day2_Problem2(string movements, int expectedDistance) {
 
-            var taxiMap = new TaxiMap(new Point(0, 0), Direction.North);
-
-            var distance = taxiMap.DistanceToFirstRoundabout(movements);
+            var distance = TaxiMap.DistanceToFirstIntersection(new Point(0, 0), Direction.North, movements);
 
             Assert.Equal(expectedDistance, distance);
         }
