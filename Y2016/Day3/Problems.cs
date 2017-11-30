@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.IO;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Y2016.Day3 {
@@ -11,14 +12,20 @@ namespace Y2016.Day3 {
 
         [Fact]
         public void Problem1() {
-            var result = "Not imeplemented yet";
+
+            string[] input = File.ReadAllLines(@".\Day3\input.txt");
+
+            var result = Triangle.CountPossibleTriangles(input);
+
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
-            var result = "Not imeplemented yet";
+            string[] input = File.ReadAllLines(@".\Day3\input.txt");
+
+            var result = Triangle.CountPossibleTrianglesVertically(input);
 
             _output.WriteLine($"Day 2 problem 2: {result}");
         }
