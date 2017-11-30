@@ -25,7 +25,5 @@ namespace Y2016.Day4 {
 
             Assert.Equal("very-encrypted-name-343", decrypted);
         }
-        
     }
-    
 }

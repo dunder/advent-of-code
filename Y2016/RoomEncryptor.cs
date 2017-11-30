@@ -43,7 +43,6 @@ namespace Y2016 {
                 foreach (var c in room) {
                     if (count.ContainsKey(c)) {
                         count[c] += 1;
-
                     }
                     else {
                         count.Add(c, 1);
