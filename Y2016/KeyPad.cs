@@ -1,13 +1,159 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Y2016 {
     public class KeyPad {
-        public static string Crack(string[] input) {
+        private Dictionary<string, Key> Keys { get; }
+
+        public static KeyPad NumericKeyPad => new KeyPad(new List<Key>() {
+             new Key("1", new Dictionary<char, Func<string>> {
+                {'U', () => "1" },
+                {'R', () => "2" },
+                {'D', () => "4" },
+                {'L', () => "1" },
+            }),
+             new Key("2", new Dictionary<char, Func<string>> {
+                {'U', () => "2" },
+                {'R', () => "3" },
+                {'D', () => "5" },
+                {'L', () => "1" },
+            }),
+             new Key("3", new Dictionary<char, Func<string>> {
+                {'U', () => "3" },
+                {'R', () => "3" },
+                {'D', () => "6" },
+                {'L', () => "2" },
+            }),
+             new Key("4", new Dictionary<char, Func<string>> {
+                {'U', () => "1" },
+                {'R', () => "5" },
+                {'D', () => "7" },
+                {'L', () => "4" },
+            }),
+             new Key("5", new Dictionary<char, Func<string>> {
+                {'U', () => "2" },
+                {'R', () => "6" },
+                {'D', () => "8" },
+                {'L', () => "4" },
+            }),
+             new Key("6", new Dictionary<char, Func<string>> {
+                {'U', () => "3" },
+                {'R', () => "6" },
+                {'D', () => "9" },
+                {'L', () => "5" },
+            }),
+             new Key("7", new Dictionary<char, Func<string>> {
+                {'U', () => "4" },
+                {'R', () => "8" },
+                {'D', () => "7" },
+                {'L', () => "7" },
+            }),
+             new Key("8", new Dictionary<char, Func<string>> {
+                {'U', () => "5" },
+                {'R', () => "9" },
+                {'D', () => "8" },
+                {'L', () => "7" },
+            }),
+             new Key("9", new Dictionary<char, Func<string>> {
+                {'U', () => "6" },
+                {'R', () => "9" },
+                {'D', () => "9" },
+                {'L', () => "8" },
+            }),
+        });
+
+        public static KeyPad AlphaNumericKeyPad => new KeyPad(new List<Key> {
+            new Key("1", new Dictionary<char, Func<string>> {
+                {'U', () => "1" },
+                {'R', () => "1" },
+                {'D', () => "3" },
+                {'L', () => "1" }
+            }),
+            new Key("2", new Dictionary<char, Func<string>> {
+                {'U', () => "2" },
+                {'R', () => "3" },
+                {'D', () => "2" },
+                {'L', () => "2" }
+            }),
+            new Key("3", new Dictionary<char, Func<string>> {
+                {'U', () => "1" },
+                {'R', () => "4" },
+                {'D', () => "7" },
+                {'L', () => "2" }
+            }),
+            new Key("4", new Dictionary<char, Func<string>> {
+                {'U', () => "4" },
+                {'R', () => "4" },
+                {'D', () => "8" },
+                {'L', () => "3" }
+            }),
+            new Key("5", new Dictionary<char, Func<string>> {
+                {'U', () => "5" },
+                {'R', () => "6" },
+                {'D', () => "5" },
+                {'L', () => "5" }
+            }),
+            new Key("6", new Dictionary<char, Func<string>> {
+                {'U', () => "2" },
+                {'R', () => "7" },
+                {'D', () => "A" },
+                {'L', () => "5" }
+            }),
+            new Key("7", new Dictionary<char, Func<string>> {
+                {'U', () => "3" },
+                {'R', () => "8" },
+                {'D', () => "B" },
+                {'L', () => "8" }
+            }),
+            new Key("8", new Dictionary<char, Func<string>> {
+                {'U', () => "4" },
+                {'R', () => "9" },
+                {'D', () => "C" },
+                {'L', () => "7" }
+            }),
+            new Key("9", new Dictionary<char, Func<string>> {
+                {'U', () => "9" },
+                {'R', () => "9" },
+                {'D', () => "9" },
+                {'L', () => "8" }
+            }),
+            new Key("A", new Dictionary<char, Func<string>> {
+                {'U', () => "6" },
+                {'R', () => "B" },
+                {'D', () => "A" },
+                {'L', () => "A" }
+            }),
+            new Key("B", new Dictionary<char, Func<string>> {
+                {'U', () => "7" },
+                {'R', () => "C" },
+                {'D', () => "D" },
+                {'L', () => "A" }
+            }),
+            new Key("C", new Dictionary<char, Func<string>> {
+                {'U', () => "8" },
+                {'R', () => "C" },
+                {'D', () => "C" },
+                {'L', () => "B" }
+            }),
+            new Key("D", new Dictionary<char, Func<string>> {
+                {'U', () => "B" },
+                {'R', () => "D" },
+                {'D', () => "D" },
+                {'L', () => "D" }
+            }),
+        });
+
+        public KeyPad(List<Key> keys) {
+            Keys = keys.ToDictionary(k => k.Name);
+        }
+
+        public string Sequence(string[] input) {
             var key = "5";
             var code = "";
             foreach (var line in input) {
                 foreach (var movement in line) {
-                    key = Move(key, movement);
+                    key = Keys[key].Adjacent(movement);
                 }
                 code = code + key;
             }
@@ -107,6 +253,20 @@ namespace Y2016 {
                 default:
                     throw new InvalidOperationException();
             }
+        }
+    }
+
+    public class Key {
+        public Key(string name, IDictionary<char, Func<string>> moveCommands) {
+            Name = name;
+            MoveCommands = moveCommands;
+        }
+
+        public string Name { get; }
+        private IDictionary<char, Func<string>> MoveCommands { get; }
+
+        public string Adjacent(char move) {
+            return MoveCommands[move]();
         }
     }
 }

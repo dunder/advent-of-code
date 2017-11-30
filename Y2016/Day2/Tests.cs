@@ -12,7 +12,7 @@ namespace Y2016.Day2 {
                 "UUUUD"
             };
 
-            var result = KeyPad.Crack(input);
+            var result = KeyPad.NumericKeyPad.Sequence(input);
 
             Assert.Equal("1985", result);
         }
@@ -26,7 +26,7 @@ namespace Y2016.Day2 {
                 "UUUUD"
             };
 
-            var result = AlphaNumericKeyPad.Crack(input);
+            var result = KeyPad.AlphaNumericKeyPad.Sequence(input);
 
             Assert.Equal("5DB3", result);
         }
