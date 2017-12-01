@@ -1,8 +1,10 @@
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Y2016 {
+
     public class RoomEncryptor {
 
         public static string[] Decrypt(string[] input) {

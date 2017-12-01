@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.IO;
+using Xunit;
 using Xunit.Abstractions;
 
 namespace Y2017.Day1 {
@@ -12,16 +13,23 @@ namespace Y2017.Day1 {
 
         [Fact]
         public void Problem1() {
-            var result = "Not implemented";
+
+            string input = File.ReadAllText(@".\Day1\input.txt");
+
+            int result = Tests.Captcha.Read(input);
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
-            var result = "Not implemented";
+            string input = File.ReadAllText(@".\Day1\input.txt");
+
+            int result = Tests.Captcha.ReadHalfway(input);
 
             _output.WriteLine($"Day 2 problem 2: {result}");
         }
     }
+
+ 
 }
