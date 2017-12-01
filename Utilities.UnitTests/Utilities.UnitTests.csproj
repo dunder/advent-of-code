@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0802740B-1BB0-4ED8-9EA8-483BA487963F}</ProjectGuid>
+    <ProjectGuid>{F382F481-3C46-4D3E-BE8A-692373D749BC}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Y2017</RootNamespace>
-    <AssemblyName>Y2017</AssemblyName>
+    <RootNamespace>Utilities.UnitTests</RootNamespace>
+    <AssemblyName>Utilities.UnitTests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -55,9 +55,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Captcha.cs" />
-    <Compile Include="Day1\Problems.cs" />
-    <Compile Include="Day1\Tests.cs" />
+    <Compile Include="ArrayExtensionsTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,9 +65,10 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Day1\input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <ProjectReference Include="..\Utilities\Utilities.csproj">
+      <Project>{eb6f4f49-6648-40a2-9efa-29e3fbad9a49}</Project>
+      <Name>Utilities</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

@@ -16,7 +16,7 @@ namespace Y2017.Day1 {
 
             string input = File.ReadAllText(@".\Day1\input.txt");
 
-            int result = Tests.Captcha.Read(input);
+            int result = Captcha.Read(input);
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
@@ -25,7 +25,7 @@ namespace Y2017.Day1 {
         public void Problem2() {
             string input = File.ReadAllText(@".\Day1\input.txt");
 
-            int result = Tests.Captcha.ReadHalfway(input);
+            int result = Captcha.ReadHalfway(input);
 
             _output.WriteLine($"Day 2 problem 2: {result}");
         }
