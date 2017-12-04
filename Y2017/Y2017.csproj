@@ -61,6 +61,8 @@
     <Compile Include="Day1\Problems.cs" />
     <Compile Include="Day1\Tests.cs" />
     <Compile Include="Day2\Problems.cs" />
+    <Compile Include="Day5\Problems.cs" />
+    <Compile Include="Day5\Tests.cs" />
     <Compile Include="SpreadSheet.cs" />
     <Compile Include="Day2\Tests.cs" />
     <Compile Include="Day3\Problems.cs" />
