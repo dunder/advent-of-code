@@ -1,4 +1,5 @@
 ﻿using Xunit;
+using Y2017.Day1;
 
 namespace Y2017.Day4 {
     public class Tests {
