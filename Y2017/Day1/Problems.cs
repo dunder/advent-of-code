@@ -18,7 +18,7 @@ namespace Y2017.Day1 {
 
             int result = Captcha.Read(input);
 
-            _output.WriteLine($"Day 2 problem 1: {result}");
+            _output.WriteLine($"Day 1 problem 1: {result}");
         }
 
         [Fact]
@@ -27,7 +27,7 @@ namespace Y2017.Day1 {
 
             int result = Captcha.ReadHalfway(input);
 
-            _output.WriteLine($"Day 2 problem 2: {result}");
+            _output.WriteLine($"Day 1 problem 2: {result}");
         }
     }
 

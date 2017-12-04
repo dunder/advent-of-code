@@ -12,10 +12,8 @@ namespace Y2016.Day4 {
                 "totally-real-room-200[decoy]",
             });
 
-
             Assert.Equal(123 + 987 + 404, count);
         }
-
 
         [Fact]
         public void Problem2_Example1() {

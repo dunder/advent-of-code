@@ -1,11 +1,23 @@
-using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Utilities;
 
 namespace Y2016 {
 
     public class RoomEncryptor {
+
+        private class RoomDescriptor {
+            private readonly string _descriptor;
+
+            public RoomDescriptor(string descriptor) {
+                _descriptor = descriptor;
+            }
+
+            public string Room => Regex.Match(_descriptor, @"([a-z]*-)*").Value;
+            public int Sector => int.Parse(Regex.Match(_descriptor, @"[0-9]+").Value);
+            public string CheckSum => Regex.Match(_descriptor, @"\[[a-z]*\]").Value.Trim('[', ']');
+        }
 
         public static string[] Decrypt(string[] input) {
             return input.Select(Decrypt).ToArray();
@@ -20,12 +32,9 @@ namespace Y2016 {
                 if (c == '-') {
                     continue;
                 }
-                var decryptedCharacter = roomCharacters[i] + sector % 26;
-                if (decryptedCharacter > 122) {
-                    decryptedCharacter -= 26;
-                }
-                roomCharacters[i] = (char) decryptedCharacter;
-                
+
+                roomCharacters[i] = roomCharacters[i].Shift(sector);
+
             }
             return input.Replace(room, new string(roomCharacters));
         }
@@ -34,8 +43,10 @@ namespace Y2016 {
             var result = input.First(x => x.Contains("north") && x.Contains("pole"));
             return Regex.Match(result, @"[0-9]+").Value;
         }
+
         public static int CountCorrectRoomDescriptors(string[] input) {
             int total = 0;
+
             foreach (var descriptor in input) {
 
                 var room = Regex.Match(descriptor, @"([a-z]*-)*").Value;

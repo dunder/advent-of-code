@@ -1,13 +1,12 @@
-﻿namespace Y2017 {
+﻿using Utilities;
+
+namespace Y2017 {
     public class Captcha {
         public static int Read(string input) {
             int sum = 0;
             for (int i = 0; i < input.Length; i++) {
                 var index = i;
-                var nextIndex = i + 1;
-                if (nextIndex == input.Length) {
-                    nextIndex = 0;
-                }
+                var nextIndex = input.ToCharArray().WrappedIndex(i + 1);
                 char digit1 = input[index];
                 char digit2 = input[nextIndex];
                 if (digit1 == digit2) {
