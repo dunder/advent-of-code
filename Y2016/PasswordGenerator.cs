@@ -1,40 +1,56 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
 using Utilities;
 
 namespace Y2016 {
     public static class PasswordGenerator {
 
-        public static string Generate(string input, int length) {
-            int index = 0;
+        public static string GenerateParallel(string input, int length) {
+            int startIndex = 0;
+            int count = 1000000;
             StringBuilder password = new StringBuilder();
-            for (int i = 0; i < length; i++) {
-                while (true) {
-                    var hash = Md5.Hash(input + index++);
-                    if (hash.StartsWith("00000")) {
-                        password.Append(hash[5].ToString());
-                        break;
+            while (true) {
+                var validHashIndeces = Enumerable.Range(startIndex, count)
+                    .AsParallel()
+                    .Where(x => Md5.Hash(input + x).StartsWith("00000"))
+                    .ToList()
+                    .OrderBy(x => x);
+                if (validHashIndeces.Any()) {
+                    foreach (var validHashIndex in validHashIndeces) {
+                        password.Append(Md5.Hash(input + validHashIndex)[5]);
                     }
                 }
+                if (password.Length >= length) {
+                    break;
+                }
+                startIndex += count;
             }
-            return password.ToString();
+
+            return password.ToString().Substring(0, length);
         }
 
         public static string GenerateNew(string input, int length) {
-            int index = 0;
-            string[] password = new string[length];
-            for (int i = 0; i < length; i++) {
-                while (true) {
-                    var hash = Md5.Hash(input + index++);
-                    if (hash.StartsWith("00000")) {
-                        if (int.TryParse(hash[5].ToString(), out int position) && position < length) {
-                            password[position] = hash[6].ToString();
-                            break;
-                        }
-                        
+            int startIndex = 0;
+            int count = 1000000;
+            StringBuilder password = new StringBuilder();
+            while (true) {
+                var validHashIndeces = Enumerable.Range(startIndex, count)
+                    .AsParallel()
+                    .Where(x => Md5.Hash(input + x).StartsWith("00000"))
+                    .ToList()
+                    .OrderBy(x => x);
+                if (validHashIndeces.Any()) {
+                    foreach (var validHashIndex in validHashIndeces) {
+                        password.Append(Md5.Hash(input + validHashIndex)[5]);
                     }
                 }
+                if (password.Length >= length) {
+                    break;
+                }
+                startIndex += count;
             }
-            return string.Join("", password);
+
+            return password.ToString().Substring(0, length);
         }
     }
 }
