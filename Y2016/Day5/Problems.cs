@@ -9,21 +9,23 @@ namespace Y2016.Day5 {
             _output = output;
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void Problem1() {
 
             const string input = "reyedfim";
 
-            var result = PasswordGenerator.Generate(input, 8);
+            var result = PasswordGenerator.GenerateParallel(input, 8);
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void Problem2() {
             const string input = "reyedfim";
 
-            var result = "Not implemented yet";
+            var result = PasswordGenerator.GenerateNew(input, 8);
 
             _output.WriteLine($"Day 2 problem 2: {result}");
         }
