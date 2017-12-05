@@ -48,6 +48,7 @@
     <Compile Include="Combinatorics\Permutations.cs" />
     <Compile Include="Combinatorics\SmallPrimeUtility.cs" />
     <Compile Include="Combinatorics\Variations.cs" />
+    <Compile Include="Md5.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

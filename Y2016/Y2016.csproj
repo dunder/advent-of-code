@@ -63,6 +63,9 @@
     <Compile Include="Day1\Tests.cs" />
     <Compile Include="Day3\Problems.cs" />
     <Compile Include="Day3\Tests.cs" />
+    <Compile Include="Day5\Problems.cs" />
+    <Compile Include="Day5\Tests.cs" />
+    <Compile Include="PasswordGenerator.cs" />
     <Compile Include="Triangle.cs" />
     <Compile Include="Day4\Problems.cs" />
     <Compile Include="Day4\Tests.cs" />
