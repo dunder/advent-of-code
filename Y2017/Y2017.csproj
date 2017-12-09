@@ -64,6 +64,13 @@
     <Compile Include="Day1\Problems.cs" />
     <Compile Include="Day1\Tests.cs" />
     <Compile Include="Day2\Problems.cs" />
+    <Compile Include="Day7\Problems.cs" />
+    <Compile Include="Day7\Tests.cs" />
+    <Compile Include="Day8\Problems.cs" />
+    <Compile Include="Day8\Tests.cs" />
+    <Compile Include="Day9\Problems.cs" />
+    <Compile Include="Day9\Tests.cs" />
+    <Compile Include="DebuggerMemory.cs" />
     <Compile Include="Day6\Problems.cs" />
     <Compile Include="Day6\Tests.cs" />
     <Compile Include="JumpInterrupting.cs" />
@@ -99,6 +106,15 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Day6\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day7\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day8\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day9\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
