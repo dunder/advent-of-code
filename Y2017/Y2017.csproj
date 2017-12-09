@@ -60,28 +60,29 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Captcha.cs" />
+    <Compile Include="Day1\Captcha.cs" />
     <Compile Include="Day1\Problems.cs" />
     <Compile Include="Day1\Tests.cs" />
     <Compile Include="Day2\Problems.cs" />
+    <Compile Include="Day2\SpreadSheet.cs" />
+    <Compile Include="Day3\SpiralMemory.cs" />
+    <Compile Include="Day4\PassPhrase.cs" />
+    <Compile Include="Day5\JumpInterrupting.cs" />
+    <Compile Include="Day6\DebuggerMemory.cs" />
     <Compile Include="Day7\Problems.cs" />
     <Compile Include="Day7\Tests.cs" />
+    <Compile Include="Day8\Interpreter.cs" />
     <Compile Include="Day8\Problems.cs" />
     <Compile Include="Day8\Tests.cs" />
     <Compile Include="Day9\Problems.cs" />
     <Compile Include="Day9\Tests.cs" />
-    <Compile Include="DebuggerMemory.cs" />
     <Compile Include="Day6\Problems.cs" />
     <Compile Include="Day6\Tests.cs" />
-    <Compile Include="JumpInterrupting.cs" />
     <Compile Include="Day5\Problems.cs" />
     <Compile Include="Day5\Tests.cs" />
-    <Compile Include="SpreadSheet.cs" />
     <Compile Include="Day2\Tests.cs" />
     <Compile Include="Day3\Problems.cs" />
-    <Compile Include="SpiralMemory.cs" />
     <Compile Include="Day3\Tests.cs" />
-    <Compile Include="PassPhrase.cs" />
     <Compile Include="Day4\Problems.cs" />
     <Compile Include="Day4\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

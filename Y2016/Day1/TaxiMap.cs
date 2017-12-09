@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace Y2016 {
+namespace Y2016.Day1 {
     public class TaxiMap {
 
         public static int ShortestPath(Point from, Direction facing, string movements) {

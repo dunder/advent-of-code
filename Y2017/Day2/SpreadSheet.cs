@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Facet.Combinatorics;
 
-namespace Y2017 {
+namespace Y2017.Day2 {
     public class SpreadSheet {
         private string[] Rows { get; }
 

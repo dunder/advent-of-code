@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace Y2017 {
+namespace Y2017.Day3 {
     public class SpiralMemory {
 
         public static int Distance(int address) {

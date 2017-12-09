@@ -2,7 +2,7 @@
 using System.Text;
 using Utilities;
 
-namespace Y2016 {
+namespace Y2016.Day5 {
     public static class PasswordGenerator {
 
         public static string GenerateParallel(string input, int length) {

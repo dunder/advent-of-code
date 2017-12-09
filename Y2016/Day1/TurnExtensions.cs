@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Y2016 {
+namespace Y2016.Day1 {
     public static class TurnExtensions {
         public static Turn TurnFromString(this string turn) {
             switch (turn) {

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Y2017 {
+namespace Y2017.Day6 {
     public class DebuggerMemory {
         public static (int, int) CountRedistsToSame(int[] slots) {
             int count = 0;

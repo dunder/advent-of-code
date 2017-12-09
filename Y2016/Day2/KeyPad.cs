@@ -2,60 +2,60 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Y2016 {
+namespace Y2016.Day2 {
     public class KeyPad {
         private Dictionary<string, Key> Keys { get; }
 
         public static KeyPad NumericKeyPad => new KeyPad(new List<Key>() {
-             new Key("1", new Dictionary<char, Func<string>> {
+            new Key("1", new Dictionary<char, Func<string>> {
                 {'U', () => "1" },
                 {'R', () => "2" },
                 {'D', () => "4" },
                 {'L', () => "1" },
             }),
-             new Key("2", new Dictionary<char, Func<string>> {
+            new Key("2", new Dictionary<char, Func<string>> {
                 {'U', () => "2" },
                 {'R', () => "3" },
                 {'D', () => "5" },
                 {'L', () => "1" },
             }),
-             new Key("3", new Dictionary<char, Func<string>> {
+            new Key("3", new Dictionary<char, Func<string>> {
                 {'U', () => "3" },
                 {'R', () => "3" },
                 {'D', () => "6" },
                 {'L', () => "2" },
             }),
-             new Key("4", new Dictionary<char, Func<string>> {
+            new Key("4", new Dictionary<char, Func<string>> {
                 {'U', () => "1" },
                 {'R', () => "5" },
                 {'D', () => "7" },
                 {'L', () => "4" },
             }),
-             new Key("5", new Dictionary<char, Func<string>> {
+            new Key("5", new Dictionary<char, Func<string>> {
                 {'U', () => "2" },
                 {'R', () => "6" },
                 {'D', () => "8" },
                 {'L', () => "4" },
             }),
-             new Key("6", new Dictionary<char, Func<string>> {
+            new Key("6", new Dictionary<char, Func<string>> {
                 {'U', () => "3" },
                 {'R', () => "6" },
                 {'D', () => "9" },
                 {'L', () => "5" },
             }),
-             new Key("7", new Dictionary<char, Func<string>> {
+            new Key("7", new Dictionary<char, Func<string>> {
                 {'U', () => "4" },
                 {'R', () => "8" },
                 {'D', () => "7" },
                 {'L', () => "7" },
             }),
-             new Key("8", new Dictionary<char, Func<string>> {
+            new Key("8", new Dictionary<char, Func<string>> {
                 {'U', () => "5" },
                 {'R', () => "9" },
                 {'D', () => "8" },
                 {'L', () => "7" },
             }),
-             new Key("9", new Dictionary<char, Func<string>> {
+            new Key("9", new Dictionary<char, Func<string>> {
                 {'U', () => "6" },
                 {'R', () => "9" },
                 {'D', () => "9" },
@@ -253,20 +253,6 @@ namespace Y2016 {
                 default:
                     throw new InvalidOperationException();
             }
-        }
-    }
-
-    public class Key {
-        public Key(string name, IDictionary<char, Func<string>> moveCommands) {
-            Name = name;
-            MoveCommands = moveCommands;
-        }
-
-        public string Name { get; }
-        private IDictionary<char, Func<string>> MoveCommands { get; }
-
-        public string Adjacent(char move) {
-            return MoveCommands[move]();
         }
     }
 }

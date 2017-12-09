@@ -1,4 +1,4 @@
-namespace Y2017 {
+namespace Y2017.Day5 {
     public class JumpInterrupting {
         public static int StepsToExit(int[] input) {
             return StepsToExit(input, 0);

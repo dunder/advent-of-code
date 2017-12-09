@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Facet.Combinatorics;
 
-namespace Y2017 {
+namespace Y2017.Day4 {
     public class PassPhrase {
         public static int Count(string[] input) {
             var count = 0;
