@@ -1,8 +1,8 @@
 ﻿using System.Linq;
-using System.Threading;
 using Xunit;
+using Y2017.Day10;
 
-namespace Y2017.Day10 {
+namespace Y2017.Day11 {
     public class Tests {
         [Fact]
         public void Problem1_ArrayReplace() {
