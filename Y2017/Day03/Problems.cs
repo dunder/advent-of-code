@@ -15,6 +15,7 @@ namespace Y2017.Day03 {
 
             var result = SpiralMemory.Distance(289326);
 
+            Assert.Equal(419, result);
             _output.WriteLine($"Day 3 problem 1: {result}");
         }
 
@@ -22,6 +23,7 @@ namespace Y2017.Day03 {
         public void Problem2() {
             var result = SpiralMemory.FirstWrittenLargerThan(289326);
 
+            Assert.Equal(295229, result);
             _output.WriteLine($"Day 3 problem 2: {result}");
         }
     }

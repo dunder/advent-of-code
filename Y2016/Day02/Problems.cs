@@ -16,6 +16,7 @@ namespace Y2016.Day02 {
 
             var result = KeyPad.NumericKeyPad.Sequence(input);
 
+            Assert.Equal("74921", result);
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
 
@@ -25,6 +26,7 @@ namespace Y2016.Day02 {
 
             var result = KeyPad.AlphaNumericKeyPad.Sequence(input);
 
+            Assert.Equal("A6B35", result);
             _output.WriteLine($"Day 2 problem 2: {result}");
         }
     }

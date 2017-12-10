@@ -17,8 +17,8 @@ namespace Y2016.Day03 {
 
             var result = Triangle.CountPossibleTriangles(input);
 
-
-            _output.WriteLine($"Day 2 problem 1: {result}");
+            Assert.Equal(1050, result);
+            _output.WriteLine($"Day 3 problem 1: {result}");
         }
 
         [Fact]
@@ -27,7 +27,8 @@ namespace Y2016.Day03 {
 
             var result = Triangle.CountPossibleTrianglesVertically(input);
 
-            _output.WriteLine($"Day 2 problem 2: {result}");
+            Assert.Equal(1921, result);
+            _output.WriteLine($"Day 3 problem 2: {result}");
         }
     }
 }

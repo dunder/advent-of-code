@@ -20,6 +20,7 @@ namespace Y2017.Day09 {
 
             var result = GroupParser.CountGroupScore(input); 
 
+            Assert.Equal(7616, result.GroupScore);
             _output.WriteLine($"Day 9 problem 1: {result.GroupScore}");
         }
 
@@ -29,6 +30,7 @@ namespace Y2017.Day09 {
 
             var result = GroupParser.CountGroupScore(input);
 
+            Assert.Equal(3838, result.CanceldGarbage);
             _output.WriteLine($"Day 9 problem 2: {result.CanceldGarbage}");
         }
     }

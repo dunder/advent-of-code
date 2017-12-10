@@ -18,6 +18,7 @@ namespace Y2017.Day01 {
 
             int result = Captcha.Read(input);
 
+            Assert.Equal(1216, result);
             _output.WriteLine($"Day 1 problem 1: {result}");
         }
 
@@ -27,6 +28,7 @@ namespace Y2017.Day01 {
 
             int result = Captcha.ReadHalfway(input);
 
+            Assert.Equal(1072, result);
             _output.WriteLine($"Day 1 problem 2: {result}");
         }
     }

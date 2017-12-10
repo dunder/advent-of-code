@@ -87,6 +87,8 @@
     <Compile Include="Day04\Tests.cs" />
     <Compile Include="Day10\Problems.cs" />
     <Compile Include="Day10\Tests.cs" />
+    <Compile Include="Day11\Problems.cs" />
+    <Compile Include="Day11\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +120,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Day09\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day11\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

@@ -18,6 +18,7 @@ namespace Y2017.Day05 {
 
             var result = JumpInterrupting.StepsToExit(input);
 
+            Assert.Equal(326618, result);
             _output.WriteLine($"Day 5 problem 1: {result}");
         }
 
@@ -27,6 +28,7 @@ namespace Y2017.Day05 {
 
             var result = JumpInterrupting.StepsToExitNew(input);
 
+            Assert.Equal(21841249, result);
             _output.WriteLine($"Day 5 problem 2: {result}");
         }
     }

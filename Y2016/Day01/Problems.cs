@@ -17,6 +17,7 @@ namespace Y2016.Day01 {
             string input = File.ReadAllText(@".\Day01\input.txt");
             var result = TaxiMap.ShortestPath(new Point(0, 0), Direction.North, input);
 
+            Assert.Equal(209, result);
             _output.WriteLine($"Day 1 problem 1: {result}");
         }
 
@@ -26,6 +27,7 @@ namespace Y2016.Day01 {
 
             var result = TaxiMap.DistanceToFirstIntersection(new Point(0, 0), Direction.North, input);
 
+            Assert.Equal(136, result);
             _output.WriteLine($"Day 1 problem 2: {result}");
         }
     }

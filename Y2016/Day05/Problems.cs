@@ -17,7 +17,8 @@ namespace Y2016.Day05 {
 
             var result = PasswordGenerator.GenerateParallel(input, 8);
 
-            _output.WriteLine($"Day 2 problem 1: {result}");
+            Assert.Equal("f97c354d", result);
+            _output.WriteLine($"Day 5 problem 1: {result}");
         }
 
         [Trait("Category", "LongRunning")]
@@ -27,7 +28,8 @@ namespace Y2016.Day05 {
 
             var result = PasswordGenerator.GenerateNew(input, 8);
 
-            _output.WriteLine($"Day 2 problem 2: {result}");
+            Assert.Equal("863dde27", result);
+            _output.WriteLine($"Day 5 problem 2: {result}");
         }
     }
 }

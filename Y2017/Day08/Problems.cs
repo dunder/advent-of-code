@@ -17,6 +17,7 @@ namespace Y2017.Day08 {
 
             (var highestFinal, _) = Interpreter.LargestRegisterCount(input);
 
+            Assert.Equal(4448, highestFinal);
             _output.WriteLine($"Day 8 problem 1: {highestFinal}");
         }
 
@@ -26,6 +27,7 @@ namespace Y2017.Day08 {
 
             (_, var highestStored) = Interpreter.LargestRegisterCount(input);
 
+            Assert.Equal(6582, highestStored);
             _output.WriteLine($"Day 8 problem 2: {highestStored}");
         }
 

@@ -19,9 +19,10 @@ namespace Y2017.Day06 {
             string input = File.ReadAllText(@".\Day06\input.txt");
             int[] slots = Regex.Replace(input, @"\s+", " ").Split(new []{" "}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
-            var result = DebuggerMemory.CountRedistsToSame(slots);
+            (int firstCycleCount, _) = DebuggerMemory.CountRedistsToSame(slots);
 
-            _output.WriteLine($"Day 6 problem 1: {result}");
+            Assert.Equal(7864, firstCycleCount);
+            _output.WriteLine($"Day 6 problem 1: {firstCycleCount}");
         }
 
         [Fact]
@@ -29,9 +30,10 @@ namespace Y2017.Day06 {
             string input = File.ReadAllText(@".\Day06\input.txt");
             int[] slots = Regex.Replace(input, @"\s+", " ").Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
-            var result = DebuggerMemory.CountRedistsToSame(slots);
+            (_, int count) = DebuggerMemory.CountRedistsToSame(slots);
 
-            _output.WriteLine($"Day 6 problem 1: {result.Item2}");
+            Assert.Equal(1695, count);
+            _output.WriteLine($"Day 6 problem 1: {count}");
         }
     }
 }

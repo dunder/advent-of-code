@@ -19,6 +19,7 @@ namespace Y2017.Day04 {
 
             var result = PassPhrase.Count(input);
 
+            Assert.Equal(477, result);
             _output.WriteLine($"Day 4 problem 1: {result}");
         }
 
@@ -27,6 +28,8 @@ namespace Y2017.Day04 {
             string[] input = File.ReadAllLines(@".\Day04\input.txt").Select(x => Regex.Replace(x, @"\s+", " ")).ToArray();
 
             var result = PassPhrase.CountAnagrams(input);
+
+            Assert.Equal(167, result);
             _output.WriteLine($"Day 4 problem 2: {result}");
         }
     }

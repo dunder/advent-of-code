@@ -19,6 +19,7 @@ namespace Y2017.Day10 {
 
             var result = StringHash.Hash(256, input);
 
+            Assert.Equal(23874, result);
             _output.WriteLine($"Day 10 problem 1: {result}");
         }
 
@@ -28,6 +29,7 @@ namespace Y2017.Day10 {
 
             var result = StringHash.HashAscii(256, input);
 
+            Assert.Equal("e1a65bfb5a5ce396025fab5528c25a87", result);
             _output.WriteLine($"Day 10 problem 2: {result}");
         }
     }
@@ -46,9 +48,8 @@ namespace Y2017.Day10 {
             int listIndex = 0;
             int skip = 0;
             for (int t = 0; t < times; t++) {
-                for (int i = 0; i < lenghts.Length; i++) {
-                    var length = lenghts[i];
-                    list = ArrayReverseReplace(list, listIndex, lenghts[i]);
+                foreach (int length in lenghts) {
+                    list = ArrayReverseReplace(list, listIndex, length);
                     listIndex = listIndex + length + skip;
                     if (listIndex >= list.Length) {
                         listIndex = listIndex % list.Length;

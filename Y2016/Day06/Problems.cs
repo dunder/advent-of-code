@@ -14,7 +14,8 @@ namespace Y2016.Day06 {
 
             var result = "Not implemented yet";
 
-            _output.WriteLine($"Day 2 problem 1: {result}");
+            Assert.Equal("tzstqsua", result);
+            _output.WriteLine($"Day 6 problem 1: {result}");
         }
 
         [Fact]
@@ -22,7 +23,8 @@ namespace Y2016.Day06 {
 
             var result = "Not implemented yet";
 
-            _output.WriteLine($"Day 2 problem 2: {result}");
+            Assert.Equal("myregdnr", result);
+            _output.WriteLine($"Day 6 problem 2: {result}");
         }
     }
 }

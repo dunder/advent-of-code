@@ -73,7 +73,7 @@ namespace Y2016.Day02 {
             new Key("2", new Dictionary<char, Func<string>> {
                 {'U', () => "2" },
                 {'R', () => "3" },
-                {'D', () => "2" },
+                {'D', () => "6" },
                 {'L', () => "2" }
             }),
             new Key("3", new Dictionary<char, Func<string>> {
@@ -104,7 +104,7 @@ namespace Y2016.Day02 {
                 {'U', () => "3" },
                 {'R', () => "8" },
                 {'D', () => "B" },
-                {'L', () => "8" }
+                {'L', () => "6" }
             }),
             new Key("8", new Dictionary<char, Func<string>> {
                 {'U', () => "4" },

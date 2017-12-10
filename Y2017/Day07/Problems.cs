@@ -21,6 +21,7 @@ namespace Y2017.Day07 {
 
             var result = Towers.BottomDisc(input);
 
+            Assert.Equal("xegshds", result.Name);
             _output.WriteLine($"Day 7 problem 1: {result.Name}");
         }
 
@@ -30,6 +31,7 @@ namespace Y2017.Day07 {
 
             var result = Towers.FindUnbalanced(input);
 
+            Assert.Equal(299, result);
             _output.WriteLine($"Day 7 problem 2: {result}");
         }
     }

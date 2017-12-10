@@ -17,7 +17,8 @@ namespace Y2016.Day04 {
 
             var result = RoomEncryptor.CountCorrectRoomDescriptors(input);
 
-            _output.WriteLine($"Day 2 problem 1: {result}");
+            Assert.Equal(137896, result);
+            _output.WriteLine($"Day 4 problem 1: {result}");
         }
 
         [Fact]
@@ -26,7 +27,8 @@ namespace Y2016.Day04 {
 
             var result = RoomEncryptor.SectorOf(RoomEncryptor.Decrypt(input));
 
-            _output.WriteLine($"Day 2 problem 2: {result}");
+            Assert.Equal("501", result);
+            _output.WriteLine($"Day 4 problem 2: {result}");
         }
     }
 }
