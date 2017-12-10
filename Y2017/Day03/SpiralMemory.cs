@@ -17,7 +17,7 @@ namespace Y2017.Day03 {
                 int levelSize = (int)(lowerRightCorner - Math.Pow(level, 2));
 
                 if (address <= lowerRightCorner) {
-                    var midpoints = Enumerable.Range((int)(lowerRightCorner - levelSize), levelSize).Where(x => (x - (levelSide + 1) / 2) % (levelSide - 1) == 0);
+                    var midpoints = Enumerable.Range(lowerRightCorner - levelSize, levelSize).Where(x => (x - (levelSide + 1) / 2) % (levelSide - 1) == 0);
                     var distanceToMidpoints = midpoints.Select(x => Math.Abs(x - address));
                     var distanceToNearestMidpoint = distanceToMidpoints.OrderBy(x => x).First();
                     var distance = level + distanceToNearestMidpoint;

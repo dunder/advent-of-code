@@ -75,6 +75,4 @@ namespace Y2016.Day06 {
             Assert.Equal("advent", decoded);
         }
     }
-
-    
 }

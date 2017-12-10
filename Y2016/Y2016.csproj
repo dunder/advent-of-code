@@ -112,6 +112,27 @@
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Day07\" />
+    <Folder Include="Day08\" />
+    <Folder Include="Day09\" />
+    <Folder Include="Day10\" />
+    <Folder Include="Day11\" />
+    <Folder Include="Day12\" />
+    <Folder Include="Day13\" />
+    <Folder Include="Day14\" />
+    <Folder Include="Day15\" />
+    <Folder Include="Day16\" />
+    <Folder Include="Day17\" />
+    <Folder Include="Day18\" />
+    <Folder Include="Day19\" />
+    <Folder Include="Day20\" />
+    <Folder Include="Day21\" />
+    <Folder Include="Day22\" />
+    <Folder Include="Day23\" />
+    <Folder Include="Day24\" />
+    <Folder Include="Day25\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
