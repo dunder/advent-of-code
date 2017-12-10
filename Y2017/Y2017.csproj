@@ -60,31 +60,33 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Day1\Captcha.cs" />
-    <Compile Include="Day1\Problems.cs" />
-    <Compile Include="Day1\Tests.cs" />
-    <Compile Include="Day2\Problems.cs" />
-    <Compile Include="Day2\SpreadSheet.cs" />
-    <Compile Include="Day3\SpiralMemory.cs" />
-    <Compile Include="Day4\PassPhrase.cs" />
-    <Compile Include="Day5\JumpInterrupting.cs" />
-    <Compile Include="Day6\DebuggerMemory.cs" />
-    <Compile Include="Day7\Problems.cs" />
-    <Compile Include="Day7\Tests.cs" />
-    <Compile Include="Day8\Interpreter.cs" />
-    <Compile Include="Day8\Problems.cs" />
-    <Compile Include="Day8\Tests.cs" />
-    <Compile Include="Day9\Problems.cs" />
-    <Compile Include="Day9\Tests.cs" />
-    <Compile Include="Day6\Problems.cs" />
-    <Compile Include="Day6\Tests.cs" />
-    <Compile Include="Day5\Problems.cs" />
-    <Compile Include="Day5\Tests.cs" />
-    <Compile Include="Day2\Tests.cs" />
-    <Compile Include="Day3\Problems.cs" />
-    <Compile Include="Day3\Tests.cs" />
-    <Compile Include="Day4\Problems.cs" />
-    <Compile Include="Day4\Tests.cs" />
+    <Compile Include="Day01\Captcha.cs" />
+    <Compile Include="Day01\Problems.cs" />
+    <Compile Include="Day01\Tests.cs" />
+    <Compile Include="Day02\Problems.cs" />
+    <Compile Include="Day02\SpreadSheet.cs" />
+    <Compile Include="Day03\SpiralMemory.cs" />
+    <Compile Include="Day04\PassPhrase.cs" />
+    <Compile Include="Day05\JumpInterrupting.cs" />
+    <Compile Include="Day06\DebuggerMemory.cs" />
+    <Compile Include="Day07\Problems.cs" />
+    <Compile Include="Day07\Tests.cs" />
+    <Compile Include="Day08\Interpreter.cs" />
+    <Compile Include="Day08\Problems.cs" />
+    <Compile Include="Day08\Tests.cs" />
+    <Compile Include="Day09\Problems.cs" />
+    <Compile Include="Day09\Tests.cs" />
+    <Compile Include="Day06\Problems.cs" />
+    <Compile Include="Day06\Tests.cs" />
+    <Compile Include="Day05\Problems.cs" />
+    <Compile Include="Day05\Tests.cs" />
+    <Compile Include="Day02\Tests.cs" />
+    <Compile Include="Day03\Problems.cs" />
+    <Compile Include="Day03\Tests.cs" />
+    <Compile Include="Day04\Problems.cs" />
+    <Compile Include="Day04\Tests.cs" />
+    <Compile Include="Day10\Problems.cs" />
+    <Compile Include="Day10\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -94,28 +96,28 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Day1\input.txt">
+    <Content Include="Day01\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day2\input.txt">
+    <Content Include="Day02\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day4\input.txt">
+    <Content Include="Day04\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day5\input.txt">
+    <Content Include="Day05\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day6\input.txt">
+    <Content Include="Day06\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day7\input.txt">
+    <Content Include="Day07\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day8\input.txt">
+    <Content Include="Day08\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day9\input.txt">
+    <Content Include="Day09\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -125,6 +127,7 @@
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

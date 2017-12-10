@@ -50,6 +50,7 @@
     <Compile Include="Combinatorics\Variations.cs" />
     <Compile Include="Md5.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StringExtensions.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

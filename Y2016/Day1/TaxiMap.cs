@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Utilities;
 
 namespace Y2016.Day1 {
     public class TaxiMap {

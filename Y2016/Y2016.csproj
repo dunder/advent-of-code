@@ -82,7 +82,6 @@
     <Compile Include="Day2\Tests.cs" />
     <Compile Include="Day1\Direction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
