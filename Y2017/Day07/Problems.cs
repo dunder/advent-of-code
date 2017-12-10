@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day7 {
+namespace Y2017.Day07 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -17,7 +17,7 @@ namespace Y2017.Day7 {
 
         [Fact]
         public void Problem1() {
-            string[] input = File.ReadAllLines(@".\Day7\input.txt");
+            string[] input = File.ReadAllLines(@".\Day07\input.txt");
 
             var result = Towers.BottomDisc(input);
 
@@ -26,7 +26,7 @@ namespace Y2017.Day7 {
 
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day7\input.txt");
+            string[] input = File.ReadAllLines(@".\Day07\input.txt");
 
             var result = Towers.FindUnbalanced(input);
 

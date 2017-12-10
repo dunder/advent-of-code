@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Y2017.Day8 {
+namespace Y2017.Day08 {
     public class Tests {
         [Fact]
         public void Problem1_Example1() {

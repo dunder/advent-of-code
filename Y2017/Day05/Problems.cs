@@ -3,7 +3,7 @@ using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day5 {
+namespace Y2017.Day05 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -14,7 +14,7 @@ namespace Y2017.Day5 {
 
         [Fact]
         public void Problem1() {
-            int[] input = File.ReadAllLines(@".\Day5\input.txt").Select(int.Parse).ToArray();
+            int[] input = File.ReadAllLines(@".\Day05\input.txt").Select(int.Parse).ToArray();
 
             var result = JumpInterrupting.StepsToExit(input);
 
@@ -23,7 +23,7 @@ namespace Y2017.Day5 {
 
         [Fact]
         public void Problem2() {
-            int[] input = File.ReadAllLines(@".\Day5\input.txt").Select(int.Parse).ToArray();
+            int[] input = File.ReadAllLines(@".\Day05\input.txt").Select(int.Parse).ToArray();
 
             var result = JumpInterrupting.StepsToExitNew(input);
 

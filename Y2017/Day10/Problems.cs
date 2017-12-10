@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Utilities;
 using Xunit;
@@ -81,10 +80,8 @@ namespace Y2017.Day10 {
 
         public static string HashAscii(int inputLength, string input) {
             int[] list = Enumerable.Range(0, inputLength).ToArray();
-
             int[] bytes = input.Select(c => (int)c).ToArray();
             int[] standarLengthSuffix = {17, 31, 73, 47, 23};
-
             int[] lengths = bytes.Concat(standarLengthSuffix).ToArray();
 
             int[] sparseHash = HashedList(lengths, list, 64);
@@ -94,12 +91,7 @@ namespace Y2017.Day10 {
                 condencedHash[skip] = (byte) sparseHash.Skip(skip*16).Take(16).Aggregate((a, b) => a ^ b);
             }
 
-            var hex1 = condencedHash[0].ToString("x2");
-            var hex2 = condencedHash[1].ToString("x2");
-            var hex3 = condencedHash[2].ToString("x2");
-            string hash = string.Join("", condencedHash.Select(i => i.ToString("x2")));
-
-            return hash;
+            return string.Join("", condencedHash.Select(i => i.ToString("x2")));
         }
     }
 }

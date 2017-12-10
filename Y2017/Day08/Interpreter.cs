@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Y2017.Day8 {
+namespace Y2017.Day08 {
     public class Interpreter {
 
         public static (int,int) LargestRegisterCount(string[] input) {

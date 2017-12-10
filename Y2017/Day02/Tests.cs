@@ -1,8 +1,6 @@
-﻿using System.Linq.Expressions;
-using System.Numerics;
-using Xunit;
+﻿using Xunit;
 
-namespace Y2017.Day2 {
+namespace Y2017.Day02 {
     public class Tests {
         [Fact]
         public void Problem1_Example1() {

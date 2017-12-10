@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day6 {
+namespace Y2017.Day06 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -16,7 +16,7 @@ namespace Y2017.Day6 {
 
         [Fact]
         public void Problem1() {
-            string input = File.ReadAllText(@".\Day6\input.txt");
+            string input = File.ReadAllText(@".\Day06\input.txt");
             int[] slots = Regex.Replace(input, @"\s+", " ").Split(new []{" "}, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
             var result = DebuggerMemory.CountRedistsToSame(slots);
@@ -26,7 +26,7 @@ namespace Y2017.Day6 {
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day6\input.txt");
+            string input = File.ReadAllText(@".\Day06\input.txt");
             int[] slots = Regex.Replace(input, @"\s+", " ").Split(new[] { " " }, StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToArray();
 
             var result = DebuggerMemory.CountRedistsToSame(slots);

@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Y2017.Day9 {
+namespace Y2017.Day09 {
     public class Tests {
         [Theory]
         [InlineData("{}", 1)]

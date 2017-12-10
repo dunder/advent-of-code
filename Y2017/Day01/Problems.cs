@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day1 {
+namespace Y2017.Day01 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -14,7 +14,7 @@ namespace Y2017.Day1 {
         [Fact]
         public void Problem1() {
 
-            string input = File.ReadAllText(@".\Day1\input.txt");
+            string input = File.ReadAllText(@".\Day01\input.txt");
 
             int result = Captcha.Read(input);
 
@@ -23,7 +23,7 @@ namespace Y2017.Day1 {
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day1\input.txt");
+            string input = File.ReadAllText(@".\Day01\input.txt");
 
             int result = Captcha.ReadHalfway(input);
 

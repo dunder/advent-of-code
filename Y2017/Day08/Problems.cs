@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day8 {
+namespace Y2017.Day08 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -13,7 +13,7 @@ namespace Y2017.Day8 {
 
         [Fact]
         public void Problem1() {
-            string[] input = File.ReadAllLines(@".\Day8\input.txt");
+            string[] input = File.ReadAllLines(@".\Day08\input.txt");
 
             (var highestFinal, _) = Interpreter.LargestRegisterCount(input);
 
@@ -22,7 +22,7 @@ namespace Y2017.Day8 {
 
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day8\input.txt");
+            string[] input = File.ReadAllLines(@".\Day08\input.txt");
 
             (_, var highestStored) = Interpreter.LargestRegisterCount(input);
 

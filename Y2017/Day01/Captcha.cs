@@ -1,6 +1,6 @@
 ﻿using Utilities;
 
-namespace Y2017.Day1 {
+namespace Y2017.Day01 {
     public class Captcha {
         public static int Read(string input) {
             int sum = 0;

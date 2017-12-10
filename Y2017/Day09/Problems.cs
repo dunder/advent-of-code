@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2017.Day9 {
+namespace Y2017.Day09 {
     public class Problems {
 
         private readonly ITestOutputHelper _output;
@@ -17,7 +16,7 @@ namespace Y2017.Day9 {
 
         [Fact]
         public void Problem1() {
-            string input = File.ReadAllText(@".\Day9\input.txt");
+            string input = File.ReadAllText(@".\Day09\input.txt");
 
             var result = GroupParser.CountGroupScore(input); 
 
@@ -26,15 +25,13 @@ namespace Y2017.Day9 {
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day9\input.txt");
+            string input = File.ReadAllText(@".\Day09\input.txt");
 
             var result = GroupParser.CountGroupScore(input);
 
             _output.WriteLine($"Day 9 problem 2: {result.CanceldGarbage}");
         }
     }
-
- 
 
     public class GroupParser {
         public class ParserState {
