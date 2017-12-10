@@ -1,9 +1,7 @@
-﻿using System.IO;
-using System.Linq;
-using Xunit;
+﻿using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day4 {
+namespace Y2016.Day05 {
     public class Problems {
         private readonly ITestOutputHelper _output;
 
@@ -11,21 +9,23 @@ namespace Y2016.Day4 {
             _output = output;
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void Problem1() {
 
-            string[] input = File.ReadAllLines(@".\Day4\input.txt");
+            const string input = "reyedfim";
 
-            var result = RoomEncryptor.CountCorrectRoomDescriptors(input);
+            var result = PasswordGenerator.GenerateParallel(input, 8);
 
             _output.WriteLine($"Day 2 problem 1: {result}");
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day4\input.txt");
+            const string input = "reyedfim";
 
-            var result = RoomEncryptor.SectorOf(RoomEncryptor.Decrypt(input));
+            var result = PasswordGenerator.GenerateNew(input, 8);
 
             _output.WriteLine($"Day 2 problem 2: {result}");
         }

@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day3 {
+namespace Y2016.Day03 {
     public class Problems {
         private readonly ITestOutputHelper _output;
 
@@ -13,7 +13,7 @@ namespace Y2016.Day3 {
         [Fact]
         public void Problem1() {
 
-            string[] input = File.ReadAllLines(@".\Day3\input.txt");
+            string[] input = File.ReadAllLines(@".\Day03\input.txt");
 
             var result = Triangle.CountPossibleTriangles(input);
 
@@ -23,7 +23,7 @@ namespace Y2016.Day3 {
 
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day3\input.txt");
+            string[] input = File.ReadAllLines(@".\Day03\input.txt");
 
             var result = Triangle.CountPossibleTrianglesVertically(input);
 

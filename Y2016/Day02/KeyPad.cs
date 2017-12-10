@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Y2016.Day2 {
+namespace Y2016.Day02 {
     public class KeyPad {
         private Dictionary<string, Key> Keys { get; }
 

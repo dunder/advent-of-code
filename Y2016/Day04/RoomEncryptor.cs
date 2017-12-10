@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Utilities;
 
-namespace Y2016.Day4 {
+namespace Y2016.Day04 {
 
     public class RoomEncryptor {
 

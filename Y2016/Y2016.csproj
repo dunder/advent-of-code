@@ -59,28 +59,28 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Day1\DirectionExtensions.cs" />
-    <Compile Include="Day1\Problems.cs" />
-    <Compile Include="Day1\TaxiMap.cs" />
-    <Compile Include="Day1\Tests.cs" />
-    <Compile Include="Day1\Turn.cs" />
-    <Compile Include="Day1\TurnExtensions.cs" />
-    <Compile Include="Day2\Key.cs" />
-    <Compile Include="Day2\KeyPad.cs" />
-    <Compile Include="Day3\Problems.cs" />
-    <Compile Include="Day3\Tests.cs" />
-    <Compile Include="Day3\Triangle.cs" />
-    <Compile Include="Day4\RoomEncryptor.cs" />
-    <Compile Include="Day5\PasswordGenerator.cs" />
-    <Compile Include="Day5\Problems.cs" />
-    <Compile Include="Day5\Tests.cs" />
-    <Compile Include="Day6\Problems.cs" />
-    <Compile Include="Day6\Tests.cs" />
-    <Compile Include="Day4\Problems.cs" />
-    <Compile Include="Day4\Tests.cs" />
-    <Compile Include="Day2\Problems.cs" />
-    <Compile Include="Day2\Tests.cs" />
-    <Compile Include="Day1\Direction.cs" />
+    <Compile Include="Day01\DirectionExtensions.cs" />
+    <Compile Include="Day01\Problems.cs" />
+    <Compile Include="Day01\TaxiMap.cs" />
+    <Compile Include="Day01\Tests.cs" />
+    <Compile Include="Day01\Turn.cs" />
+    <Compile Include="Day01\TurnExtensions.cs" />
+    <Compile Include="Day02\Key.cs" />
+    <Compile Include="Day02\KeyPad.cs" />
+    <Compile Include="Day03\Problems.cs" />
+    <Compile Include="Day03\Tests.cs" />
+    <Compile Include="Day03\Triangle.cs" />
+    <Compile Include="Day04\RoomEncryptor.cs" />
+    <Compile Include="Day05\PasswordGenerator.cs" />
+    <Compile Include="Day05\Problems.cs" />
+    <Compile Include="Day05\Tests.cs" />
+    <Compile Include="Day06\Problems.cs" />
+    <Compile Include="Day06\Tests.cs" />
+    <Compile Include="Day04\Problems.cs" />
+    <Compile Include="Day04\Tests.cs" />
+    <Compile Include="Day02\Problems.cs" />
+    <Compile Include="Day02\Tests.cs" />
+    <Compile Include="Day01\Direction.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -90,19 +90,19 @@
     <Analyzer Include="..\packages\xunit.analyzers.0.7.0\analyzers\dotnet\cs\xunit.analyzers.dll" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Day1\input.txt">
+    <Content Include="Day01\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day2\input.txt">
+    <Content Include="Day02\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day3\input.txt">
+    <Content Include="Day03\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day4\input.txt">
+    <Content Include="Day04\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day6\input.txt">
+    <Content Include="Day06\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

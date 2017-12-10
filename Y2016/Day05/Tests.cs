@@ -3,7 +3,7 @@ using Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day5 {
+namespace Y2016.Day05 {
     public class Tests {
 
         private readonly ITestOutputHelper _output;

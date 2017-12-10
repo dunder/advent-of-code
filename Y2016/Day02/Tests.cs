@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using Xunit;
+﻿using Xunit;
 
-namespace Y2016.Day2 {
+namespace Y2016.Day02 {
     public class Tests {
         [Fact]
         public void Problem1_Example1() {

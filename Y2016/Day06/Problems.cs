@@ -1,7 +1,7 @@
 ﻿using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day6 {
+namespace Y2016.Day06 {
     public class Problems {
         private readonly ITestOutputHelper _output;
 

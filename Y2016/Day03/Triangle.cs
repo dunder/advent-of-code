@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
 
-namespace Y2016.Day3 {
+namespace Y2016.Day03 {
     public class Triangle {
         public static int CountPossibleTriangles(string[] input) {
             int sum = 0;

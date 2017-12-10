@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using Utilities;
 
-namespace Y2016.Day1 {
+namespace Y2016.Day01 {
     public class TaxiMap {
 
         public static int ShortestPath(Point from, Direction facing, string movements) {

@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day6 {
+namespace Y2016.Day06 {
     public class Tests {
 
         private readonly ITestOutputHelper _output;

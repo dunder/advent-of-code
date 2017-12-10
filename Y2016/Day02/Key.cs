@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Y2016.Day2 {
+namespace Y2016.Day02 {
     public class Key {
         public Key(string name, IDictionary<char, Func<string>> moveCommands) {
             Name = name;

@@ -1,7 +1,7 @@
 ﻿using System.Drawing;
 using Xunit;
 
-namespace Y2016.Day1 {
+namespace Y2016.Day01 {
     public class Tests {
         [Theory]
         [InlineData("R2, L3", 5)]
