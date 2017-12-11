@@ -22,6 +22,7 @@ namespace Y2016.Day07 {
         [Fact]
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day07\input.txt");
+
             var result = Tls.CountAba(input);
 
             Assert.Equal(242, result);

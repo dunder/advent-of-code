@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -25,36 +24,40 @@ namespace Y2016.Day07 {
         }
 
         public static bool IsAreaBroadcastAccessor(string candidate) {
-            var hypernetPattern = @"\[[a-z]+\]";
-            var hypernetFree = string.Join(" ", Regex.Split(candidate, hypernetPattern));
+            var hypernetRegex = new Regex(@"\[[a-z]+\]");
+            var hypernetFree = string.Join(" ", hypernetRegex.Split(candidate));
 
+            var abas = ReadAbas(hypernetFree);
 
-
-            var abs = Regex.Matches(hypernetFree, @"([a-z])(?!\1)[a-z](?=\1)");
-            if (abs.Count == 0) {
+            if (abas.Count == 0) {
                 return false;
             }
 
-            var hypernetSequences = Regex.Matches(candidate, @"\[[a-z]+\]");
+            var hypernetSequences = hypernetRegex.Matches(candidate);
             var hypernetSet = new HashSet<string>();
 
             foreach (Match hypernetSequence in hypernetSequences) {
                 var trimmed = hypernetSequence.Value.Trim('[', ']');
-                var abas =  Regex.Matches(trimmed, @"([a-z])(?!\1)[a-z](?=\1)");
-                foreach (Match abaMatch in abas) {
-                    var aba = abaMatch.Value;
-                    hypernetSet.Add(new string(new [] {aba[0], aba[1], aba[0]}));
+                var babs = ReadAbas(trimmed);
+                foreach (var bab in babs) {
+                    hypernetSet.Add(new string(new [] {bab[0], bab[1], bab[0]}));
                 }
             }
 
-            var invertedSet = new HashSet<string>();
-            foreach (Match abaMatch in abs) {
-                var aba = abaMatch.Value;
-                var inverted = new string(new []{ aba[1], aba[0], aba[1]});
-                invertedSet.Add(inverted);
-            }
-
+            var invertedSet = new HashSet<string>(abas.Select(aba => new string(new[] { aba[1], aba[0], aba[1] })));
+            
             return hypernetSet.Overlaps(invertedSet);
+        }
+
+        private static List<string> ReadAbas(string input) {
+            List<string> abs = new List<string>();
+            for (int i = 0; i < input.Length - 2; i++) {
+                var part = input.Substring(i, 3);
+                if (part.All(char.IsLetter) && part[0] != part[1] && part[0] == part[2]) {
+                    abs.Add(part);
+                }
+            }
+            return abs;
         }
 
         private static bool IsAbba(string candidate) {
