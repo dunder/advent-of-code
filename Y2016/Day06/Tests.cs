@@ -44,7 +44,7 @@ namespace Y2016.Day06 {
                 "enarar"
             };
 
-            var decoded = Problems.SignalDecoder.Decode(input, Problems.SignalDecoder.Frequency.Most);
+            var decoded = SignalDecoder.Decode(input, SignalDecoder.Frequency.Most);
 
             Assert.Equal("easter", decoded);
         }
@@ -70,7 +70,7 @@ namespace Y2016.Day06 {
                 "enarar"
             };
 
-            var decoded = Problems.SignalDecoder.Decode(input, Problems.SignalDecoder.Frequency.Least);
+            var decoded = SignalDecoder.Decode(input, SignalDecoder.Frequency.Least);
 
             Assert.Equal("advent", decoded);
         }

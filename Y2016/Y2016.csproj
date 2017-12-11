@@ -75,12 +75,16 @@
     <Compile Include="Day05\Problems.cs" />
     <Compile Include="Day05\Tests.cs" />
     <Compile Include="Day06\Problems.cs" />
+    <Compile Include="Day06\SignalDecoder.cs" />
     <Compile Include="Day06\Tests.cs" />
     <Compile Include="Day04\Problems.cs" />
     <Compile Include="Day04\Tests.cs" />
     <Compile Include="Day02\Problems.cs" />
     <Compile Include="Day02\Tests.cs" />
     <Compile Include="Day01\Direction.cs" />
+    <Compile Include="Day07\Problems.cs" />
+    <Compile Include="Day07\Tests.cs" />
+    <Compile Include="Day07\Tls.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -105,6 +109,9 @@
     <Content Include="Day06\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Day07\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
@@ -113,7 +120,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Day07\" />
     <Folder Include="Day08\" />
     <Folder Include="Day09\" />
     <Folder Include="Day10\" />

@@ -2,7 +2,7 @@
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Y2016.Day06 {
+namespace Y2016.Day07 {
     public class Problems {
         private readonly ITestOutputHelper _output;
 
@@ -12,19 +12,19 @@ namespace Y2016.Day06 {
 
         [Fact]
         public void Problem1() {
-            string[] input = File.ReadAllLines(@".\Day06\input.txt");
-            var result = SignalDecoder.Decode(input, SignalDecoder.Frequency.Most);
+            string[] input = File.ReadAllLines(@".\Day07\input.txt");
+            int result = Tls.CountAbba(input);
 
-            Assert.Equal("tzstqsua", result);
+            Assert.Equal(110, result);
             _output.WriteLine($"Day 6 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day06\input.txt");
-            var result = SignalDecoder.Decode(input, SignalDecoder.Frequency.Least);
+            string[] input = File.ReadAllLines(@".\Day07\input.txt");
+            var result = Tls.CountAba(input);
 
-            Assert.Equal("myregdnr", result);
+            Assert.Equal(242, result);
             _output.WriteLine($"Day 6 problem 2: {result}");
         }
     }
