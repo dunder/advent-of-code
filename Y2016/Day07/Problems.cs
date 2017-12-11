@@ -16,7 +16,7 @@ namespace Y2016.Day07 {
             int result = Tls.CountAbba(input);
 
             Assert.Equal(110, result);
-            _output.WriteLine($"Day 6 problem 1: {result}");
+            _output.WriteLine($"Day 7 problem 1: {result}");
         }
 
         [Fact]
@@ -25,7 +25,7 @@ namespace Y2016.Day07 {
             var result = Tls.CountAba(input);
 
             Assert.Equal(242, result);
-            _output.WriteLine($"Day 6 problem 2: {result}");
+            _output.WriteLine($"Day 7 problem 2: {result}");
         }
     }
 }
