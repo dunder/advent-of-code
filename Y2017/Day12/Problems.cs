@@ -30,45 +30,27 @@ namespace Y2017.Day12 {
 
             var result = MemoryBank.CountGroups(input);
 
-            _output.WriteLine($"Day 12 problem 2: {result}"); // not 2000
+            _output.WriteLine($"Day 12 problem 2: {result}");
         }
     }
 
     public static class MemoryBank {
         public static int CountConnectedTo0(string[] input) {
+            var connections = ReadConnections(input);
 
-            var connections = new Dictionary<string, List<string>>();
+            return 1 + connections.Count(kvp => !kvp.Key.Equals("0") && kvp.Key.DepthFirstWithVisited(n => connections[n]).visited.Contains("0"));
+        }
 
-            foreach (var line in input) {
-                var parts = Regex.Split(line, @" <-> ");
-                var id = parts[0];
-                connections.Add(id, parts[1].SplitOnCommaSpaceSeparated().ToList());
-            }
-
-            int connection0Count = 0;
-            foreach (var connection in connections) {
-                if (connection.Key == "0") {
-                    connection0Count++;
-                }
-                else {
-                    (_, var visited) = connection.Key.DepthFirstWithVisited(c => connections[c]);
-                    if (visited.Contains("0")) {
-                        connection0Count++;
-                    }
-                }
-            }
-
-            return connection0Count;
+        private static Dictionary<string, List<string>> ReadConnections(string[] input) {
+            var connections = (from line in input
+                    let parts = Regex.Split(line, @" <-> ")
+                    select new {Id = parts[0], Connections = parts[1].SplitOnCommaSpaceSeparated().ToList()})
+                .ToDictionary(y => y.Id, z => z.Connections);
+            return connections;
         }
 
         public static int CountGroups(string[] input) {
-            var connections = new Dictionary<string, List<string>>();
-
-            foreach (var line in input) {
-                var parts = Regex.Split(line, @" <-> ");
-                var id = parts[0];
-                connections.Add(id, parts[1].SplitOnCommaSpaceSeparated().ToList());
-            }
+            var connections = ReadConnections(input);
 
             int counter = 0;
             var grouped = new HashSet<string>();
