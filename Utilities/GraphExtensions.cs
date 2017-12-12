@@ -84,7 +84,7 @@ namespace Utilities {
 
                 yield return current;
 
-                var neighbours = Enumerable.Where<T>(graph.GetNeighbours(current), n => !visited.Contains(n));
+                var neighbours = graph.GetNeighbours(current).Where(n => !visited.Contains(n));
 
                 // If you don't care about the left-to-right order, remove the Reverse
                 foreach (var neighbour in neighbours.Reverse()) {
