@@ -53,13 +53,14 @@ namespace Y2017.Day12 {
             var connections = ReadConnections(input);
 
             int counter = 0;
-            var grouped = new HashSet<string>();
-            foreach (var kvp in connections) {
-                (_, var visited) = kvp.Key.DepthFirstWithVisited(c => connections[c]);
-                var alreadyVisited = new HashSet<string>(visited);
-                alreadyVisited.IntersectWith(grouped);
-                if (!alreadyVisited.Any()) {
-                    grouped.UnionWith(visited);
+
+            HashSet<string> groupedSet = new HashSet<string>();
+
+            var visitedSets = connections.Select(kvp => new HashSet<string>(kvp.Key.DepthFirstWithVisited(c => connections[c]).visited));
+
+            foreach (var visited in visitedSets) {
+                if (!visited.IsSubsetOf(groupedSet)) {
+                    groupedSet.UnionWith(visited);
                     counter++;
                 }
             }
