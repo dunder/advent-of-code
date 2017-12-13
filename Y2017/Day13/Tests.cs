@@ -11,7 +11,7 @@ namespace Y2017.Day13 {
                 "4: 4",
                 "6: 4"
             };
-            var severity = Problems.Firewall.CountSeverity(input);
+            var severity = Firewall.CountSeverity(input);
 
             Assert.Equal(24, severity);
         }
@@ -25,7 +25,7 @@ namespace Y2017.Day13 {
                 "4: 4",
                 "6: 4"
             };
-            var delay = Problems.Firewall.DelayToSafe(input);
+            var delay = Firewall.DelayToSafe(input);
 
             Assert.Equal(10, delay);
         }
