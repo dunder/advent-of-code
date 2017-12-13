@@ -74,6 +74,7 @@
     <Compile Include="Day08\Interpreter.cs" />
     <Compile Include="Day08\Problems.cs" />
     <Compile Include="Day08\Tests.cs" />
+    <Compile Include="Day09\GroupParser.cs" />
     <Compile Include="Day09\Problems.cs" />
     <Compile Include="Day09\Tests.cs" />
     <Compile Include="Day06\Problems.cs" />
@@ -86,11 +87,15 @@
     <Compile Include="Day04\Problems.cs" />
     <Compile Include="Day04\Tests.cs" />
     <Compile Include="Day10\Problems.cs" />
+    <Compile Include="Day10\StringHash.cs" />
     <Compile Include="Day10\Tests.cs" />
+    <Compile Include="Day11\HexagonPath.cs" />
     <Compile Include="Day11\Problems.cs" />
     <Compile Include="Day11\Tests.cs" />
+    <Compile Include="Day12\MemoryBank.cs" />
     <Compile Include="Day12\Problems.cs" />
     <Compile Include="Day12\Tests.cs" />
+    <Compile Include="Day13\Firewall.cs" />
     <Compile Include="Day13\Problems.cs" />
     <Compile Include="Day13\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
