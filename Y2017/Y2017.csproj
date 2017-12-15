@@ -100,6 +100,9 @@
     <Compile Include="Day13\Tests.cs" />
     <Compile Include="Day14\Problems.cs" />
     <Compile Include="Day14\Tests.cs" />
+    <Compile Include="Day15\Generator.cs" />
+    <Compile Include="Day15\Problems.cs" />
+    <Compile Include="Day15\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +153,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Day15\" />
     <Folder Include="Day16\" />
     <Folder Include="Day17\" />
     <Folder Include="Day18\" />
