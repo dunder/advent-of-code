@@ -1,8 +1,8 @@
 ﻿using Xunit;
-using Y2017.Day14;
 
 namespace Y2017.Day15 {
     public class Tests {
+        [Trait("Category", "LongRunning")]
         [Fact]
         public static void Problem1_Example() {
 
@@ -11,6 +11,7 @@ namespace Y2017.Day15 {
             Assert.Equal(588, count);
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public static void Problem2_Example() {
 
