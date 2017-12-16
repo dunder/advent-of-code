@@ -103,6 +103,8 @@
     <Compile Include="Day15\Generator.cs" />
     <Compile Include="Day15\Problems.cs" />
     <Compile Include="Day15\Tests.cs" />
+    <Compile Include="Day16\Problems.cs" />
+    <Compile Include="Day16\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -145,6 +147,9 @@
     <Content Include="Day13\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Day16\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
@@ -153,7 +158,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Day16\" />
     <Folder Include="Day17\" />
     <Folder Include="Day18\" />
     <Folder Include="Day19\" />

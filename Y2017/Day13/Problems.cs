@@ -3,7 +3,7 @@ using Xunit;
 using Xunit.Abstractions;
 
 namespace Y2017.Day13 {
-    public partial class Problems {
+    public class Problems {
 
         private readonly ITestOutputHelper _output;
 
