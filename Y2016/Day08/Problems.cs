@@ -18,20 +18,21 @@ namespace Y2016.Day08 {
         public void Problem1() {
             string[] input = File.ReadAllLines(@".\Day08\input.txt");
 
-            int result = new Display(50, 6).CountPixelsLit(input);
+            int result = new Display(6, 50).CountPixelsLit(input);
 
             Assert.Equal(123, result);
-            _output.WriteLine($"Day 7 problem 1: {result}");
+            _output.WriteLine($"Day 8 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day08\input.txt");
 
-            var result = "";
+            var display = new Display(6, 50);
+            display.SendInstructions(input);
+            var result = display.Print();
 
-            Assert.Equal("AFBUPZBJPS", result);
-            _output.WriteLine($"Day 7 problem 2: {result}");
+            _output.WriteLine($"Day 8 problem 2: {Environment.NewLine}{result}");  // AFBUPZBJPS
         }
     }
 
@@ -42,7 +43,13 @@ namespace Y2016.Day08 {
         }
 
         public int CountPixelsLit(string[] input) {
+            SendInstructions(input);
+            return (from bool pixel in _display
+                    where pixel
+                    select pixel).Count();
+        }
 
+        public void SendInstructions(string[] input) {
             foreach (var line in input) {
                 switch (line) {
                     case var rect when line.Contains("rect"):
@@ -58,10 +65,8 @@ namespace Y2016.Day08 {
                         throw new InvalidOperationException($"Unexpected instruction: {line}");
                 }
             }
-            return (from bool pixel in _display
-                    where pixel
-                    select pixel).Count();
         }
+
 
         public void CreateRectangle(string instruction) {
             var dimension = instruction.Substring("rect ".Length).Split('x');
