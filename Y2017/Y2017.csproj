@@ -103,8 +103,27 @@
     <Compile Include="Day15\Generator.cs" />
     <Compile Include="Day15\Problems.cs" />
     <Compile Include="Day15\Tests.cs" />
+    <Compile Include="Day16\Dancing.cs" />
     <Compile Include="Day16\Problems.cs" />
     <Compile Include="Day16\Tests.cs" />
+    <Compile Include="Day17\Problems.cs" />
+    <Compile Include="Day17\Tests.cs" />
+    <Compile Include="Day18\Problems.cs" />
+    <Compile Include="Day18\Tests.cs" />
+    <Compile Include="Day19\Problems.cs" />
+    <Compile Include="Day19\Tests.cs" />
+    <Compile Include="Day20\Problems.cs" />
+    <Compile Include="Day20\Tests.cs" />
+    <Compile Include="Day21\Problems.cs" />
+    <Compile Include="Day21\Tests.cs" />
+    <Compile Include="Day22\Problems.cs" />
+    <Compile Include="Day22\Tests.cs" />
+    <Compile Include="Day23\Problems.cs" />
+    <Compile Include="Day23\Tests.cs" />
+    <Compile Include="Day24\Problems.cs" />
+    <Compile Include="Day24\Tests.cs" />
+    <Compile Include="Day25\Problems.cs" />
+    <Compile Include="Day25\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -150,6 +169,33 @@
     <Content Include="Day16\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Day17\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day18\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day19\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day20\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day21\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day22\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day23\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day24\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Day25\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
@@ -157,17 +203,7 @@
       <Name>Utilities</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Day17\" />
-    <Folder Include="Day18\" />
-    <Folder Include="Day19\" />
-    <Folder Include="Day20\" />
-    <Folder Include="Day21\" />
-    <Folder Include="Day22\" />
-    <Folder Include="Day23\" />
-    <Folder Include="Day24\" />
-    <Folder Include="Day25\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
