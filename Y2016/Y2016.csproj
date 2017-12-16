@@ -88,6 +88,7 @@
     <Compile Include="Day08\Display.cs" />
     <Compile Include="Day08\Problems.cs" />
     <Compile Include="Day08\Tests.cs" />
+    <Compile Include="Day09\Compresser.cs" />
     <Compile Include="Day09\Problems.cs" />
     <Compile Include="Day09\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

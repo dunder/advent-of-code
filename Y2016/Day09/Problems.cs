@@ -12,8 +12,8 @@ namespace Y2016.Day09 {
 
         [Fact]
         public void Problem1() {
-            string[] input = File.ReadAllLines(@".\Day09\input.txt");
-            int result = 0;
+            string input = File.ReadAllText(@".\Day09\input.txt");
+            int result = Compresser.Compress(input).Length;
 
             Assert.Equal(138735, result);
             _output.WriteLine($"Day 9 problem 1: {result}");
@@ -21,7 +21,7 @@ namespace Y2016.Day09 {
 
         [Fact]
         public void Problem2() {
-            string[] input = File.ReadAllLines(@".\Day09\input.txt");
+            string input = File.ReadAllText(@".\Day09\input.txt");
 
             var result = 0;
 
