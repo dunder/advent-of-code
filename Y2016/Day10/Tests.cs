@@ -15,7 +15,7 @@ namespace Y2016.Day10 {
 
             var bot = Robots.BotComparing(input, 5, 2);
 
-            Assert.Equal();
+            Assert.Equal(2, bot);
         }
     }
 }

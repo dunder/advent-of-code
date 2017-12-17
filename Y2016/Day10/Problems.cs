@@ -16,7 +16,7 @@ namespace Y2016.Day10 {
         [Fact]
         public void Problem1() {
             string[] input = File.ReadAllLines(@".\Day10\input.txt");
-            int result = Robots.BotComparing(input);
+            int result = 0; //Robots.BotComparing(input);
 
             Assert.Equal(161, result);
             _output.WriteLine($"Day 10 problem 1: {result}");
@@ -74,6 +74,8 @@ namespace Y2016.Day10 {
                     }
                 }
             }
+
+            return 0;
         }
 
         private class Bot {
