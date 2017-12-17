@@ -169,9 +169,6 @@
     <Content Include="Day16\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Day17\input.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="Day18\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

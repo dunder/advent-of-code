@@ -91,6 +91,8 @@
     <Compile Include="Day09\Compresser.cs" />
     <Compile Include="Day09\Problems.cs" />
     <Compile Include="Day09\Tests.cs" />
+    <Compile Include="Day10\Problems.cs" />
+    <Compile Include="Day10\Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +126,9 @@
     <Content Include="Day09\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Day10\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Utilities\Utilities.csproj">
@@ -132,7 +137,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Day10\" />
     <Folder Include="Day11\" />
     <Folder Include="Day12\" />
     <Folder Include="Day13\" />

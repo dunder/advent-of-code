@@ -5,7 +5,9 @@ namespace Y2017.Day17 {
         [Fact]
         public static void Problem1_Example() {
 
-            
+            var result = CircularBuffer.ValueAfter(3, 2017);
+
+            Assert.Equal(638, result);
         }
     }
 }
