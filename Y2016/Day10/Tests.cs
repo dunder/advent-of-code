@@ -13,7 +13,7 @@ namespace Y2016.Day10 {
                 "value 2 goes to bot 2                           "
             };
 
-            var bot = Robots.BotComparing(input, 5, 2);
+            var bot = Robots.FindBot(input, 2, 5);
 
             Assert.Equal(2, bot);
         }

@@ -108,6 +108,7 @@
     <Compile Include="Day16\Tests.cs" />
     <Compile Include="Day17\Problems.cs" />
     <Compile Include="Day17\Tests.cs" />
+    <Compile Include="Day18\DuetAssembly.cs" />
     <Compile Include="Day18\Problems.cs" />
     <Compile Include="Day18\Tests.cs" />
     <Compile Include="Day19\Problems.cs" />

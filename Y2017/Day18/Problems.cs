@@ -13,18 +13,18 @@ namespace Y2017.Day18 {
 
         [Fact]
         public void Problem1() {
-            string input = File.ReadAllText(@".\Day18\input.txt");
+            string[] input = File.ReadAllLines(@".\Day18\input.txt");
 
-            var result = "";
+            var result = DuetAssembly.RecoveredFrequency(input);
 
-            _output.WriteLine($"Day 18 problem 1: {result}");
+            _output.WriteLine($"Day 18 problem 1: {result}");  // not: -3989
         }
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day18\input.txt");
+            string[] input = File.ReadAllLines(@".\Day18\input.txt");
 
-            var result = "";
+            var result = DuetAssembly.DualCount(input);
 
             _output.WriteLine($"Day 18 problem 2: {result}");
         }
