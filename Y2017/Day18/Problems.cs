@@ -17,6 +17,7 @@ namespace Y2017.Day18 {
 
             var result = DuetAssembly.RecoveredFrequency(input);
 
+            Assert.Equal(4601, result);
             _output.WriteLine($"Day 18 problem 1: {result}");  // not: -3989
         }
 
@@ -24,8 +25,9 @@ namespace Y2017.Day18 {
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day18\input.txt");
 
-            var result = DuetAssembly.DualCount(input);
+            var result = DuetAssembly.DualCount2(input);
 
+            Assert.Equal(6858, result);
             _output.WriteLine($"Day 18 problem 2: {result}");
         }
     }

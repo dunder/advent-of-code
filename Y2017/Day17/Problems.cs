@@ -18,6 +18,7 @@ namespace Y2017.Day17 {
 
             var result = CircularBuffer.ValueAfter(input, 2017);
 
+            Assert.Equal(1642, result);
             _output.WriteLine($"Day 17 problem 1: {result}");
         }
 
@@ -27,6 +28,7 @@ namespace Y2017.Day17 {
 
             var result = CircularBuffer.ValueAfterZero(input, 50_000_000);
 
+            Assert.Equal(33601318, result);
             _output.WriteLine($"Day 17 problem 2: {result}");
         }
     }
