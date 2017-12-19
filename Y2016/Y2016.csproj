@@ -81,7 +81,6 @@
     <Compile Include="Day04\Tests.cs" />
     <Compile Include="Day02\Problems.cs" />
     <Compile Include="Day02\Tests.cs" />
-    <Compile Include="Day01\Direction.cs" />
     <Compile Include="Day07\Problems.cs" />
     <Compile Include="Day07\Tests.cs" />
     <Compile Include="Day07\Tls.cs" />

@@ -15,7 +15,7 @@ namespace Y2017.Day19 {
         public void Problem1() {
             string[] input = File.ReadAllLines(@".\Day19\input.txt");
 
-            var result = Tubes.LettersOnWayOut(input);
+            var result = RoutingDiagram.LettersInRoute(input);
 
             Assert.Equal("SXPZDFJNRL", result);
             _output.WriteLine($"Day 19 problem 1: {result}");
@@ -25,7 +25,7 @@ namespace Y2017.Day19 {
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day19\input.txt");
 
-            var result = Tubes.CountSteps(input);
+            var result = RoutingDiagram.CountSteps(input);
 
             Assert.Equal(18126, result);
             _output.WriteLine($"Day 19 problem 2: {result}");

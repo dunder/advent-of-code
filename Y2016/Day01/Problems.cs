@@ -1,5 +1,6 @@
 ﻿using System.Drawing;
 using System.IO;
+using Utilities.MapGeometry;
 using Xunit;
 using Xunit.Abstractions;
 

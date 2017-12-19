@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Utilities.MapGeometry;
 using Xunit;
 
 namespace Y2016.Day01 {

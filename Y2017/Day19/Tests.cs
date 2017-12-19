@@ -14,7 +14,7 @@ namespace Y2017.Day19 {
                 "    +B-+  +--+"
             };
 
-            string letters = Tubes.LettersOnWayOut(input);
+            string letters = RoutingDiagram.LettersInRoute(input);
 
             Assert.Equal("ABCDEF", letters);
         }
@@ -30,7 +30,7 @@ namespace Y2017.Day19 {
                 "    +B-+  +--+"
             };
 
-            long count = Tubes.CountSteps(input);
+            long count = RoutingDiagram.CountSteps(input);
 
             Assert.Equal(38, count);
         }
