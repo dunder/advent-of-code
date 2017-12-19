@@ -13,20 +13,22 @@ namespace Y2017.Day19 {
 
         [Fact]
         public void Problem1() {
-            string input = File.ReadAllText(@".\Day18\input.txt");
+            string[] input = File.ReadAllLines(@".\Day19\input.txt");
 
-            var result = "";
+            var result = Tubes.LettersOnWayOut(input);
 
-            _output.WriteLine($"Day 18 problem 1: {result}");
+            Assert.Equal("SXPZDFJNRL", result);
+            _output.WriteLine($"Day 19 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day18\input.txt");
+            string[] input = File.ReadAllLines(@".\Day19\input.txt");
 
-            var result = "";
+            var result = Tubes.CountSteps(input);
 
-            _output.WriteLine($"Day 18 problem 2: {result}");
+            Assert.Equal(18126, result);
+            _output.WriteLine($"Day 19 problem 2: {result}");
         }
     }
 }

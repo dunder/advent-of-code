@@ -111,8 +111,11 @@
     <Compile Include="Day18\DuetAssembly.cs" />
     <Compile Include="Day18\Problems.cs" />
     <Compile Include="Day18\Tests.cs" />
+    <Compile Include="Day19\Direction.cs" />
+    <Compile Include="Day19\PointExtensions.cs" />
     <Compile Include="Day19\Problems.cs" />
     <Compile Include="Day19\Tests.cs" />
+    <Compile Include="Day19\Tubes.cs" />
     <Compile Include="Day20\Problems.cs" />
     <Compile Include="Day20\Tests.cs" />
     <Compile Include="Day21\Problems.cs" />

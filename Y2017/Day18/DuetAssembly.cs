@@ -16,7 +16,6 @@ namespace Y2017.Day18 {
                 var multiInstruction = new Regex(@"(set|add|mul|mod|jgz) ([a-z]|-?\d+) ([a-z]|-?\d+)");
 
                 switch (instruction) {
-
                     case var single when singleRegisterInstruction.IsMatch(instruction):                        
                         var singleMatch = singleRegisterInstruction.Match(single);
                         var singleCommand = singleMatch.Groups[1].Value;
@@ -74,10 +73,9 @@ namespace Y2017.Day18 {
         }
         
 
-        public static long DualCount2(string[] input) {
+        public static long DualSendCount(string[] input) {
             Dictionary<string, long> registersProgram0 = new Dictionary<string, long>();
-            Dictionary<string, long> registersProgram1 = new Dictionary<string, long>();
-            registersProgram1.Add("p", 1);
+            Dictionary<string, long> registersProgram1 = new Dictionary<string, long> {{"p", 1}};
 
             Queue<long> messagesFrom0To1 = new Queue<long>();
             Queue<long> messagesFrom1To0 = new Queue<long>();
@@ -85,14 +83,14 @@ namespace Y2017.Day18 {
             long[] instructionCounters = new long[2];
 
             do {
-                DualInterpreter2(0, input, instructionCounters, registersProgram0, messagesFrom0To1, messagesFrom1To0, sendCounters);
-                DualInterpreter2(1, input, instructionCounters, registersProgram1, messagesFrom1To0, messagesFrom0To1, sendCounters);
+                DualInterpreter(0, input, instructionCounters, registersProgram0, messagesFrom0To1, messagesFrom1To0, sendCounters);
+                DualInterpreter(1, input, instructionCounters, registersProgram1, messagesFrom1To0, messagesFrom0To1, sendCounters);
             } while (messagesFrom1To0.Any() || messagesFrom0To1.Any());
 
             return sendCounters[1];
         }
 
-        private static void DualInterpreter2(int id, 
+        private static void DualInterpreter(int id, 
                 string[] instructions, 
                 long[] instructionCounters, 
                 Dictionary<string, long> registers,

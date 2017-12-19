@@ -25,7 +25,7 @@ namespace Y2017.Day18 {
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day18\input.txt");
 
-            var result = DuetAssembly.DualCount2(input);
+            var result = DuetAssembly.DualSendCount(input);
 
             Assert.Equal(6858, result);
             _output.WriteLine($"Day 18 problem 2: {result}");
