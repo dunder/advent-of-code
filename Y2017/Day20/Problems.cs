@@ -21,7 +21,8 @@ namespace Y2017.Day20 {
 
             var result = Particles.ClosestToOrigo(input);
 
-            _output.WriteLine($"Day 20 problem 1: {result}"); // not 98, 493 is too high
+            Assert.Equal(119, result);
+            _output.WriteLine($"Day 20 problem 1: {result}");
         }
 
         [Fact]
@@ -30,6 +31,7 @@ namespace Y2017.Day20 {
 
             var result = Particles.LeftAfterCollisions(input);
 
+            Assert.Equal(471, result);
             _output.WriteLine($"Day 20 problem 2: {result}");
         }
     }
