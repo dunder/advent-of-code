@@ -178,5 +178,55 @@ namespace Y2017.Day18 {
                 registers[register] = value;
             }
         }
+
+        public static int GetIntValue(this Dictionary<string, int> registers, string register) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, 0);
+            }
+            return registers[register];
+        }
+
+        public static void SetIntValue(this Dictionary<string, int> registers, string register, int value) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, value);
+            }
+            else {
+                registers[register] = value;
+            }
+        }
+
+        public static int GetByteValue(this Dictionary<string, byte> registers, string register) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, 0);
+            }
+            
+            return registers[register];
+        }
+
+        public static void SetByteValue(this Dictionary<string, byte> registers, string register, byte value) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, value);
+            }
+            else {
+                registers[register] = value;
+            }
+        }
+
+        public static sbyte GetSbyteValue(this Dictionary<string, sbyte> registers, string register) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, 0);
+            }
+            
+            return registers[register];
+        }
+
+        public static void SetSbyteValue(this Dictionary<string, sbyte> registers, string register, sbyte value) {
+            if (!registers.ContainsKey(register)) {
+                registers.Add(register, value);
+            }
+            else {
+                registers[register] = value;
+            }
+        }
     }
 }
