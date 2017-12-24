@@ -52,11 +52,15 @@
     <Compile Include="Combinatorics\Permutations.cs" />
     <Compile Include="Combinatorics\SmallPrimeUtility.cs" />
     <Compile Include="Combinatorics\Variations.cs" />
-    <Compile Include="GraphExtensions.cs" />
-    <Compile Include="IGraph.cs" />
+    <Compile Include="Grid\Grid.cs" />
+    <Compile Include="Grid\GridExtensions.cs" />
+    <Compile Include="Grid\GridParser.cs" />
+    <Compile Include="MapGeometry\Turn.cs" />
+    <Compile Include="Tree\GraphExtensions.cs" />
+    <Compile Include="Tree\IGraph.cs" />
     <Compile Include="MapGeometry\Direction.cs" />
     <Compile Include="MapGeometry\PointExtensions.cs" />
-    <Compile Include="Md5.cs" />
+    <Compile Include="Crypto\Md5.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StringExtensions.cs" />
   </ItemGroup>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Utilities;
+using Utilities.Tree;
 using Xunit;
 using Xunit.Abstractions;
 using Y2017.Day10;

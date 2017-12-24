@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using Utilities;
+using Utilities.Crypto;
 
 namespace Y2016.Day05 {
     public static class PasswordGenerator {

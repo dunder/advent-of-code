@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Utilities.Grid;
 using Xunit;
 
 namespace Y2017.Day21 {
@@ -18,8 +19,8 @@ namespace Y2017.Day21 {
         [Fact]
         public void TestEquals() {
 
-            var pixelSet = new PixelSet(".#./..#/###");
-            var duplicate = new PixelSet(".#./..#/###");
+            var pixelSet = new Grid(".#./..#/###");
+            var duplicate = new Grid(".#./..#/###");
 
             Assert.True(pixelSet.Equals(duplicate));
         }
@@ -27,11 +28,11 @@ namespace Y2017.Day21 {
         [Fact]
         public void Flip() {
 
-            var pixelSet = new PixelSet(".#./..#/###");
+            var pixelSet = new Grid(".#./..#/###");
 
             var flipped = pixelSet.Flip();
 
-            var expected = new PixelSet(".#./#../###");
+            var expected = new Grid(".#./#../###");
 
             Assert.Equal(expected, flipped);
         }
@@ -39,11 +40,11 @@ namespace Y2017.Day21 {
         [Fact]
         public void Rotate() {
 
-            var pixelSet = new PixelSet(".#./..#/###");
+            var pixelSet = new Grid(".#./..#/###");
             
             var rotated = pixelSet.Rotate();
 
-            var expected = new PixelSet("#../#.#/##.");
+            var expected = new Grid("#../#.#/##.");
 
             Assert.Equal(expected, rotated);
         }
@@ -51,10 +52,10 @@ namespace Y2017.Day21 {
         [Fact]
         public void ConstructorList() {
             
-            var pixelSet1 = new PixelSet("##./#../...");
-            var pixelSet2 = new PixelSet("##./#../...");
-            var pixelSet3 = new PixelSet("##./#../...");
-            var pixelSet4 = new PixelSet("##./#../...");
+            var pixelSet1 = new PixelSet(new Grid("##./#../..."));
+            var pixelSet2 = new PixelSet(new Grid("##./#../..."));
+            var pixelSet3 = new PixelSet(new Grid("##./#../..."));
+            var pixelSet4 = new PixelSet(new Grid("##./#../..."));
 
             var pixelSet = new PixelSet(new List<PixelSet> {
                 pixelSet1,
@@ -63,7 +64,7 @@ namespace Y2017.Day21 {
                 pixelSet4,
             });
 
-            var expectedPixelSet = new PixelSet("##.##./#..#../....../##.##./#..#../......");
+            var expectedPixelSet = new PixelSet(new Grid("##.##./#..#../....../##.##./#..#../......"));
 
             Assert.Equal(expectedPixelSet, pixelSet);
         }
@@ -71,7 +72,7 @@ namespace Y2017.Day21 {
         [Fact]
         public void Expand() {
 
-            var pixelSet = new PixelSet(".#./..#/###");
+            var pixelSet = new PixelSet(new Grid(".#./..#/###"));
 
             string[] input = {
                 "../.# => ##./#../...",
@@ -80,7 +81,7 @@ namespace Y2017.Day21 {
             var rules = PixelArt.ReadRules(input);
             var rotated = pixelSet.Expand(rules);
 
-            var expected = new PixelSet("#..#/..../..../#..#");
+            var expected = new PixelSet(new Grid("#..#/..../..../#..#"));
 
             Assert.Equal(expected, rotated);
 

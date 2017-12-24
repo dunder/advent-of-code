@@ -2,7 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 
-namespace Utilities {
+namespace Utilities.Crypto {
     public class Md5 {
         public static string Hash(string source) {
             using (MD5 md5 = MD5.Create()) {

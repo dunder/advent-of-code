@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Utilities;
+using Utilities.Grid;
 using Utilities.MapGeometry;
 
 namespace Y2016.Day01 {

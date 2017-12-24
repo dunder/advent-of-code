@@ -1,4 +1,6 @@
 ﻿using System;
+using Utilities.Grid;
+using Utilities.MapGeometry;
 
 namespace Y2016.Day01 {
     public static class TurnExtensions {

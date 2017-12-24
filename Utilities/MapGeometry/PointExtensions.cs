@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
 
 namespace Utilities.MapGeometry {
@@ -20,6 +21,21 @@ namespace Utilities.MapGeometry {
             yield return new Point(point.X - 1, point.Y - 1);
             yield return new Point(point.X - 1, point.Y);
             yield return new Point(point.X - 1, point.Y + 1);
+        }
+
+        public static Point Move(this Point point, Direction direction) {
+            switch (direction) {
+                case Direction.North:
+                    return new Point(point.X, point.Y - 1);
+                case Direction.East:
+                    return new Point(point.X + 1, point.Y);
+                case Direction.South:
+                    return new Point(point.X, point.Y + 1);
+                case Direction.West:
+                    return new Point(point.X - 1, point.Y);
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(direction), $"Cannot move in this direction: {direction}");
+            }
         }
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Drawing;
+using Utilities.Grid;
 using Utilities.MapGeometry;
 
 namespace Y2016.Day01 {
@@ -8,13 +9,13 @@ namespace Y2016.Day01 {
         public static Direction Turn(this Direction direction, Turn turn) {
             switch (direction) {
                 case Direction.North:
-                    return turn == Day01.Turn.Right ? Direction.West : Direction.East;
+                    return turn == Utilities.MapGeometry.Turn.Right ? Direction.West : Direction.East;
                 case Direction.East:
-                    return turn == Day01.Turn.Right ? Direction.North : Direction.South;
+                    return turn == Utilities.MapGeometry.Turn.Right ? Direction.North : Direction.South;
                 case Direction.South:
-                    return turn == Day01.Turn.Right ? Direction.East : Direction.West;
+                    return turn == Utilities.MapGeometry.Turn.Right ? Direction.East : Direction.West;
                 case Direction.West:
-                    return turn == Day01.Turn.Right ? Direction.South : Direction.North;
+                    return turn == Utilities.MapGeometry.Turn.Right ? Direction.South : Direction.North;
                 default:
                     throw new InvalidOperationException();
             }

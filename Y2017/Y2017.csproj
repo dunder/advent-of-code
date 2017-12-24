@@ -117,6 +117,8 @@
     <Compile Include="Day19\RoutingDiagram.cs" />
     <Compile Include="Day20\Problems.cs" />
     <Compile Include="Day20\Tests.cs" />
+    <Compile Include="Day21\PixelArt.cs" />
+    <Compile Include="Day21\PixelSet.cs" />
     <Compile Include="Day21\Problems.cs" />
     <Compile Include="Day21\Tests.cs" />
     <Compile Include="Day22\Problems.cs" />

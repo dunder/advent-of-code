@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Utilities;
+using Utilities.Tree;
 
 namespace Y2017.Day12 {
     public static class MemoryBank {

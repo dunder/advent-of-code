@@ -63,7 +63,6 @@
     <Compile Include="Day01\Problems.cs" />
     <Compile Include="Day01\TaxiMap.cs" />
     <Compile Include="Day01\Tests.cs" />
-    <Compile Include="Day01\Turn.cs" />
     <Compile Include="Day01\TurnExtensions.cs" />
     <Compile Include="Day02\Key.cs" />
     <Compile Include="Day02\KeyPad.cs" />
