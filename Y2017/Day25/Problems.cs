@@ -13,20 +13,26 @@ namespace Y2017.Day25 {
 
         [Fact]
         public void Problem1() {
-            string input = File.ReadAllText(@".\Day25\input.txt");
+            string[] input = File.ReadAllLines(@".\Day25\input.txt");
 
-            var result = "";
+            var result = TheHaltingProblem.DiagnosticChecksum(input);
 
             _output.WriteLine($"Day 25 problem 1: {result}");
         }
 
         [Fact]
         public void Problem2() {
-            string input = File.ReadAllText(@".\Day25\input.txt");
+            string[] input = File.ReadAllLines(@".\Day25\input.txt");
 
             var result = "";
 
             _output.WriteLine($"Day 25 problem 2: {result}");
+        }
+    }
+
+    public class TheHaltingProblem {
+        public static int DiagnosticChecksum(string[] input) {
+            throw new System.NotImplementedException();
         }
     }
 }

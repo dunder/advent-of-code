@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
@@ -31,7 +32,7 @@ namespace Y2017.Day23 {
 
             var result = Coprocessor.Run2(input);
 
-            _output.WriteLine($"Day 23 problem 2: {result}"); // inte 0, inte -1 
+            _output.WriteLine($"Day 23 problem 2: {result}"); // inte 0, inte -1, inte 1001
         }
     }
 
@@ -90,10 +91,20 @@ namespace Y2017.Day23 {
 
             long lastH = 0;
             int counter = 0;
-
+            var cursorLeft = Console.CursorLeft;
+            var cursorTop = Console.CursorTop;
             for (long instructionIndex = 0; instructionIndex < input.Length; instructionIndex++) {
                 var instruction = input[instructionIndex];
 
+                //if (instruction == "set g e") { // counter == 15
+                //    registers.SetValue("e", registers.GetValue("b"));
+                //    //registers.SetValue("f", 0);
+                //}
+
+                //if (instruction == "set g d") {
+                //    registers.SetValue("d", registers.GetValue("b"));
+                //}
+                
                 var multiInstruction = new Regex(@"(set|sub|mul|jnz) ([a-z]|-?\d+) ([a-z]|-?\d+)");
 
                 var multiMatch = multiInstruction.Match(instruction);
@@ -104,6 +115,21 @@ namespace Y2017.Day23 {
                 if (!long.TryParse(getValueDescription, out value)) {
                     value = registers.GetValue(getValueDescription);
                 }
+
+                foreach (var register in "abcdefgh") {
+                    Console.WriteLine($"{register}: {registers.GetValue(register.ToString()), -8}");
+                }
+                for (int i = 0; i < input.Length; i++) {
+                    Console.Write($"{i,2}: {input[i],-14}");
+                    if (i == instructionIndex) {
+                        Console.WriteLine($" <-----  ({value})");
+                    } else {
+                        Console.WriteLine("                                  ");
+                    }
+                }
+                Console.SetCursorPosition(cursorLeft, cursorTop);
+
+
                 switch (command) {
                     case "set":
                         registers.SetValue(setRegister, value);
@@ -127,10 +153,8 @@ namespace Y2017.Day23 {
                         throw new InvalidOperationException($"Unknown instruction: {command}");
                 }
                 counter++;
-                //var h = registers.GetValue("h");
-                //if (h != lastH) {
-                //    lastH = h;
-                //}
+               
+
             }
 
             return registers.GetValue("h");
