@@ -8,7 +8,7 @@ namespace ConsoleApp {
 
             string[] input = File.ReadAllLines(@".\Day23\input.txt");
 
-            var result = Coprocessor.Run2(input);
+            var result = Coprocessor.Run2(input, true);
 
             Console.WriteLine($"Register h is {result}");
             Console.ReadKey();

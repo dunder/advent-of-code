@@ -32,9 +32,91 @@ namespace Y2017.Day23 {
 
             var result = Coprocessor.Run2(input);
 
-            _output.WriteLine($"Day 23 problem 2: {result}"); // inte 0, inte -1, inte 1001
+            _output.WriteLine($"Day 23 problem 2: {result}"); // inte 0, inte -1, inte 1001, inte 501, inte 11425
+        }
+
+        [Fact]
+        public void TestOptimized() {
+            var b = 105700;
+            var c = 122700;
+            var d = 2;
+            var e = 2;
+            var f = 1;
+            var g = 0;
+            var h = 0;
+
+            while (b != c) { // program terminates when b == c
+                f = 1; // #8
+                while (d != b) { //#10
+                    f = d * (b-1) == b ? 0 : 1;
+                    d++; // goto #10
+                }
+                if (f == 0) {
+                    h++;
+                }
+                b -= 17; // goto #8
+            }
+
+            _output.WriteLine($"h = {h}");
+        }
+
+        [Fact]
+        public void Pseudo() {
+            var b = 105700;
+            var c = 122700;
+            var d = 2;
+            var e = 2;
+            var f = 1;
+            var g = 0;
+            var h = 0;
+
+            for (; b == c; b += 17) {
+                f = 1; // rad 8
+                d = 2;
+
+                for (; d == b; d++) {
+                    e = 2; // rad 10
+
+                    for (; e == b; e++) {
+                        if (d * e - b == 0) {
+                            f = 0;
+                        }
+                    }
+                }
+                if (f == 0) {
+                    h++;
+                }
+            }
+        }
+
+        [Fact]
+        public void Optimized() {
+            var b = 105700;
+            var c = 122700;
+            var d = 2;
+            var e = 2;
+            var f = 1;
+            var g = 0;
+            var h = 0;
+
+            for (; b == c; b += 17) {
+                f = 1; // rad 8
+
+                for (d = 2; d == b; d++) {
+                    e = 2; // rad 10
+
+                    for (; e == b; e++) {
+                        f = d * e == b ? 0 : 1;
+                    }
+                }
+                if (f == 0) {
+                    h++;
+                }
+            }
         }
     }
+
+    
 
     public class Coprocessor {
         public static int Run(string[] input) {
@@ -83,28 +165,22 @@ namespace Y2017.Day23 {
             return mulCount;
         }
 
-        public static long Run2(string[] input) {
+        public static long Run2(string[] input, bool console = false) {
 
             Dictionary<string, long> registers = new Dictionary<string, long> {
                 {"a", 1}
             };
 
-            long lastH = 0;
-            int counter = 0;
-            var cursorLeft = Console.CursorLeft;
-            var cursorTop = Console.CursorTop;
+            int cursorLeft = 0;
+            int cursorTop = 0;
+            if (console) {
+                cursorLeft = Console.CursorLeft;
+                cursorTop = Console.CursorTop;
+            }
+            int counter = 1;
             for (long instructionIndex = 0; instructionIndex < input.Length; instructionIndex++) {
                 var instruction = input[instructionIndex];
 
-                //if (instruction == "set g e") { // counter == 15
-                //    registers.SetValue("e", registers.GetValue("b"));
-                //    //registers.SetValue("f", 0);
-                //}
-
-                //if (instruction == "set g d") {
-                //    registers.SetValue("d", registers.GetValue("b"));
-                //}
-                
                 var multiInstruction = new Regex(@"(set|sub|mul|jnz) ([a-z]|-?\d+) ([a-z]|-?\d+)");
 
                 var multiMatch = multiInstruction.Match(instruction);
@@ -116,19 +192,28 @@ namespace Y2017.Day23 {
                     value = registers.GetValue(getValueDescription);
                 }
 
-                foreach (var register in "abcdefgh") {
-                    Console.WriteLine($"{register}: {registers.GetValue(register.ToString()), -8}");
-                }
-                for (int i = 0; i < input.Length; i++) {
-                    Console.Write($"{i,2}: {input[i],-14}");
-                    if (i == instructionIndex) {
-                        Console.WriteLine($" <-----  ({value})");
-                    } else {
-                        Console.WriteLine("                                  ");
+                if (console) {
+                    foreach (var register in "abcdefgh") {
+                        Console.WriteLine($"{register}: {registers.GetValue(register.ToString()),-8}");
                     }
+                    for (int i = 0; i < input.Length; i++) {
+                        Console.Write($"{i,2}: {input[i],-14}");
+                        if (i == instructionIndex) {
+                            Console.WriteLine($" <-----  ({value})");
+                        } else {
+                            Console.WriteLine("                                  ");
+                        }
+                    }
+                    Console.Write("User input> ");
+                    string userCommand = Console.ReadLine();
+                    if (!string.IsNullOrEmpty(userCommand)) {
+                        var parts = userCommand.Split(' ');
+                        command = parts[0];
+                        setRegister = parts[1];
+                        value = int.Parse(parts[2]);
+                    }
+                    Console.SetCursorPosition(cursorLeft, cursorTop);
                 }
-                Console.SetCursorPosition(cursorLeft, cursorTop);
-
 
                 switch (command) {
                     case "set":
@@ -152,9 +237,6 @@ namespace Y2017.Day23 {
                     default: 
                         throw new InvalidOperationException($"Unknown instruction: {command}");
                 }
-                counter++;
-               
-
             }
 
             return registers.GetValue("h");
