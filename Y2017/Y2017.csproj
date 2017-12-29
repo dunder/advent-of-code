@@ -123,6 +123,7 @@
     <Compile Include="Day21\Tests.cs" />
     <Compile Include="Day22\Problems.cs" />
     <Compile Include="Day22\Tests.cs" />
+    <Compile Include="Day23\Coprocessor.cs" />
     <Compile Include="Day23\Problems.cs" />
     <Compile Include="Day23\Tests.cs" />
     <Compile Include="Day24\Problems.cs" />

@@ -56,6 +56,7 @@
     <Compile Include="Grid\GridExtensions.cs" />
     <Compile Include="Grid\GridParser.cs" />
     <Compile Include="MapGeometry\Turn.cs" />
+    <Compile Include="Prime.cs" />
     <Compile Include="Tree\GraphExtensions.cs" />
     <Compile Include="Tree\IGraph.cs" />
     <Compile Include="MapGeometry\Direction.cs" />

@@ -1,16 +1,54 @@
 ﻿using System;
-using System.IO;
-using Y2017.Day23;
+using System.Collections.Generic;
+using Y2017.Day25;
 
 namespace ConsoleApp {
     public class Program {
         static void Main(string[] args) {
 
-            string[] input = File.ReadAllLines(@".\Day23\input.txt");
 
-            var result = Coprocessor.Run2(input, true);
+            var states = new Dictionary<string, Func<StateContext, StateContext>>();
 
-            Console.WriteLine($"Register h is {result}");
+            StateContext StateA(StateContext stateContext) {
+                int nextPosition;
+                string nextState;
+
+                if (stateContext.Tape[stateContext.Position]) {
+                    stateContext.Tape[stateContext.Position] = false;
+                    nextPosition = stateContext.Position - 1;
+                    nextState = "B";
+
+                } else {
+                    stateContext.Tape[stateContext.Position] = true;
+                    nextPosition = stateContext.Position + 1;
+                    nextState = "B";
+                }
+
+                return new StateContext(nextPosition, stateContext.Tape, nextState);
+            }
+
+            StateContext StateB(StateContext stateContext) {
+                int nextPosition;
+                string nextState;
+
+                if (stateContext.Tape[stateContext.Position]) {
+                    stateContext.Tape[stateContext.Position] = true;
+                    nextPosition = stateContext.Position + 1;
+                    nextState = "A";
+
+                } else {
+                    stateContext.Tape[stateContext.Position] = true;
+                    nextPosition = stateContext.Position - 1;
+                    nextState = "A";
+                }
+
+                return new StateContext(nextPosition, stateContext.Tape, nextState);
+            }
+
+            states.Add("A", StateA);
+            states.Add("B", StateB);
+
+            var result = TheHaltingProblem.DiagnosticChecksum("A", 6, states);
             Console.ReadKey();
         }
     }
