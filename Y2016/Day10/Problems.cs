@@ -27,7 +27,7 @@ namespace Y2016.Day10 {
         public void Problem2() {
             string[] input = File.ReadAllLines(@".\Day10\input.txt");
 
-            var result = 0;
+            var result = Robots.CalculateOutputProduct(input);
 
             Assert.Equal(133163, result);
             _output.WriteLine($"Day 10 problem 2: {result}");
@@ -36,7 +36,20 @@ namespace Y2016.Day10 {
 
     public class Robots {
         public static int FindBot(string[] input, int lowTargetValue, int highTargetValue) {
+           
+            (Dictionary<int, Bot> bots, _) = RunInstructions(input);
 
+            return bots.Values.Single(bot => bot.Low == lowTargetValue && bot.High == highTargetValue).Id;
+        }
+
+        public static int CalculateOutputProduct(string[] input)
+        {
+            var (_, outputs) = RunInstructions(input);
+
+            return outputs.Values.Where(o => o.Id == 0 || o.Id == 1 || o.Id == 2).Aggregate(1, (x, robot) => x * robot.Value);
+        }
+
+        private static (Dictionary<int, Bot> bots, Dictionary<int, Output>) RunInstructions(string[] input) {
             Dictionary<int, Bot> bots = new Dictionary<int, Bot>();
             Dictionary<int, Output> outputs = new Dictionary<int, Output>();
 
@@ -80,7 +93,7 @@ namespace Y2016.Day10 {
                 GetBot(botId, bots).Take(value);
             }
 
-            return bots.Values.Single(bot => bot.Low == lowTargetValue && bot.High == highTargetValue).Id;
+            return (bots, outputs);
         }
 
         private static Bot GetBot(int botId, Dictionary<int, Bot> bots) {
