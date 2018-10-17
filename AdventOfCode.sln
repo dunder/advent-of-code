@@ -13,6 +13,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.UnitTests", "Util
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApp", "ConsoleApp\ConsoleApp.csproj", "{E83DD417-52C3-45B9-8253-7E21BEDB8CB5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solutions", "Solutions\Solutions.csproj", "{7A297364-B0FF-40F8-825D-D0D868B0C51B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{B5DE44F0-BDAA-45C2-AE4C-2314449D2AC4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +43,14 @@ Global
 		{E83DD417-52C3-45B9-8253-7E21BEDB8CB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E83DD417-52C3-45B9-8253-7E21BEDB8CB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E83DD417-52C3-45B9-8253-7E21BEDB8CB5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A297364-B0FF-40F8-825D-D0D868B0C51B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A297364-B0FF-40F8-825D-D0D868B0C51B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A297364-B0FF-40F8-825D-D0D868B0C51B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A297364-B0FF-40F8-825D-D0D868B0C51B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5DE44F0-BDAA-45C2-AE4C-2314449D2AC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5DE44F0-BDAA-45C2-AE4C-2314449D2AC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5DE44F0-BDAA-45C2-AE4C-2314449D2AC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5DE44F0-BDAA-45C2-AE4C-2314449D2AC4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

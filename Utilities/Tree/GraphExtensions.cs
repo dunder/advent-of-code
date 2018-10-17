@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Utilities.Tree {
+    /// <summary>
+    /// Ideas by Eric Lippert https://stackoverflow.com/a/5806795
+    /// </summary>
     public static class GraphExtensions {
 
         public static IEnumerable<T> TraverseAll<T>(this T start, Func<T, IEnumerable<T>> neighbourFetcher)  {
