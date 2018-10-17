@@ -53,6 +53,7 @@
     <Compile Include="Grid\Grid.cs" />
     <Compile Include="Grid\GridExtensions.cs" />
     <Compile Include="Grid\GridParser.cs" />
+    <Compile Include="LinqExtensions.cs" />
     <Compile Include="MapGeometry\Turn.cs" />
     <Compile Include="Prime.cs" />
     <Compile Include="Tree\GraphExtensions.cs" />
