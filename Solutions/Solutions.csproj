@@ -8,16 +8,42 @@
 
   <ItemGroup>
     <None Remove="Event2016\Day1\input.txt" />
+    <None Remove="Event2016\Day2\input.txt" />
+    <None Remove="Event2016\Day3\input.txt" />
+    <None Remove="Event2016\Day4\input.txt" />
+    <None Remove="Event2016\Day6\input.txt" />
+    <None Remove="Event2016\Day7\input.txt" />
+    <None Remove="Event2016\Day8\input.txt" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Event2016\Day1\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day2\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day3\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day4\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day6\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day7\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2016\Day8\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Event2017\Day1\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Event2016\Day1\" />
     <Folder Include="Event2017\Day2\" />
   </ItemGroup>
 
