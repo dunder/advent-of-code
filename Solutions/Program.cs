@@ -4,7 +4,7 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            ProblemBase day = new Event2016.Day8.Problem();
+            ProblemBase day = new Event2017.Day14.Problem();
 
             Console.WriteLine($"Running {day.Event} {day.Day}");
 
@@ -13,7 +13,7 @@ namespace Solutions {
 
             Console.WriteLine("First star:");
             Console.WriteLine($"{firstStar}");
-            Console.WriteLine($"Second star:");
+            Console.WriteLine("Second star:");
             Console.WriteLine($"{secondStar}");
             Console.ReadKey();
         }

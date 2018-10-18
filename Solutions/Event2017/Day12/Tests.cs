@@ -1,12 +1,14 @@
-﻿using System;
-using System.Drawing;
-using Xunit;
+﻿using Xunit;
 
-namespace Y2017.Day12 {
-    public class Tests {
+namespace Solutions.Event2017.Day12
+{
+    public class Tests
+    {
         [Fact]
-        public static void Problem1_Example() {
-            var input = new[] {
+        public static void FirstStarExample()
+        {
+            var input = new[]
+            {
                 "0 <-> 2      ",
                 "1 <-> 1      ",
                 "2 <-> 0, 3, 4",
@@ -22,8 +24,10 @@ namespace Y2017.Day12 {
         }
 
         [Fact]
-        public static void Problem2_Example() {
-            var input = new[] {
+        public static void SecondStarExample()
+        {
+            var input = new[]
+            {
                 "0 <-> 2      ",
                 "1 <-> 1      ",
                 "2 <-> 0, 3, 4",
@@ -38,5 +42,18 @@ namespace Y2017.Day12 {
             Assert.Equal(2, connectionsToZero);
         }
 
+        [Fact]
+        public void FirstStar()
+        {
+            var actual = new Problem().FirstStar();
+            Assert.Equal("175", actual);
+        }
+
+        [Fact]
+        public void SecondStar()
+        {
+            var actual = new Problem().SecondStar();
+            Assert.Equal("213", actual);
+        }
     }
 }

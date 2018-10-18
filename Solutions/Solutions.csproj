@@ -7,44 +7,92 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Event2016\Day1\input.txt" />
-    <None Remove="Event2016\Day2\input.txt" />
-    <None Remove="Event2016\Day3\input.txt" />
-    <None Remove="Event2016\Day4\input.txt" />
-    <None Remove="Event2016\Day6\input.txt" />
-    <None Remove="Event2016\Day7\input.txt" />
-    <None Remove="Event2016\Day8\input.txt" />
+    <None Remove="Event2016\Day01\input.txt" />
+    <None Remove="Event2016\Day02\input.txt" />
+    <None Remove="Event2016\Day03\input.txt" />
+    <None Remove="Event2016\Day04\input.txt" />
+    <None Remove="Event2016\Day06\input.txt" />
+    <None Remove="Event2016\Day07\input.txt" />
+    <None Remove="Event2016\Day08\input.txt" />
+    <None Remove="Event2016\Day09\input.txt" />
+    <None Remove="Event2016\Day10\input.txt" />
+    <None Remove="Event2017\Day02\input.txt" />
+    <None Remove="Event2017\Day04\input.txt" />
+    <None Remove="Event2017\Day05\input.txt" />
+    <None Remove="Event2017\Day06\input.txt" />
+    <None Remove="Event2017\Day07\input.txt" />
+    <None Remove="Event2017\Day08\input.txt" />
+    <None Remove="Event2017\Day09\input.txt" />
+    <None Remove="Event2017\Day11\input.txt" />
+    <None Remove="Event2017\Day12\input.txt" />
+    <None Remove="Event2017\Day13\input.txt" />
+    <None Remove="Event2017\Day16\input.txt" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Event2016\Day1\input.txt">
+    <Content Include="Event2016\Day01\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day2\input.txt">
+    <Content Include="Event2016\Day02\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day3\input.txt">
+    <Content Include="Event2016\Day03\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day4\input.txt">
+    <Content Include="Event2016\Day04\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day6\input.txt">
+    <Content Include="Event2016\Day06\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day7\input.txt">
+    <Content Include="Event2016\Day07\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2016\Day8\input.txt">
+    <Content Include="Event2016\Day08\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Event2017\Day1\input.txt">
+    <Content Include="Event2016\Day09\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Event2017\Day2\" />
+    <Content Include="Event2016\Day10\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day01\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day02\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day04\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day05\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day06\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day07\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day08\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day09\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day11\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day12\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day13\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day16\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +105,17 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Event2017\Day25\" />
+    <Folder Include="Event2017\Day24\" />
+    <Folder Include="Event2017\Day23\" />
+    <Folder Include="Event2017\Day22\" />
+    <Folder Include="Event2017\Day21\" />
+    <Folder Include="Event2017\Day20\" />
+    <Folder Include="Event2017\Day19\" />
+    <Folder Include="Event2017\Day18\" />
   </ItemGroup>
 
 </Project>

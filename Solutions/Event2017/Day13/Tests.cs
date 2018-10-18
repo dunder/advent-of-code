@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Y2017.Day13
+namespace Solutions.Event2017.Day13
 {
     public class Tests
     {
@@ -32,6 +32,20 @@ namespace Y2017.Day13
             var delay = Firewall.DelayToSafe(input);
 
             Assert.Equal(10, delay);
+        }
+
+        [Fact]
+        public void FirstStar()
+        {
+            var actual = new Problem().FirstStar();
+            Assert.Equal("2160", actual);
+        }
+
+        [Fact]
+        public void SecondStar()
+        {
+            var actual = new Problem().SecondStar();
+            Assert.Equal("3907470", actual);
         }
     }
 }
