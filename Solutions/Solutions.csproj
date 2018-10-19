@@ -27,6 +27,12 @@
     <None Remove="Event2017\Day12\input.txt" />
     <None Remove="Event2017\Day13\input.txt" />
     <None Remove="Event2017\Day16\input.txt" />
+    <None Remove="Event2017\Day18\input.txt" />
+    <None Remove="Event2017\Day19\input.txt" />
+    <None Remove="Event2017\Day20\input.txt" />
+    <None Remove="Event2017\Day21\input.txt" />
+    <None Remove="Event2017\Day22\input.txt" />
+    <None Remove="Event2017\Day23\input.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -93,6 +99,24 @@
     <Content Include="Event2017\Day16\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Event2017\Day18\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day19\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day20\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day21\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day22\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day23\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -110,12 +134,6 @@
   <ItemGroup>
     <Folder Include="Event2017\Day25\" />
     <Folder Include="Event2017\Day24\" />
-    <Folder Include="Event2017\Day23\" />
-    <Folder Include="Event2017\Day22\" />
-    <Folder Include="Event2017\Day21\" />
-    <Folder Include="Event2017\Day20\" />
-    <Folder Include="Event2017\Day19\" />
-    <Folder Include="Event2017\Day18\" />
   </ItemGroup>
 
 </Project>
