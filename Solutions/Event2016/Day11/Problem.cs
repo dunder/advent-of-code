@@ -41,22 +41,19 @@ namespace Solutions.Event2016.Day11
         }
 
         public Assembly WithChip(Element chip) {
-            Assembly assembly = new Assembly();
-            assembly.Chips.Add(chip);
-            return assembly;
+            Chips.Add(chip);
+            return this;
         }
 
         public Assembly WithGenerator(Element chip) {
-            Assembly assembly = new Assembly();
-            assembly.Generators.Add(chip);
-            return assembly;
+            Generators.Add(chip);
+            return this;
         }
 
         public Assembly WithMatchingChipAndGenerator(Element element) {
-            Assembly assembly = new Assembly();
-            assembly.Chips.Add(element);
-            assembly.Generators.Add(element);
-            return assembly;
+            Chips.Add(element);
+            Generators.Add(element);
+            return this;
         }
 
         public Assembly WithUpperFloor(Assembly upperFloor) {
@@ -75,9 +72,16 @@ namespace Solutions.Event2016.Day11
         public Assembly UpperFloor { get; private set; }
         public Assembly LowerFloor { get; private set; }
 
-        public IEnumerable<Assembly> MovableAssemblies() {
-            var singleChips = Chips.Select(WithChip);
-            var singleGenerators = Generators.Select(WithGenerator);
+        public bool IsSafe()
+        {
+            if (!Chips.Any()) return true;
+            if (!Generators.Any()) return true;
+            return Chips.All(c => Generators.Contains(c));
+        }
+
+        public IEnumerable<Assembly> SelectValidAssembliesForElevator() {
+            var singleChips = Chips.Select(c => new Assembly().WithChip(c));
+            var singleGenerators = Generators.Select(g => new Assembly().WithGenerator(g));
             var chipCombinations = new Combinations<Element>(Chips.ToList(), 2)
                 .Select(pair => new Assembly()
                     .WithChip(pair.First())
@@ -85,6 +89,33 @@ namespace Solutions.Event2016.Day11
             var chipGeneratorPairs = Chips.Where(chip => Generators.Contains(chip)).Select(WithMatchingChipAndGenerator);
 
             return singleChips.Concat(singleGenerators).Concat(chipCombinations).Concat(chipGeneratorPairs);
+        }
+
+        protected bool Equals(Assembly other)
+        {
+            return Equals(Generators, other.Generators) && Equals(Chips, other.Chips);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            Assembly other = (Assembly) obj;
+            if (!Generators.SetEquals(other.Generators))
+            {
+                return false;
+            }
+
+            return Chips.SetEquals(other.Chips);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return ((Generators != null ? Generators.GetHashCode() : 0) * 397) ^ (Chips != null ? Chips.GetHashCode() : 0);
+            }
         }
     }
 }

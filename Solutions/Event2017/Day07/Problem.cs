@@ -26,52 +26,62 @@ namespace Solutions.Event2017.Day07
         }
     }
 
-    public class Towers {
-        private static (Dictionary<string, Disc> allDiscs, HashSet<Disc> allParents) AllDiscs(IList<string> input) {
+    public class Towers
+    {
+        private static (Dictionary<string, Disc> allDiscs, HashSet<Disc> allParents) AllDiscs(IList<string> input)
+        {
             var discs = new Dictionary<string, Disc>();
             var parents = new HashSet<Disc>();
 
-            foreach (var row in input) {
+            foreach (var row in input)
+            {
                 var discName = row.Substring(0, row.IndexOf("(", StringComparison.InvariantCulture)).Trim();
                 int weight = int.Parse(Regex.Match(row, @"\d+").Value);
                 var disc = new Disc(discName, weight);
                 discs.Add(disc.Name, disc);
             }
 
-            foreach (var row in input) {
+            foreach (var row in input)
+            {
                 var disc = discs[row.Substring(0, row.IndexOf("(", StringComparison.InvariantCulture)).Trim()];
 
-                if (row.Contains("->")) {
+                if (row.Contains("->"))
+                {
                     var result = Regex.Split(row, "->");
-                    var discParents = result[1].Trim().Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim());
+                    var discParents = result[1].Trim().Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim());
                     disc.Parents.AddRange(discParents.Select(p => discs[p]));
-                    foreach (var discParent in disc.Parents) {
+                    foreach (var discParent in disc.Parents)
+                    {
                         parents.Add(discParent);
                     }
                 }
             }
+
             return (discs, parents);
         }
 
-        public static Disc BottomDisc(IList<string> input) {
-            (var discs, var parents) = AllDiscs(input);
+        public static Disc BottomDisc(IList<string> input)
+        {
+            var (discs, parents) = AllDiscs(input);
 
             return BottomDisc(discs, parents);
         }
 
-        public static int FindUnbalanced(IList<string> input) {
-
-            (var discs, var parents) = AllDiscs(input);
+        public static int FindUnbalanced(IList<string> input)
+        {
+            var (discs, parents) = AllDiscs(input);
 
             var bottomDisc = BottomDisc(discs, parents);
 
             Disc unbalancedCandidate = bottomDisc;
             int targetWeight = 0;
-            while (true) {
-
+            while (true)
+            {
                 var weightGroups = unbalancedCandidate.Parents.GroupBy(TowerWeight).ToList();
 
-                if (weightGroups.Count == 1) {
+                if (weightGroups.Count == 1)
+                {
                     break;
                 }
 
@@ -84,46 +94,55 @@ namespace Solutions.Event2017.Day07
             return unbalancedCandidate.Weight - (TowerWeight(unbalancedCandidate) - targetWeight);
         }
 
-        private static Disc BottomDisc(Dictionary<string, Disc> discs, HashSet<Disc> parents) {
+        private static Disc BottomDisc(Dictionary<string, Disc> discs, HashSet<Disc> parents)
+        {
             return discs.Values.Single(d => !parents.Contains(d));
         }
 
-        private static int TowerWeight(Disc start) {
-            (_, var visited) = start.DepthFirstWithVisited(n => n.Parents);
+        private static int TowerWeight(Disc start)
+        {
+            var (_, visited) = start.DepthFirstWithVisited(n => n.Parents);
             return visited.Sum(p => p.Weight);
         }
     }
 
-    public class Disc : IGraph<Disc> {
+    public class Disc : IGraph<Disc>
+    {
         public string Name { get; }
         public int Weight { get; }
         public List<Disc> Parents { get; set; } = new List<Disc>();
 
-        public Disc(string name, int weight) {
+        public Disc(string name, int weight)
+        {
             Name = name;
             Weight = weight;
         }
 
-        public IEnumerable<Disc> GetNeighbours(Disc vertex) {
+        public IEnumerable<Disc> GetNeighbours(Disc vertex)
+        {
             return Parents;
         }
 
-        protected bool Equals(Disc other) {
+        protected bool Equals(Disc other)
+        {
             return string.Equals(Name, other.Name);
         }
 
-        public override bool Equals(object obj) {
+        public override bool Equals(object obj)
+        {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            return Equals((Disc)obj);
+            return Equals((Disc) obj);
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return (Name != null ? Name.GetHashCode() : 0);
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"{Name} ({Weight})";
         }
     }
