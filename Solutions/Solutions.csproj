@@ -33,6 +33,8 @@
     <None Remove="Event2017\Day21\input.txt" />
     <None Remove="Event2017\Day22\input.txt" />
     <None Remove="Event2017\Day23\input.txt" />
+    <None Remove="Event2017\Day24\input.txt" />
+    <None Remove="Event2017\Day25\input.txt" />
   </ItemGroup>
 
   <ItemGroup>
@@ -117,6 +119,12 @@
     <Content Include="Event2017\Day23\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="Event2017\Day24\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Event2017\Day25\input.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -129,11 +137,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Event2017\Day25\" />
-    <Folder Include="Event2017\Day24\" />
   </ItemGroup>
 
 </Project>
