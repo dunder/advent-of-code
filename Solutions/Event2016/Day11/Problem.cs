@@ -11,7 +11,29 @@ namespace Solutions.Event2016.Day11
 
         public override string FirstStar()
         {
-            var input = ReadInput();
+            var floor1 = new Assembly();
+            var floor2 = new Assembly();
+            var floor3 = new Assembly();
+            var floor4 = new Assembly();
+
+            floor1
+                .WithChip(Element.Hydrogen)
+                .WithChip(Element.Lithium)
+                .WithUpperFloor(floor2);
+
+            floor2
+                .WithGenerator(Element.Hydrogen)
+                .WithLowerFloor(floor1)
+                .WithUpperFloor(floor3);
+
+            floor3
+                .WithGenerator(Element.Lithium)
+                .WithLowerFloor(floor2)
+                .WithUpperFloor(floor4);
+
+            floor4
+                .WithLowerFloor(floor3);
+
             var result = "Not implemented";
             return result;
         }
@@ -34,6 +56,66 @@ namespace Solutions.Event2016.Day11
         Strontium
     }
 
+    public class Floor
+    {
+        public int Level { get; }
+        public Assembly Assembly { get; }
+        public Floor Upper { get; set; }
+        public Floor Lower { get; set; }
+
+        public Floor(int level, Assembly assembly)
+        {
+            Level = level;
+            Assembly = assembly;
+        }
+
+        public IList<Floor> ValidAlternatives()
+        {
+            var validForElevator = Assembly.SelectValidAssembliesForElevator();
+            var safeToRelease = validForElevator.Where(a => Assembly.Release(a).IsSafe()).ToList();
+
+            var alternatives = new List<Floor>();
+
+            if (Lower != null)
+            {
+                var safeToReceive = safeToRelease.Where(a => Lower.Assembly.Merge(a).IsSafe());
+
+                foreach (var assembly in safeToReceive)
+                {
+                    var newThis = new Floor(Level, Assembly.Release(assembly));
+                    var newLower = new Floor(Lower.Level, Assembly.Merge(assembly));
+
+                    newThis.Upper = Upper;
+                    newThis.Lower = newLower;
+
+                    newLower.Upper = newThis;
+                    newLower.Lower = Lower.Lower;
+
+                    alternatives.Add(newLower);
+                }
+            }
+
+            if (Upper != null)
+            {
+                var safeToReceive = safeToRelease.Where(a => Upper.Assembly.Merge(a).IsSafe());
+
+                foreach (var assembly in safeToReceive) {
+                    var newThis = new Floor(Level, Assembly.Release(assembly));
+                    var newUpper = new Floor(Upper.Level, Assembly.Merge(assembly));
+
+                    newThis.Upper = newUpper;
+                    newThis.Lower = Lower;
+
+                    newUpper.Upper = Upper.Upper;
+                    newUpper.Lower = newThis;
+
+                    alternatives.Add(newUpper);
+                }
+            }
+
+            return alternatives;
+        }
+    }
     public class Assembly {
         public Assembly() {
             Generators = new HashSet<Element>();
@@ -79,6 +161,48 @@ namespace Solutions.Event2016.Day11
             return Chips.All(c => Generators.Contains(c));
         }
 
+        public Assembly Merge(Assembly assembly)
+        {
+            var merged = new Assembly();
+            foreach (var chip in Chips)
+            {
+                merged.WithChip(chip);
+            }
+
+            foreach (var generator in Generators)
+            {
+                merged.WithGenerator(generator);
+            }
+
+            foreach (var chip in assembly.Chips)
+            {
+                merged.WithChip(chip);
+            }
+
+            foreach (var generator in assembly.Generators)
+            {
+                merged.WithGenerator(generator);
+            }
+
+            return merged;
+        }
+
+        public Assembly Release(Assembly assembly)
+        {
+            var released = new Assembly();
+
+            foreach (var chip in Chips.Where(c => !assembly.Chips.Contains(c)))
+            {
+                released.WithChip(chip);
+            }
+
+            foreach (var generator in Generators.Where(g => !assembly.Generators.Contains(g)))
+            {
+                released.WithGenerator(generator);
+            }
+            return released;
+        }
+
         public IEnumerable<Assembly> SelectValidAssembliesForElevator() {
             var singleChips = Chips.Select(c => new Assembly().WithChip(c));
             var singleGenerators = Generators.Select(g => new Assembly().WithGenerator(g));
@@ -86,7 +210,9 @@ namespace Solutions.Event2016.Day11
                 .Select(pair => new Assembly()
                     .WithChip(pair.First())
                     .WithChip(pair.Last()));
-            var chipGeneratorPairs = Chips.Where(chip => Generators.Contains(chip)).Select(WithMatchingChipAndGenerator);
+            var chipGeneratorPairs = Chips
+                .Where(chip => Generators.Contains(chip))
+                .Select(c => new Assembly().WithMatchingChipAndGenerator(c));
 
             return singleChips.Concat(singleGenerators).Concat(chipCombinations).Concat(chipGeneratorPairs);
         }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Utilities.Tree;
+using Shared.Tree;
 
 namespace Solutions.Event2017.Day07
 {
@@ -106,7 +106,7 @@ namespace Solutions.Event2017.Day07
         }
     }
 
-    public class Disc : IGraph<Disc>
+    public class Disc
     {
         public string Name { get; }
         public int Weight { get; }
@@ -116,11 +116,6 @@ namespace Solutions.Event2017.Day07
         {
             Name = name;
             Weight = weight;
-        }
-
-        public IEnumerable<Disc> GetNeighbours(Disc vertex)
-        {
-            return Parents;
         }
 
         protected bool Equals(Disc other)

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using Shared.Tree;
 using Solutions.Event2017.Day10;
-using Utilities.Tree;
 
 namespace Solutions.Event2017.Day14
 {

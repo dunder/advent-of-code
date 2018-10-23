@@ -2,25 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Utilities.Tree {
+namespace Shared.Tree {
     /// <summary>
-    /// Ideas by Eric Lippert https://stackoverflow.com/a/5806795
+    /// Ideas from https://stackoverflow.com/a/5806795
     /// </summary>
     public static class GraphExtensions {
 
-        public static IEnumerable<T> TraverseAll<T>(this T start, Func<T, IEnumerable<T>> neighbourFetcher)  {
-            if (!neighbourFetcher(start).Any()) {
+        public static IEnumerable<T> TraverseAll<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)  {
+            if (!neighborFetcher(start).Any()) {
                 yield return start;
             } else {
-                foreach (var neighbour in neighbourFetcher(start)) {
-                    foreach (var neighboursNeighbour in neighbour.TraverseAll(neighbourFetcher)) {
-                        yield return neighboursNeighbour;
+                foreach (var neighbor in neighborFetcher(start)) {
+                    foreach (var neighborsNeighbor in neighbor.TraverseAll(neighborFetcher)) {
+                        yield return neighborsNeighbor;
                     }
                 }
             }
         }
 
-        public static IEnumerable<T> DepthFirst<T>(this T start, Func<T,IEnumerable<T>> neighbourFetcher) {
+        public static IEnumerable<T> DepthFirst<T>(this T start, Func<T,IEnumerable<T>> neighborFetcher) {
             var visited = new HashSet<T>();
             var stack = new Stack<T>();
 
@@ -35,12 +35,34 @@ namespace Utilities.Tree {
 
                 yield return current;
 
-                var neighbours = neighbourFetcher(current)
+                var neighbors = neighborFetcher(current)
                     .Where(n => !visited.Contains(n));
 
                 // left-to-right order
-                foreach (var neighbour in neighbours.Reverse()) {
-                    stack.Push(neighbour);
+                foreach (var neighbor in neighbors.Reverse()) {
+                    stack.Push(neighbor);
+                }
+            }
+        }
+        public static IEnumerable<T> BreadthFirst<T>(this T start, Func<T,IEnumerable<T>> neighborFetcher) {
+            var visited = new HashSet<T>();
+            var queue = new Queue<T>();
+
+            queue.Enqueue(start);
+
+            while (queue.Count != 0) {
+                var current = queue.Dequeue();
+
+                if (!visited.Add(current)) {
+                    continue;
+                }
+
+                yield return current;
+
+                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n));
+
+                foreach (var neighbor in neighbors) {
+                    queue.Enqueue(neighbor);
                 }
             }
         }

@@ -3,7 +3,7 @@
 namespace Solutions.Event2017.Day07 {
     public class Tests {
         [Fact]
-        public void Problem1_Example1() {
+        public void FirstStarExample() {
 
             var input = new[] {
                 "pbga (66)                    ",
@@ -26,7 +26,7 @@ namespace Solutions.Event2017.Day07 {
         }
 
         [Fact]
-        public void Problem2_Example1() {
+        public void SecondStarExample() {
             var input = new[] {
                 "pbga (66)                    ",
                 "xhth (57)                    ",

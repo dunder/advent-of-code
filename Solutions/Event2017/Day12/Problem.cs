@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Text.RegularExpressions;
 using Shared.Extensions;
-using Utilities.Tree;
+using Shared.Tree;
 
 namespace Solutions.Event2017.Day12
 {
