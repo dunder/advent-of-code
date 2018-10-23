@@ -1,18 +1,11 @@
-﻿using System;
+﻿using System.Collections.Generic;
 using System.Linq;
-using Facet.Combinatorics;
 using Xunit;
-using Xunit.Abstractions;
 
-namespace Solutions.Event2016.Day11 {
-    public class Tests {
-
-        private readonly ITestOutputHelper _output;
-
-        public Tests(ITestOutputHelper output) {
-            _output = output;
-        }
-
+namespace Solutions.Event2016.Day11
+{
+    public class Tests
+    {
         [Fact]
         public void AssemblyEquality()
         {
@@ -20,15 +13,22 @@ namespace Solutions.Event2016.Day11 {
         }
 
         [Fact]
+        public void AssemblyGetHashCode()
+        {
+            var assembly1 = new Assembly().WithChip(Element.Hydrogen).WithGenerator(Element.Hydrogen);
+            var assembly2 = new Assembly().WithGenerator(Element.Hydrogen).WithChip(Element.Hydrogen);
+
+            Assert.Equal(assembly1.GetHashCode(), assembly2.GetHashCode());
+        }
+
+        [Fact]
         public void SelectValidAssembliesForElevator()
         {
-            var floor1 = new Assembly();
-
-            floor1
+            var assembly = new Assembly()
                 .WithChip(Element.Hydrogen)
                 .WithChip(Element.Lithium);
 
-            var moves = floor1.SelectValidAssembliesForElevator().ToList();
+            var moves = assembly.SelectValidAssembliesForElevator().ToList();
 
             Assert.Equal(3, moves.Count);
             Assert.Contains(new Assembly().WithChip(Element.Hydrogen), moves);
@@ -84,7 +84,7 @@ namespace Solutions.Event2016.Day11 {
         }
 
         [Fact]
-        public void Merge()
+        public void AssemblyMerge()
         {
             var assembly1 = new Assembly()
                 .WithChip(Element.Lithium)
@@ -103,11 +103,10 @@ namespace Solutions.Event2016.Day11 {
             Assert.NotSame(merged, assembly1);
             Assert.NotSame(merged, assembly2);
             Assert.Equal(expected, merged);
-
         }
 
         [Fact]
-        public void Release()
+        public void AssemblyRelease()
         {
             var assembly1 = new Assembly()
                 .WithChip(Element.Lithium)
@@ -133,46 +132,41 @@ namespace Solutions.Event2016.Day11 {
         [Fact]
         public void ValidAlternatives()
         {
-            var assembly1 = new Assembly();
-            var assembly2 = new Assembly();
-            var assembly3 = new Assembly();
-            var assembly4 = new Assembly();
-
-            assembly1
+            var assembly1 = new Assembly()
                 .WithChip(Element.Hydrogen)
-                .WithChip(Element.Lithium)
-                .WithUpperFloor(assembly2);
+                .WithChip(Element.Lithium);
+            var assembly2 = new Assembly()
+                .WithGenerator(Element.Hydrogen);
 
-            assembly2
-                .WithGenerator(Element.Hydrogen)
-                .WithLowerFloor(assembly1)
-                .WithUpperFloor(assembly3);
-
-            assembly3
-                .WithGenerator(Element.Lithium)
-                .WithLowerFloor(assembly2)
-                .WithUpperFloor(assembly4);
-
-            assembly4
-                .WithLowerFloor(assembly3);
 
             var floor1 = new Floor(1, assembly1);
-            var floor2 = new Floor(2, assembly1);
-            var floor3 = new Floor(3, assembly1);
-            var floor4 = new Floor(4, assembly1);
+            var floor2 = new Floor(2, assembly2);
 
             floor1.Upper = floor2;
             floor2.Lower = floor1;
-            floor2.Upper = floor3;
-            floor3.Lower = floor2;
-            floor3.Upper = floor4;
-            floor4.Lower = floor3;
 
-            var validAlternatives = floor1.ValidAlternatives();
-
-            
+            IList<Floor> validAlternatives = floor1.ValidAlternatives();
         }
-        
+
+        [Fact]
+        public void FloorEquality()
+        {
+            var floor1 = new Floor(1, new Assembly().WithChip(Element.Hydrogen).WithGenerator(Element.Hydrogen));
+            var floor2 = new Floor(1, new Assembly().WithGenerator(Element.Hydrogen).WithChip(Element.Hydrogen));
+
+            Assert.Equal(floor1, floor2);
+        }
+
+        [Fact]
+        public void FloorGetHashCode()
+        {
+            var floor1 = new Floor(1, new Assembly().WithChip(Element.Hydrogen).WithGenerator(Element.Hydrogen));
+            var floor2 = new Floor(1, new Assembly().WithGenerator(Element.Hydrogen).WithChip(Element.Hydrogen));
+
+            Assert.Equal(floor1.GetHashCode(), floor2.GetHashCode());
+        }
+
+
         [Fact]
         public void FirstStar()
         {

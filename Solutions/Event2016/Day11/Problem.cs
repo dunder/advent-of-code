@@ -11,28 +11,19 @@ namespace Solutions.Event2016.Day11
 
         public override string FirstStar()
         {
-            var floor1 = new Assembly();
-            var floor2 = new Assembly();
-            var floor3 = new Assembly();
-            var floor4 = new Assembly();
+            var floor1Assembly = new Assembly();
+            var floor2Assembly = new Assembly();
+            var floor3Assembly = new Assembly();
+            var floor4Assembly = new Assembly();
 
-            floor1
+            floor1Assembly
                 .WithChip(Element.Hydrogen)
-                .WithChip(Element.Lithium)
-                .WithUpperFloor(floor2);
+                .WithChip(Element.Lithium);
 
-            floor2
-                .WithGenerator(Element.Hydrogen)
-                .WithLowerFloor(floor1)
-                .WithUpperFloor(floor3);
+            floor2Assembly.WithGenerator(Element.Hydrogen);
 
-            floor3
-                .WithGenerator(Element.Lithium)
-                .WithLowerFloor(floor2)
-                .WithUpperFloor(floor4);
+            floor3Assembly.WithGenerator(Element.Lithium);
 
-            floor4
-                .WithLowerFloor(floor3);
 
             var result = "Not implemented";
             return result;
@@ -115,6 +106,27 @@ namespace Solutions.Event2016.Day11
 
             return alternatives;
         }
+
+        protected bool Equals(Floor other)
+        {
+            return Level == other.Level && Equals(Assembly, other.Assembly);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Floor) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (Level * 397) ^ (Assembly != null ? Assembly.GetHashCode() : 0);
+            }
+        }
     }
     public class Assembly {
         public Assembly() {
@@ -137,23 +149,11 @@ namespace Solutions.Event2016.Day11
             Generators.Add(element);
             return this;
         }
-
-        public Assembly WithUpperFloor(Assembly upperFloor) {
-            UpperFloor = upperFloor;
-            return this;
-        }
-
-        public Assembly WithLowerFloor(Assembly lowerFloor) {
-            LowerFloor = lowerFloor;
-            return this;
-        }
+        
 
         public HashSet<Element> Generators { get; }
         public HashSet<Element> Chips { get; }
-
-        public Assembly UpperFloor { get; private set; }
-        public Assembly LowerFloor { get; private set; }
-
+        
         public bool IsSafe()
         {
             if (!Chips.Any()) return true;
@@ -240,8 +240,10 @@ namespace Solutions.Event2016.Day11
         {
             unchecked
             {
-                return ((Generators != null ? Generators.GetHashCode() : 0) * 397) ^ (Chips != null ? Chips.GetHashCode() : 0);
+                return Generators.Aggregate(397, (a, e) => a * (int)e) ^ Chips.Aggregate(1, (a, e) => a * (int)e);
+                //return ((Generators != null ? Generators.GetHashCode() : 0) * 397) ^ (Chips != null ? Chips.GetHashCode() : 0);
             }
         }
     }
+
 }
