@@ -1,6 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Facet.Combinatorics;
+using Shared.Extensions;
+using Shared.Tree;
 
 namespace Solutions.Event2016.Day11
 {
@@ -11,22 +15,21 @@ namespace Solutions.Event2016.Day11
 
         public override string FirstStar()
         {
-            var floor1Assembly = new Assembly();
-            var floor2Assembly = new Assembly();
-            var floor3Assembly = new Assembly();
+            var floor1Assembly = new Assembly().WithChip(Element.Hydrogen).WithChip(Element.Lithium);
+            var floor2Assembly = new Assembly().WithGenerator(Element.Hydrogen);
+            var floor3Assembly = new Assembly().WithGenerator(Element.Lithium);
             var floor4Assembly = new Assembly();
 
-            floor1Assembly
-                .WithChip(Element.Hydrogen)
-                .WithChip(Element.Lithium);
+            var initialBuildingState = new BuildingState(1, new List<Assembly>
+            {
+                floor1Assembly,
+                floor2Assembly,
+                floor3Assembly,
+                floor4Assembly
+            });
 
-            floor2Assembly.WithGenerator(Element.Hydrogen);
-
-            floor3Assembly.WithGenerator(Element.Lithium);
-
-
-            var result = "Not implemented";
-            return result;
+            var result = MinimumStepsToTopFloor(initialBuildingState, 4, 10);
+            return result.ToString();
         }
 
         public override string SecondStar()
@@ -35,9 +38,20 @@ namespace Solutions.Event2016.Day11
             var result = "Not implemented";
             return result;
         }
+
+        public static int MinimumStepsToTopFloor(BuildingState initialState, int targetFloor, int targetAssemblyCount)
+        {
+            bool TargetCondition(BuildingState b) => b.Elevator == targetFloor;
+
+            var (breadthFirst, visited) =
+                initialState.BreadthFirst(floor => floor.SafeFloorRearrangements(), TargetCondition);
+
+            return visited.Count();
+        }
     }
 
-    public enum Element {
+    public enum Element
+    {
         Hydrogen,
         Lithium,
         Thulium,
@@ -46,6 +60,100 @@ namespace Solutions.Event2016.Day11
         Ruthenium,
         Strontium
     }
+
+    public class BuildingState
+    {
+        public BuildingState(int elevator, IList<Assembly> floors)
+        {
+            Elevator = elevator;
+            Floors = floors;
+        }
+
+        public IList<BuildingState> SafeFloorRearrangements()
+        {
+            var validForElevator = CurrentFloor.SafeChipGeneratorCombinations();
+            var safeToRelease = validForElevator.Where(a => CurrentFloor.Release(a).IsSafe()).ToList();
+
+            var alternatives = new List<BuildingState>();
+
+
+            if (CanMoveDown)
+            {
+                var safeToReceive = safeToRelease.Where(a => LowerFloor.Merge(a).IsSafe());
+
+                foreach (var assembly in safeToReceive)
+                {
+                    var newBuildingFloors = Floors.Select(a => a.Copy()).ToList();
+
+                    var newThis = CurrentFloor.Release(assembly);
+                    var newLower = LowerFloor.Merge(assembly);
+
+                    newBuildingFloors[Elevator] = newThis;
+                    newBuildingFloors[Elevator - 1] = newLower;
+
+                    alternatives.Add(new BuildingState(Elevator - 1, newBuildingFloors));
+                }
+            }
+
+            if (CanMoveUp)
+            {
+                var safeToReceive = safeToRelease.Where(a => UpperFloor.Merge(a).IsSafe());
+
+                foreach (var assembly in safeToReceive) {
+                    var newBuildingFloors = Floors.Select(a => a.Copy()).ToList();
+
+                    var newThis = CurrentFloor.Release(assembly);
+                    var newUpper = UpperFloor.Merge(assembly);
+
+                    newBuildingFloors[Elevator] = newThis;
+                    newBuildingFloors[Elevator + 1] = newUpper;
+
+                    alternatives.Add(new BuildingState(Elevator + 1, newBuildingFloors));
+                }
+            }
+
+            return alternatives;
+        }
+
+        public int Elevator { get; }
+        private bool CanMoveUp => Elevator < Floors.Count;
+        private bool CanMoveDown => Elevator > 0;
+        private Assembly CurrentFloor => Floors[Elevator];
+        private Assembly UpperFloor => Floors[Elevator + 1];
+        private Assembly LowerFloor => Floors[Elevator - 1];
+
+        private IList<Assembly> Floors { get; }
+
+        protected bool Equals(BuildingState other)
+        {
+            if (Elevator != other.Elevator) return false;
+            for (var i = 0; i < Floors.Count; i++)
+            {
+                if (!Floors[i].Equals(other.Floors[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((BuildingState) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return (Elevator * 397) ^ Floors.Aggregate(397, (a, e) => a * e.GetHashCode());
+            }
+        }
+    }
+
 
     public class Floor
     {
@@ -60,9 +168,9 @@ namespace Solutions.Event2016.Day11
             Assembly = assembly;
         }
 
-        public IList<Floor> ValidAlternatives()
+        public IList<Floor> SafeFloorRearrangements()
         {
-            var validForElevator = Assembly.SelectValidAssembliesForElevator();
+            var validForElevator = Assembly.SafeChipGeneratorCombinations();
             var safeToRelease = validForElevator.Where(a => Assembly.Release(a).IsSafe()).ToList();
 
             var alternatives = new List<Floor>();
@@ -74,7 +182,7 @@ namespace Solutions.Event2016.Day11
                 foreach (var assembly in safeToReceive)
                 {
                     var newThis = new Floor(Level, Assembly.Release(assembly));
-                    var newLower = new Floor(Lower.Level, Assembly.Merge(assembly));
+                    var newLower = new Floor(Lower.Level, Lower.Assembly.Merge(assembly));
 
                     newThis.Upper = Upper;
                     newThis.Lower = newLower;
@@ -90,9 +198,10 @@ namespace Solutions.Event2016.Day11
             {
                 var safeToReceive = safeToRelease.Where(a => Upper.Assembly.Merge(a).IsSafe());
 
-                foreach (var assembly in safeToReceive) {
+                foreach (var assembly in safeToReceive)
+                {
                     var newThis = new Floor(Level, Assembly.Release(assembly));
-                    var newUpper = new Floor(Upper.Level, Assembly.Merge(assembly));
+                    var newUpper = new Floor(Upper.Level, Upper.Assembly.Merge(assembly));
 
                     newThis.Upper = newUpper;
                     newThis.Lower = Lower;
@@ -127,38 +236,96 @@ namespace Solutions.Event2016.Day11
                 return (Level * 397) ^ (Assembly != null ? Assembly.GetHashCode() : 0);
             }
         }
+
+        public override string ToString()
+        {
+            string AbbreviatedElement(Element element)
+            {
+                switch (element)
+                {
+                    case Element.Hydrogen:
+                        return "H";
+                    case Element.Lithium:
+                        return "L";
+                    default:
+                        return "X";
+                }
+            }
+
+            var order = new[] {Element.Hydrogen, Element.Hydrogen, Element.Lithium, Element.Lithium};
+            var floorDescription = new StringBuilder();
+            for (var i = 0; i < order.Length; i++)
+            {
+                var element = order[i];
+                if (i % 2 == 0)
+                {
+                    floorDescription.Append(Assembly.Generators.Contains(element)
+                        ? $"{AbbreviatedElement(element)}G"
+                        : " . ");
+                }
+                else
+                {
+                    floorDescription.Append(
+                        Assembly.Chips.Contains(element) ? $"{AbbreviatedElement(element)}M" : " . ");
+                }
+            }
+
+            return $"F{Level}: {floorDescription}";
+        }
     }
-    public class Assembly {
-        public Assembly() {
+
+    public class Assembly
+    {
+        public Assembly()
+        {
             Generators = new HashSet<Element>();
             Chips = new HashSet<Element>();
         }
 
-        public Assembly WithChip(Element chip) {
+        public Assembly WithChip(Element chip)
+        {
             Chips.Add(chip);
             return this;
         }
 
-        public Assembly WithGenerator(Element chip) {
+        public Assembly WithGenerator(Element chip)
+        {
             Generators.Add(chip);
             return this;
         }
 
-        public Assembly WithMatchingChipAndGenerator(Element element) {
+        public Assembly WithMatchingChipAndGenerator(Element element)
+        {
             Chips.Add(element);
             Generators.Add(element);
             return this;
         }
-        
 
         public HashSet<Element> Generators { get; }
         public HashSet<Element> Chips { get; }
-        
+
         public bool IsSafe()
         {
             if (!Chips.Any()) return true;
             if (!Generators.Any()) return true;
             return Chips.All(c => Generators.Contains(c));
+        }
+
+        public Assembly Copy()
+        {
+            var copy = new Assembly();
+
+            foreach (var c in Chips)
+            {
+                copy.WithChip(c);
+            }
+
+            foreach (var g in Generators)
+            {
+                copy.WithGenerator(g);
+            }
+
+            return copy;
         }
 
         public Assembly Merge(Assembly assembly)
@@ -200,16 +367,23 @@ namespace Solutions.Event2016.Day11
             {
                 released.WithGenerator(generator);
             }
+
             return released;
         }
 
-        public IEnumerable<Assembly> SelectValidAssembliesForElevator() {
+        public IEnumerable<Assembly> SafeChipGeneratorCombinations()
+        {
             var singleChips = Chips.Select(c => new Assembly().WithChip(c));
             var singleGenerators = Generators.Select(g => new Assembly().WithGenerator(g));
-            var chipCombinations = new Combinations<Element>(Chips.ToList(), 2)
-                .Select(pair => new Assembly()
-                    .WithChip(pair.First())
-                    .WithChip(pair.Last()));
+            IEnumerable<Assembly> chipCombinations = new List<Assembly>();
+            if (Chips.Count > 1)
+            {
+                chipCombinations = new Combinations<Element>(Chips.ToList(), 2)
+                    .Select(pair => new Assembly()
+                        .WithChip(pair.First())
+                        .WithChip(pair.Last()));
+            }
+
             var chipGeneratorPairs = Chips
                 .Where(chip => Generators.Contains(chip))
                 .Select(c => new Assembly().WithMatchingChipAndGenerator(c));
@@ -240,10 +414,8 @@ namespace Solutions.Event2016.Day11
         {
             unchecked
             {
-                return Generators.Aggregate(397, (a, e) => a * (int)e) ^ Chips.Aggregate(1, (a, e) => a * (int)e);
-                //return ((Generators != null ? Generators.GetHashCode() : 0) * 397) ^ (Chips != null ? Chips.GetHashCode() : 0);
+                return Generators.Aggregate(397, (a, e) => a * (int) e) ^ Chips.Aggregate(1, (a, e) => a * (int) e);
             }
         }
     }
-
 }

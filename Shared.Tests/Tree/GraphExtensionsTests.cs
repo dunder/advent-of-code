@@ -33,7 +33,7 @@ namespace Shared.Tests.Tree {
 
             IList<string> Neighbors(string n) => graph[n];
 
-            var path = "a".BreadthFirst(Neighbors);
+            var (_, path) = "a".BreadthFirst(Neighbors, s => false);
 
             Assert.Equal(new [] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}, path);
         }

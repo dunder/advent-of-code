@@ -44,8 +44,12 @@ namespace Shared.Tree {
                 }
             }
         }
-        public static IEnumerable<T> BreadthFirst<T>(this T start, Func<T,IEnumerable<T>> neighborFetcher) {
+
+        public static (IEnumerable<T> breadthFirst, ISet<T> visited) BreadthFirst<T>(this T start, Func<T,IEnumerable<T>> neighborFetcher, Predicate<T> targetCondition)
+        {
+            var breadthFirst = new List<T>();
             var visited = new HashSet<T>();
+
             var queue = new Queue<T>();
 
             queue.Enqueue(start);
@@ -57,7 +61,12 @@ namespace Shared.Tree {
                     continue;
                 }
 
-                yield return current;
+                breadthFirst.Add(current);
+
+                if (targetCondition(current))
+                {
+                    break;
+                }
 
                 var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n));
 
@@ -65,6 +74,8 @@ namespace Shared.Tree {
                     queue.Enqueue(neighbor);
                 }
             }
+
+            return (breadthFirst, visited);
         }
 
         public static (IEnumerable<T> depthFirst, ISet<T> visited) DepthFirstWithVisited<T>(this T start, Func<T, IEnumerable<T>> neighbourFetcher) {

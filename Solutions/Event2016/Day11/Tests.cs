@@ -6,6 +6,62 @@ namespace Solutions.Event2016.Day11
 {
     public class Tests
     {
+
+        [Fact]
+        public void BuildingEqualityChips()
+        {
+            var building1 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+            });
+
+            var building2 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+            });
+
+            Assert.Equal(building1, building2);
+        }
+
+        [Fact]
+        public void BuildingEqualityMixOfChipAndGenerator()
+        {
+            var building1 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+                new Assembly().WithGenerator(Element.Hydrogen)
+            });
+
+            var building2 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+                new Assembly().WithGenerator(Element.Hydrogen)
+            });
+
+            Assert.Equal(building1, building2);
+        }
+
+        [Fact]
+        public void BuildingHashCode()
+        {
+            var building1 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+                new Assembly().WithGenerator(Element.Hydrogen)
+            });
+
+            var building2 = new BuildingState(1, new List<Assembly>
+            {
+                new Assembly().WithChip(Element.Hydrogen),
+                new Assembly().WithGenerator(Element.Hydrogen)
+            });
+
+            var hashCode1 = building1.GetHashCode();
+            var hashCode2 = building2.GetHashCode();
+
+            Assert.Equal(hashCode1, hashCode2);
+        }
+
         [Fact]
         public void AssemblyEquality()
         {
@@ -28,7 +84,7 @@ namespace Solutions.Event2016.Day11
                 .WithChip(Element.Hydrogen)
                 .WithChip(Element.Lithium);
 
-            var moves = assembly.SelectValidAssembliesForElevator().ToList();
+            var moves = assembly.SafeChipGeneratorCombinations().ToList();
 
             Assert.Equal(3, moves.Count);
             Assert.Contains(new Assembly().WithChip(Element.Hydrogen), moves);
@@ -145,7 +201,7 @@ namespace Solutions.Event2016.Day11
             floor1.Upper = floor2;
             floor2.Lower = floor1;
 
-            IList<Floor> validAlternatives = floor1.ValidAlternatives();
+            IList<Floor> validAlternatives = floor1.SafeFloorRearrangements();
         }
 
         [Fact]
@@ -166,6 +222,26 @@ namespace Solutions.Event2016.Day11
             Assert.Equal(floor1.GetHashCode(), floor2.GetHashCode());
         }
 
+        [Fact]
+        public void FirstStarExample()
+        {
+            var floor1Assembly = new Assembly().WithChip(Element.Hydrogen).WithChip(Element.Lithium);
+            var floor2Assembly = new Assembly().WithGenerator(Element.Hydrogen);
+            var floor3Assembly = new Assembly().WithGenerator(Element.Lithium);
+            var floor4Assembly = new Assembly();
+
+            var initialBuildingState = new BuildingState(1, new List<Assembly>
+            {
+                floor1Assembly,
+                floor2Assembly,
+                floor3Assembly,
+                floor4Assembly
+            });
+
+            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 4, 4);
+
+            Assert.Equal(11, steps);
+        }
 
         [Fact]
         public void FirstStar()
