@@ -62,6 +62,7 @@ namespace Solutions.Event2016.Day11
             Assert.Equal(hashCode1, hashCode2);
         }
 
+
         [Fact]
         public void AssemblyEquality()
         {
@@ -127,7 +128,7 @@ namespace Solutions.Event2016.Day11
                 .WithChip(Element.Hydrogen)
                 .WithGenerator(Element.Hydrogen);
             Assert.True(assembly.IsSafe());
-        }
+        }        
 
         [Fact]
         public void SafeAssembly_MismatchingChipAndGenerator_NotSafe()
@@ -137,6 +138,28 @@ namespace Solutions.Event2016.Day11
                 .WithGenerator(Element.Hydrogen);
 
             Assert.False(assembly.IsSafe());
+        }
+
+        [Fact]
+        public void SafeAssembly_ChipWithoutGenerator_NotSafe()
+        {
+            var assembly = new Assembly()
+                .WithChip(Element.Lithium)
+                .WithChip(Element.Hydrogen)
+                .WithGenerator(Element.Hydrogen);
+
+            Assert.False(assembly.IsSafe());
+        }
+
+        [Fact]
+        public void SafeAssembly_ChipWithGeneratorWhenOtherGenerators_Safe()
+        {
+            var assembly = new Assembly()
+                .WithChip(Element.Hydrogen)
+                .WithGenerator(Element.Hydrogen)
+                .WithGenerator(Element.Lithium);
+
+            Assert.True(assembly.IsSafe());
         }
 
         [Fact]
@@ -186,43 +209,6 @@ namespace Solutions.Event2016.Day11
         }
 
         [Fact]
-        public void ValidAlternatives()
-        {
-            var assembly1 = new Assembly()
-                .WithChip(Element.Hydrogen)
-                .WithChip(Element.Lithium);
-            var assembly2 = new Assembly()
-                .WithGenerator(Element.Hydrogen);
-
-
-            var floor1 = new Floor(1, assembly1);
-            var floor2 = new Floor(2, assembly2);
-
-            floor1.Upper = floor2;
-            floor2.Lower = floor1;
-
-            IList<Floor> validAlternatives = floor1.SafeFloorRearrangements();
-        }
-
-        [Fact]
-        public void FloorEquality()
-        {
-            var floor1 = new Floor(1, new Assembly().WithChip(Element.Hydrogen).WithGenerator(Element.Hydrogen));
-            var floor2 = new Floor(1, new Assembly().WithGenerator(Element.Hydrogen).WithChip(Element.Hydrogen));
-
-            Assert.Equal(floor1, floor2);
-        }
-
-        [Fact]
-        public void FloorGetHashCode()
-        {
-            var floor1 = new Floor(1, new Assembly().WithChip(Element.Hydrogen).WithGenerator(Element.Hydrogen));
-            var floor2 = new Floor(1, new Assembly().WithGenerator(Element.Hydrogen).WithChip(Element.Hydrogen));
-
-            Assert.Equal(floor1.GetHashCode(), floor2.GetHashCode());
-        }
-
-        [Fact]
         public void FirstStarExample()
         {
             var floor1Assembly = new Assembly().WithChip(Element.Hydrogen).WithChip(Element.Lithium);
@@ -230,7 +216,7 @@ namespace Solutions.Event2016.Day11
             var floor3Assembly = new Assembly().WithGenerator(Element.Lithium);
             var floor4Assembly = new Assembly();
 
-            var initialBuildingState = new BuildingState(1, new List<Assembly>
+            var initialBuildingState = new BuildingState(0, new List<Assembly>
             {
                 floor1Assembly,
                 floor2Assembly,
