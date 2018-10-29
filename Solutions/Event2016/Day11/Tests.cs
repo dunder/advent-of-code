@@ -72,6 +72,7 @@ namespace Solutions.Event2016.Day11
             Assert.Equal(hashCode1, hashCode2);
         }
 
+
         [Fact]
         public void AssemblyEquality()
         {
@@ -186,7 +187,7 @@ namespace Solutions.Event2016.Day11
                 .WithChip(Element.Hydrogen)
                 .WithGenerator(Element.Hydrogen);
             Assert.True(assembly.IsSafe());
-        }
+        }        
 
         [Fact]
         public void SafeAssembly_MismatchingChipAndGenerator_NotSafe()
@@ -196,6 +197,28 @@ namespace Solutions.Event2016.Day11
                 .WithGenerator(Element.Hydrogen);
 
             Assert.False(assembly.IsSafe());
+        }
+
+        [Fact]
+        public void SafeAssembly_ChipWithoutGenerator_NotSafe()
+        {
+            var assembly = new Assembly()
+                .WithChip(Element.Lithium)
+                .WithChip(Element.Hydrogen)
+                .WithGenerator(Element.Hydrogen);
+
+            Assert.False(assembly.IsSafe());
+        }
+
+        [Fact]
+        public void SafeAssembly_ChipWithGeneratorWhenOtherGenerators_Safe()
+        {
+            var assembly = new Assembly()
+                .WithChip(Element.Hydrogen)
+                .WithGenerator(Element.Hydrogen)
+                .WithGenerator(Element.Lithium);
+
+            Assert.True(assembly.IsSafe());
         }
 
         [Fact]

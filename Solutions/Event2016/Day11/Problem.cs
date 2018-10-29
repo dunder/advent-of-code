@@ -16,9 +16,19 @@ namespace Solutions.Event2016.Day11
 
         public override string FirstStar()
         {
-            var floor1Assembly = new Assembly().WithChip(Element.Hydrogen).WithChip(Element.Lithium);
-            var floor2Assembly = new Assembly().WithGenerator(Element.Hydrogen);
-            var floor3Assembly = new Assembly().WithGenerator(Element.Lithium);
+            var floor1Assembly = new Assembly()
+                .WithGenerator(Element.Thulium)
+                .WithChip(Element.Thulium)
+                .WithGenerator(Element.Plutonium)
+                .WithGenerator(Element.Strontium);
+            var floor2Assembly = new Assembly()
+                .WithChip(Element.Plutonium)
+                .WithChip(Element.Strontium);
+            var floor3Assembly = new Assembly()
+                .WithGenerator(Element.Promethium)
+                .WithChip(Element.Promethium)
+                .WithGenerator(Element.Ruthenium)
+                .WithChip(Element.Ruthenium);
             var floor4Assembly = new Assembly();
 
             var initialBuildingState = new BuildingState(1, 
@@ -32,6 +42,7 @@ namespace Solutions.Event2016.Day11
                 0);
 
             var result = MinimumStepsToTopFloor(initialBuildingState, 4, 10);
+
             return result.ToString();
         }
 
@@ -80,8 +91,7 @@ namespace Solutions.Event2016.Day11
             var validForElevator = CurrentFloor.SafeChipGeneratorCombinations();
             var safeToRelease = validForElevator.Where(a => CurrentFloor.Release(a).IsSafe()).ToList();
 
-            var alternatives = new List<BuildingState>();
-
+            var safeRearrangements = new List<BuildingState>();
 
             if (CanMoveDown)
             {
@@ -118,7 +128,7 @@ namespace Solutions.Event2016.Day11
                 }
             }
 
-            return alternatives;
+            return safeRearrangements;
         }
 
         public int Elevator { get; }
@@ -126,7 +136,6 @@ namespace Solutions.Event2016.Day11
         public int StateDepth { get; }
         private bool CanMoveUp => Elevator < Floors.Count - 1;
         private bool CanMoveDown => Elevator > 0;
-        private Assembly CurrentFloor => Floors[Elevator];
         private Assembly UpperFloor => Floors[Elevator + 1];
         private Assembly LowerFloor => Floors[Elevator - 1];
 
