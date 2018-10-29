@@ -3,8 +3,6 @@
 namespace Solutions.Event2016.Day12 {
     public class Tests {
 
-
-
         [Fact]
         public void FirstStar()
         {
