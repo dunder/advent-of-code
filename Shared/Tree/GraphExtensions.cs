@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace Shared.Tree {
-
-    public interface INodeReporter<in T>
-    {
-        void NodeVisited(T node);
-    }
+    
     /// <summary>
     /// Ideas from https://stackoverflow.com/a/5806795
     /// </summary>
@@ -52,8 +48,7 @@ namespace Shared.Tree {
 
         public static (T terminationNode, ISet<T> visited) BreadthFirst<T>(this T start, 
             Func<T,IEnumerable<T>> neighborFetcher, 
-            Predicate<T> targetCondition, 
-            INodeReporter<T> nodeReporter = null)
+            Predicate<T> targetCondition)
         {
             var visited = new HashSet<T>();
 
@@ -69,8 +64,6 @@ namespace Shared.Tree {
                     continue;
                 }
 
-                nodeReporter?.NodeVisited(current);
-
                 if (targetCondition(current))
                 {
                     terminationNode = current;
@@ -78,11 +71,7 @@ namespace Shared.Tree {
                 }
 
                 var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n)).ToList();
-
-                if (!neighbors.Any())
-                {
-                    break;
-                }
+                
                 foreach (var neighbor in neighbors) {
                     queue.Enqueue(neighbor);
                 }

@@ -1,22 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Shared.Tree;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace Solutions.Event2016.Day11
 {
     public class Tests
     {
-        private readonly ITestOutputHelper _output;
-
-        public Tests(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
         [Fact]
         public void BuildingEqualityChips()
         {
@@ -285,7 +274,7 @@ namespace Solutions.Event2016.Day11
                 },
                 0);
 
-            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4, new BuildingStateReporter(_output));
+            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4);
 
             Assert.Equal(11, steps);
         }
@@ -293,91 +282,17 @@ namespace Solutions.Event2016.Day11
         [Fact]
         public void FirstStar()
         {
-            //var actual = new Problem().FirstStar();
+            var actual = new Problem().FirstStar();
 
-            var floor1Assembly = new Assembly()
-                .WithGenerator(Element.Thulium)
-                .WithChip(Element.Thulium)
-                .WithGenerator(Element.Plutonium)
-                .WithGenerator(Element.Strontium);
-            var floor2Assembly = new Assembly()
-                .WithChip(Element.Plutonium)
-                .WithChip(Element.Strontium);
-            var floor3Assembly = new Assembly()
-                .WithGenerator(Element.Promethium)
-                .WithChip(Element.Promethium)
-                .WithGenerator(Element.Ruthenium)
-                .WithChip(Element.Ruthenium);
-            var floor4Assembly = new Assembly();
-
-            var initialBuildingState = new BuildingState(1,
-                new List<Assembly>
-                {
-                    floor1Assembly,
-                    floor2Assembly,
-                    floor3Assembly,
-                    floor4Assembly
-                },
-                0);
-
-            var result = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 10);
-
-
-            Assert.Equal("31", result.ToString());
+            Assert.Equal("31", actual);
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
             Assert.Equal("55", actual);
-        }
-    }
-
-    public class BuildingStateReporter : INodeReporter<BuildingState>
-    {
-        private readonly ITestOutputHelper _output;
-
-        public BuildingStateReporter(ITestOutputHelper output)
-        {
-            _output = output;
-        }
-
-        public void NodeVisited(BuildingState node)
-        {
-            var elementOrder = new[] {Element.Thulium, Element.Plutonium, Element.Strontium, Element.Promethium, Element.Ruthenium};
-            var elementAbbreviations = new Dictionary<Element, string>
-            {
-                {Element.Thulium, "T "},
-                {Element.Plutonium, "P"},
-                {Element.Strontium, "S "},
-                {Element.Promethium, "Pr"},
-                {Element.Ruthenium, "R "},
-            };                          
-            var floorSetup = node.FloorSetup;
-            for (int i = floorSetup.Count - 1; i >= 0; i--)
-            {
-                var assembly = floorSetup[i];
-                var elevator = node.Elevator == i ? "E" : ".";
-
-                var assemblyLayout = new StringBuilder();
-
-                foreach (var element in elementOrder)
-                {
-                    var generator = assembly.Generators.Contains(element)
-                        ? $"{elementAbbreviations[element]}G "
-                        : ".  ";
-                    assemblyLayout.Append(generator);
-                    var chip = assembly.Chips.Contains(element) ? $"{elementAbbreviations[element]}M " : ".  ";
-                    assemblyLayout.Append(chip);
-                }
-
-                _output.WriteLine($"{elevator} {assemblyLayout}");
-            }
-
-            _output.WriteLine("");
-            _output.WriteLine("*******************************************");
-            _output.WriteLine("");
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Solutions.Event2016.Day11
                 .WithChip(Element.Ruthenium);
             var floor4Assembly = new Assembly();
 
-            var initialBuildingState = new BuildingState(1, 
+            var initialBuildingState = new BuildingState(0, 
                 new List<Assembly>
                 {
                     floor1Assembly,
@@ -46,18 +46,47 @@ namespace Solutions.Event2016.Day11
 
         public override string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result;
+            var floor1Assembly = new Assembly()
+                .WithGenerator(Element.Thulium)
+                .WithChip(Element.Thulium)
+                .WithGenerator(Element.Plutonium)
+                .WithGenerator(Element.Strontium)
+                .WithGenerator(Element.Elerium)
+                .WithChip(Element.Elerium)
+                .WithGenerator(Element.Dilithium)
+                .WithChip(Element.Dilithium);
+            var floor2Assembly = new Assembly()
+                .WithChip(Element.Plutonium)
+                .WithChip(Element.Strontium);
+            var floor3Assembly = new Assembly()
+                .WithGenerator(Element.Promethium)
+                .WithChip(Element.Promethium)
+                .WithGenerator(Element.Ruthenium)
+                .WithChip(Element.Ruthenium);
+            var floor4Assembly = new Assembly();
+
+            var initialBuildingState = new BuildingState(0,
+                new List<Assembly>
+                {
+                    floor1Assembly,
+                    floor2Assembly,
+                    floor3Assembly,
+                    floor4Assembly
+                },
+                0);
+
+            var result = MinimumStepsToTopFloor(initialBuildingState, 3, 14);
+
+            return result.ToString();
         }
 
-        public static int MinimumStepsToTopFloor(BuildingState initialState, int targetFloor, int targetAssemblyCount, INodeReporter<BuildingState> buildingStateReporter = null)
+        public static int MinimumStepsToTopFloor(BuildingState initialState, int targetFloor, int targetAssemblyCount)
         {
             bool TargetCondition(BuildingState b) => 
                 b.Elevator == targetFloor && 
                 b.FloorSetup[targetFloor].Chips.Count + b.FloorSetup[targetFloor].Generators.Count == targetAssemblyCount;
 
-            var (terminationNode, _) = initialState.BreadthFirst(floor => floor.SafeFloorRearrangements(), TargetCondition, buildingStateReporter);
+            var (terminationNode, _) = initialState.BreadthFirst(floor => floor.SafeFloorRearrangements(), TargetCondition);
 
             return terminationNode.StateDepth;
         }
@@ -72,7 +101,9 @@ namespace Solutions.Event2016.Day11
         Plutonium,
         Promethium,
         Ruthenium,
-        Strontium
+        Strontium,
+        Elerium,
+        Dilithium
     }
 
     public class BuildingState
@@ -157,7 +188,7 @@ namespace Solutions.Event2016.Day11
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             return Equals((BuildingState) obj);
         }
 
@@ -182,6 +213,7 @@ namespace Solutions.Event2016.Day11
             };
 
             var state = new StringBuilder();
+            state.AppendLine($"Depth: {StateDepth}");
 
             for (int i = Floors.Count - 1; i >= 0; i--) {
                 var assembly = Floors[i];
@@ -343,7 +375,7 @@ namespace Solutions.Event2016.Day11
         {
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
+            if (obj.GetType() != GetType()) return false;
             Assembly other = (Assembly) obj;
             if (!Generators.SetEquals(other.Generators))
             {
