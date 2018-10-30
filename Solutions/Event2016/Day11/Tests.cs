@@ -274,7 +274,7 @@ namespace Solutions.Event2016.Day11
                 },
                 0);
 
-            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4);
+            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4); // 18 min 31 s
 
             Assert.Equal(11, steps);
         }
