@@ -77,8 +77,12 @@ namespace Shared.Tree {
                     break;
                 }
 
-                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n));
+                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n)).ToList();
 
+                if (!neighbors.Any())
+                {
+                    break;
+                }
                 foreach (var neighbor in neighbors) {
                     queue.Enqueue(neighbor);
                 }

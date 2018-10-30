@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using Facet.Combinatorics;
-using Shared.Extensions;
 using Shared.Tree;
 
 namespace Solutions.Event2016.Day11
@@ -41,7 +39,7 @@ namespace Solutions.Event2016.Day11
                 }, 
                 0);
 
-            var result = MinimumStepsToTopFloor(initialBuildingState, 4, 10);
+            var result = MinimumStepsToTopFloor(initialBuildingState, 3, 10);
 
             return result.ToString();
         }
@@ -107,7 +105,7 @@ namespace Solutions.Event2016.Day11
                     newBuildingFloors[Elevator] = newThis;
                     newBuildingFloors[Elevator - 1] = newLower;
 
-                    alternatives.Add(new BuildingState(Elevator - 1, newBuildingFloors, StateDepth + 1));
+                    safeRearrangements.Add(new BuildingState(Elevator - 1, newBuildingFloors, StateDepth + 1));
                 }
             }
 
@@ -124,7 +122,7 @@ namespace Solutions.Event2016.Day11
                     newBuildingFloors[Elevator] = newThis;
                     newBuildingFloors[Elevator + 1] = newUpper;
 
-                    alternatives.Add(new BuildingState(Elevator + 1, newBuildingFloors, StateDepth + 1));
+                    safeRearrangements.Add(new BuildingState(Elevator + 1, newBuildingFloors, StateDepth + 1));
                 }
             }
 
@@ -136,6 +134,7 @@ namespace Solutions.Event2016.Day11
         public int StateDepth { get; }
         private bool CanMoveUp => Elevator < Floors.Count - 1;
         private bool CanMoveDown => Elevator > 0;
+        private Assembly CurrentFloor => Floors[Elevator];
         private Assembly UpperFloor => Floors[Elevator + 1];
         private Assembly LowerFloor => Floors[Elevator - 1];
 
@@ -168,6 +167,40 @@ namespace Solutions.Event2016.Day11
             {
                 return (Elevator * 397) ^ Floors.Aggregate(397, (a, e) => a * e.GetHashCode());
             }
+        }
+
+        public override string ToString()
+        {
+            var elementOrder = new[] { Element.Thulium, Element.Plutonium, Element.Strontium, Element.Promethium, Element.Ruthenium };
+            var elementAbbreviations = new Dictionary<Element, string>
+            {
+                {Element.Thulium, "T"},
+                {Element.Plutonium, "P"},
+                {Element.Strontium, "S"},
+                {Element.Promethium, "O"},
+                {Element.Ruthenium, "R"},
+            };
+
+            var state = new StringBuilder();
+
+            for (int i = Floors.Count - 1; i >= 0; i--) {
+                var assembly = Floors[i];
+                var elevator = Elevator == i ? "E" : ".";
+
+                var assemblyLayout = new StringBuilder();
+                foreach (var element in elementOrder) {
+                    var generator = assembly.Generators.Contains(element)
+                        ? $"{elementAbbreviations[element]}G "
+                        : ".  ";
+                    assemblyLayout.Append(generator);
+                    var chip = assembly.Chips.Contains(element) ? $"{elementAbbreviations[element]}M " : ".  ";
+                    assemblyLayout.Append(chip);
+                }
+
+                state.AppendLine($"{elevator} {assemblyLayout}");
+            }
+
+            return state.ToString();
         }
     }
 

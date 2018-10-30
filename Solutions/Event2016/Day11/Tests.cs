@@ -293,8 +293,37 @@ namespace Solutions.Event2016.Day11
         [Fact]
         public void FirstStar()
         {
-            var actual = new Problem().FirstStar();
-            Assert.Equal("31", actual);
+            //var actual = new Problem().FirstStar();
+
+            var floor1Assembly = new Assembly()
+                .WithGenerator(Element.Thulium)
+                .WithChip(Element.Thulium)
+                .WithGenerator(Element.Plutonium)
+                .WithGenerator(Element.Strontium);
+            var floor2Assembly = new Assembly()
+                .WithChip(Element.Plutonium)
+                .WithChip(Element.Strontium);
+            var floor3Assembly = new Assembly()
+                .WithGenerator(Element.Promethium)
+                .WithChip(Element.Promethium)
+                .WithGenerator(Element.Ruthenium)
+                .WithChip(Element.Ruthenium);
+            var floor4Assembly = new Assembly();
+
+            var initialBuildingState = new BuildingState(1,
+                new List<Assembly>
+                {
+                    floor1Assembly,
+                    floor2Assembly,
+                    floor3Assembly,
+                    floor4Assembly
+                },
+                0);
+
+            var result = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 10);
+
+
+            Assert.Equal("31", result.ToString());
         }
 
         [Fact]
@@ -316,12 +345,15 @@ namespace Solutions.Event2016.Day11
 
         public void NodeVisited(BuildingState node)
         {
-            var elementOrder = new[] {Element.Hydrogen, Element.Lithium};
+            var elementOrder = new[] {Element.Thulium, Element.Plutonium, Element.Strontium, Element.Promethium, Element.Ruthenium};
             var elementAbbreviations = new Dictionary<Element, string>
             {
-                {Element.Lithium, "L"},
-                {Element.Hydrogen, "H"}
-            };
+                {Element.Thulium, "T "},
+                {Element.Plutonium, "P"},
+                {Element.Strontium, "S "},
+                {Element.Promethium, "Pr"},
+                {Element.Ruthenium, "R "},
+            };                          
             var floorSetup = node.FloorSetup;
             for (int i = floorSetup.Count - 1; i >= 0; i--)
             {
