@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Solutions.Event2016.Day11.EnumFlagsSolution;
 using Xunit;
 
 namespace Solutions.Event2016.Day11
@@ -60,7 +61,6 @@ namespace Solutions.Event2016.Day11
 
             Assert.Equal(hashCode1, hashCode2);
         }
-
 
         [Fact]
         public void AssemblyEquality()
@@ -274,7 +274,24 @@ namespace Solutions.Event2016.Day11
                 },
                 0);
 
-            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4); // 18 min 31 s
+            int steps = Problem.MinimumStepsToTopFloor(initialBuildingState, 3, 4);
+
+            Assert.Equal(11, steps);
+        }
+
+        [Fact]
+        public void FirstStarExample2()
+        {
+            var initialState = new FloorState(0, new List<Floor>
+            {
+                Floor.HydrogenChip | Floor.LithiumChip,
+                Floor.HydrogenGenerator,
+                Floor.LithiumGenerator,
+                Floor.Empty
+            });
+            
+
+            int steps = Problem.MinimumStepsToTopFloor2(initialState, 3, Floor.HydrogenChip | Floor.LithiumChip | Floor.HydrogenGenerator | Floor.LithiumGenerator);
 
             Assert.Equal(11, steps);
         }
@@ -291,6 +308,7 @@ namespace Solutions.Event2016.Day11
         [Fact]
         public void SecondStar()
         {
+            // 18 min 31 s
             var actual = new Problem().SecondStar();
             Assert.Equal("55", actual);
         }

@@ -4,12 +4,12 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            ProblemBase day = new Event2017.Day14.Problem();
+            ProblemBase day = new Event2016.Day11.Problem();
 
             Console.WriteLine($"Running {day.Event} {day.Day}");
 
             var firstStar = day.FirstStar();
-            var secondStar = day.SecondStar();
+            var secondStar = ""; //day.SecondStar();
 
             Console.WriteLine("First star:");
             Console.WriteLine($"{firstStar}");

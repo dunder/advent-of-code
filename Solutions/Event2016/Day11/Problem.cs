@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Facet.Combinatorics;
 using Shared.Tree;
+using Solutions.Event2016.Day11.EnumFlagsSolution;
 
 namespace Solutions.Event2016.Day11
 {
@@ -13,6 +14,32 @@ namespace Solutions.Event2016.Day11
         public override Day Day => Day.Day11;
 
         public override string FirstStar()
+        {
+            return FirstStarUsingClasses();
+        }
+
+        private static string FirstStarUsingEnumFlags()
+        {
+            var initialState = new FloorState(0, new List<Floor>
+            {
+                Floor.ThuliumGenerator | Floor.ThuliumChip | Floor.PlutoniumGenerator | Floor.StrontiumGenerator,
+                Floor.PlutoniumChip | Floor.StrontiumChip,
+                Floor.PromethiumGenerator | Floor.PromethiumChip | Floor.RutheniumGenerator | Floor.RutheniumChip,
+                Floor.Empty
+            });
+
+            var targetTopFloor = Floor.PlutoniumChip | Floor.PlutoniumGenerator |
+                                 Floor.PromethiumChip | Floor.PromethiumGenerator |
+                                 Floor.RutheniumChip | Floor.RutheniumGenerator |
+                                 Floor.StrontiumChip | Floor.StrontiumGenerator |
+                                 Floor.ThuliumChip | Floor.ThuliumGenerator;
+
+            var result = MinimumStepsToTopFloor2(initialState, 3, targetTopFloor);
+
+            return result.ToString();
+        }
+
+        private string FirstStarUsingClasses()
         {
             var floor1Assembly = new Assembly()
                 .WithGenerator(Element.Thulium)
@@ -29,14 +56,14 @@ namespace Solutions.Event2016.Day11
                 .WithChip(Element.Ruthenium);
             var floor4Assembly = new Assembly();
 
-            var initialBuildingState = new BuildingState(0, 
+            var initialBuildingState = new BuildingState(0,
                 new List<Assembly>
                 {
                     floor1Assembly,
                     floor2Assembly,
                     floor3Assembly,
                     floor4Assembly
-                }, 
+                },
                 0);
 
             var result = MinimumStepsToTopFloor(initialBuildingState, 3, 10);
@@ -89,6 +116,18 @@ namespace Solutions.Event2016.Day11
             var (terminationNode, _) = initialState.BreadthFirst(floor => floor.SafeFloorRearrangements(), TargetCondition);
 
             return terminationNode.StateDepth;
+        }
+
+        public static int MinimumStepsToTopFloor2(FloorState initialState, int targetFloor, Floor targetTopFloor)
+        {
+            bool TargetCondition(FloorState f)
+            {
+                return f.ElevatorFloor == targetFloor && f.Floors[targetFloor] == targetTopFloor;
+            }
+
+            var (terminationNode, _) = initialState.BreadthFirst(floor => floor.Next(), TargetCondition);
+
+            return terminationNode.Generation;
         }
     }
 
@@ -376,7 +415,7 @@ namespace Solutions.Event2016.Day11
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != GetType()) return false;
-            Assembly other = (Assembly) obj;
+            Assembly other = (Assembly)obj;
             if (!Generators.SetEquals(other.Generators))
             {
                 return false;
@@ -389,8 +428,9 @@ namespace Solutions.Event2016.Day11
         {
             unchecked
             {
-                return Generators.Aggregate(397, (a, e) => a * (int) e) ^ Chips.Aggregate(1, (a, e) => a * (int) e);
+                return Generators.Aggregate(397, (a, e) => a * (int)e) ^ Chips.Aggregate(1, (a, e) => a * (int)e);
             }
         }
     }
+
 }
