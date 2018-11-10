@@ -33,7 +33,7 @@ namespace Solutions.Event2017.Day12
 
             return 1 + connections.Count(kvp =>
                        !kvp.Key.Equals("0") &&
-                       kvp.Key.DepthFirstWithVisited(n => connections[n]).visited.Contains("0"));
+                       kvp.Key.DepthFirst(n => connections[n]).visited.Contains("0"));
         }
 
         private static Dictionary<string, List<string>> ReadConnections(IList<string> input) {
@@ -52,7 +52,7 @@ namespace Solutions.Event2017.Day12
             HashSet<string> groupedSet = new HashSet<string>();
 
             var visitedSets = connections.Select(kvp =>
-                new HashSet<string>(kvp.Key.DepthFirstWithVisited(c => connections[c]).visited));
+                new HashSet<string>(kvp.Key.DepthFirst(c => connections[c]).visited));
 
             foreach (var visited in visitedSets) {
                 if (!visited.IsSubsetOf(groupedSet)) {

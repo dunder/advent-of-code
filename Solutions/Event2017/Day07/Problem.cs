@@ -101,7 +101,7 @@ namespace Solutions.Event2017.Day07
 
         private static int TowerWeight(Disc start)
         {
-            var (_, visited) = start.DepthFirstWithVisited(n => n.Parents);
+            var (_, visited) = start.DepthFirst(n => n.Parents);
             return visited.Sum(p => p.Weight);
         }
     }

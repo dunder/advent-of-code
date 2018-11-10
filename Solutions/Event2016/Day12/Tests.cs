@@ -34,7 +34,7 @@ namespace Solutions.Event2016.Day12
             Assert.Equal("318009", actual);
         }
 
-        [Trait("Category", "LongRunning")]
+        [Trait("Category", "LongRunning")]  // 1 m 7 s
         [Fact]
         public void SecondStar()
         {

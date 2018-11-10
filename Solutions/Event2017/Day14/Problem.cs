@@ -72,7 +72,7 @@ namespace Solutions.Event2017.Day14
                         var closureRow = row;
                         var closureColumn = column;
                         // search neighbours
-                        (_, var visited) = new Point(closureColumn, closureRow).DepthFirstWithVisited(p =>
+                        (_, var visited) = new Point(closureColumn, closureRow).DepthFirst(p =>
                         {
                             var neighbours = new List<Point>();
 

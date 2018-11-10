@@ -113,9 +113,9 @@ namespace Solutions.Event2016.Day11
                 b.Elevator == targetFloor && 
                 b.FloorSetup[targetFloor].Chips.Count + b.FloorSetup[targetFloor].Generators.Count == targetAssemblyCount;
 
-            var (terminationNode, _) = initialState.BreadthFirst(floor => floor.SafeFloorRearrangements(), TargetCondition);
+            var (terminationNode, _) = initialState.ShortestPath(floor => floor.SafeFloorRearrangements(), TargetCondition);
 
-            return terminationNode.StateDepth;
+            return terminationNode.Depth;
         }
 
         public static int MinimumStepsToTopFloor2(FloorState initialState, int targetFloor, Floor targetTopFloor)
@@ -125,9 +125,9 @@ namespace Solutions.Event2016.Day11
                 return f.ElevatorFloor == targetFloor && f.Floors[targetFloor] == targetTopFloor;
             }
 
-            var (terminationNode, _) = initialState.BreadthFirst(floor => floor.Next(), TargetCondition);
+            var (terminationNode, _) = initialState.ShortestPath(floor => floor.Next(), TargetCondition);
 
-            return terminationNode.Generation;
+            return terminationNode.Depth;
         }
     }
 

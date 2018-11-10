@@ -2,108 +2,212 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Shared.Tree {
-    
+namespace Shared.Tree
+{
     /// <summary>
     /// Ideas from https://stackoverflow.com/a/5806795
     /// </summary>
-    public static class GraphExtensions {
-
-        public static IEnumerable<T> TraverseAll<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)  {
-            if (!neighborFetcher(start).Any()) {
+    public static class GraphExtensions
+    {
+        public static IEnumerable<T> TraverseAll<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)
+        {
+            if (!neighborFetcher(start).Any())
+            {
                 yield return start;
-            } else {
-                foreach (var neighbor in neighborFetcher(start)) {
-                    foreach (var neighborsNeighbor in neighbor.TraverseAll(neighborFetcher)) {
+            }
+            else
+            {
+                foreach (var neighbor in neighborFetcher(start))
+                {
+                    foreach (var neighborsNeighbor in neighbor.TraverseAll(neighborFetcher))
+                    {
                         yield return neighborsNeighbor;
                     }
                 }
             }
         }
 
-        public static IEnumerable<T> DepthFirst<T>(this T start, Func<T,IEnumerable<T>> neighborFetcher) {
-            var visited = new HashSet<T>();
-            var stack = new Stack<T>();
-
-            stack.Push(start);
-
-            while (stack.Count != 0) {
-                var current = stack.Pop();
-
-                if (!visited.Add(current)) {
-                    continue;
-                }
-
-                yield return current;
-
-                var neighbors = neighborFetcher(current)
-                    .Where(n => !visited.Contains(n));
-
-                // left-to-right order
-                foreach (var neighbor in neighbors.Reverse()) {
-                    stack.Push(neighbor);
-                }
-            }
-        }
-
-        public static (T terminationNode, ISet<T> visited) BreadthFirst<T>(this T start, 
-            Func<T,IEnumerable<T>> neighborFetcher, 
+        public static (Node<T> terminationNode, ISet<T> visited) ShortestPath<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher,
             Predicate<T> targetCondition)
         {
             var visited = new HashSet<T>();
 
-            var queue = new Queue<T>();
-            T terminationNode = default(T);
+            var queue = new Queue<Node<T>>();
+            Node<T> terminationNode = null;
 
-            queue.Enqueue(start);
+            queue.Enqueue(new Node<T>(start, 0));
 
-            while (queue.Count != 0) {
+            while (queue.Count != 0)
+            {
                 var current = queue.Dequeue();
 
-                if (!visited.Add(current)) {
+                if (!visited.Add(current.Data))
+                {
                     continue;
                 }
 
-                if (targetCondition(current))
+                if (targetCondition(current.Data))
                 {
                     terminationNode = current;
                     break;
                 }
 
-                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n)).ToList();
-                
-                foreach (var neighbor in neighbors) {
-                    queue.Enqueue(neighbor);
+                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
+
+                foreach (var neighbor in neighbors)
+                {
+                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
                 }
             }
 
             return (terminationNode, visited);
         }
 
-        public static (IEnumerable<T> depthFirst, ISet<T> visited) DepthFirstWithVisited<T>(this T start, Func<T, IEnumerable<T>> neighbourFetcher) {
+        public static ISet<T> BreadthFirst<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)
+        {
+            var visited = new HashSet<T>();
+
+            var queue = new Queue<Node<T>>();
+
+            queue.Enqueue(new Node<T>(start, 0));
+
+            while (queue.Count != 0)
+            {
+                var current = queue.Dequeue();
+
+                if (!visited.Add(current.Data))
+                {
+                    continue;
+                }
+
+                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
+
+                foreach (var neighbor in neighbors)
+                {
+                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
+                }
+            }
+
+            return visited;
+        }
+        public static (Node<T> terminationNode, ISet<T> visited) BreadthFirst<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher,
+            int maxDepth)
+        {
+            return start.BreadthFirst(neighborFetcher, (n) => false, maxDepth);
+        }
+
+        public static (Node<T> terminationNode, ISet<T> visited) BreadthFirst<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher,
+            Predicate<T> targetCondition,
+            int maxDepth)
+        {
+            var visited = new HashSet<T>();
+
+            var queue = new Queue<Node<T>>();
+            Node<T> terminationNode = null;
+
+            queue.Enqueue(new Node<T>(start, 0));
+
+            while (queue.Count != 0)
+            {
+                var current = queue.Dequeue();
+
+                if (!visited.Add(current.Data))
+                {
+                    continue;
+                }
+
+                if (targetCondition(current.Data))
+                {
+                    terminationNode = current;
+                    break;
+                }
+
+                if (current.Depth == maxDepth)
+                {
+                    continue;
+                }
+
+                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
+
+                foreach (var neighbor in neighbors)
+                {
+                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
+                }
+            }
+
+            return (terminationNode, visited);
+        }
+        
+        public static (IEnumerable<T> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher)
+        {
             var visited = new HashSet<T>();
             var depthFirst = new List<T>();
             var stack = new Stack<T>();
 
             stack.Push(start);
 
-            while (stack.Count != 0) {
+            while (stack.Count != 0)
+            {
                 var current = stack.Pop();
 
-                if (!visited.Add(current)) {
+                if (!visited.Add(current))
+                {
                     continue;
                 }
 
                 depthFirst.Add(current);
 
-                var neighbours = neighbourFetcher(current)
-                    .Where(n => !visited.Contains(n));
+                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n));
 
                 // left-to-right order
-                foreach (var neighbour in neighbours.Reverse()) {
-                    stack.Push(neighbour);
+                foreach (var neighbor in neighbors.Reverse())
+                {
+                    stack.Push(neighbor);
                 }
             }
+
+            return (depthFirst, visited);
+        }
+
+        public static (IEnumerable<Node<T>> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher,
+            Predicate<Node<T>> targetCondition)
+        {
+            var visited = new HashSet<T>();
+            var depthFirst = new List<Node<T>>();
+            var stack = new Stack<Node<T>>();
+
+            stack.Push(new Node<T>(start, 0));
+
+            while (stack.Count != 0)
+            {
+                var current = stack.Pop();
+
+                if (!visited.Add(current.Data))
+                {
+                    continue;
+                }
+
+                depthFirst.Add(current);
+
+                if (targetCondition(current))
+                {
+                    break;
+                }
+
+                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n));
+
+                // left-to-right order
+                foreach (var neighbor in neighbors.Reverse())
+                {
+                    stack.Push(new Node<T>(neighbor, current.Depth + 1));
+                }
+            }
+
             return (depthFirst, visited);
         }
     }
