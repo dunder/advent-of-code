@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Shared.Tree;
 using Xunit;
 
@@ -33,7 +34,7 @@ namespace Shared.Tests.Tree {
 
             IList<string> Neighbors(string n) => graph[n];
 
-            var path = "a".BreadthFirst(Neighbors);
+            var (_, path) = "a".BreadthFirst(Neighbors);
 
             Assert.Equal(new [] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}, path);
         }
@@ -68,7 +69,7 @@ namespace Shared.Tests.Tree {
 
             var (path, _) = "a".DepthFirst(Neighbors);
 
-            Assert.Equal(new [] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}, path);
+            Assert.Equal(new [] {"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k"}, path.Select(n => n.Data));
         }
     }
 }

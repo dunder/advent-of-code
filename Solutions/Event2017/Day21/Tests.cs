@@ -94,6 +94,7 @@ namespace Solutions.Event2017.Day21 {
             Assert.Equal("152", actual);
         }
 
+        [Trait("Category", "LongRunning")]
         [Fact]
         public void SecondStar()
         {

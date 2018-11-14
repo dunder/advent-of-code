@@ -31,65 +31,12 @@ namespace Shared.Tree
             Func<T, IEnumerable<T>> neighborFetcher,
             Predicate<T> targetCondition)
         {
-            var visited = new HashSet<T>();
-
-            var queue = new Queue<Node<T>>();
-            Node<T> terminationNode = null;
-
-            queue.Enqueue(new Node<T>(start, 0));
-
-            while (queue.Count != 0)
-            {
-                var current = queue.Dequeue();
-
-                if (!visited.Add(current.Data))
-                {
-                    continue;
-                }
-
-                if (targetCondition(current.Data))
-                {
-                    terminationNode = current;
-                    break;
-                }
-
-                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
-
-                foreach (var neighbor in neighbors)
-                {
-                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
-                }
-            }
-
-            return (terminationNode, visited);
+            return start.BreadthFirst(neighborFetcher, targetCondition, -1);
         }
 
-        public static ISet<T> BreadthFirst<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)
+        public static (Node<T> terminationNode, ISet<T> visited) BreadthFirst<T>(this T start, Func<T, IEnumerable<T>> neighborFetcher)
         {
-            var visited = new HashSet<T>();
-
-            var queue = new Queue<Node<T>>();
-
-            queue.Enqueue(new Node<T>(start, 0));
-
-            while (queue.Count != 0)
-            {
-                var current = queue.Dequeue();
-
-                if (!visited.Add(current.Data))
-                {
-                    continue;
-                }
-
-                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
-
-                foreach (var neighbor in neighbors)
-                {
-                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
-                }
-            }
-
-            return visited;
+            return start.BreadthFirst(neighborFetcher, (n) => false, -1);
         }
         public static (Node<T> terminationNode, ISet<T> visited) BreadthFirst<T>(this T start,
             Func<T, IEnumerable<T>> neighborFetcher,
@@ -141,36 +88,10 @@ namespace Shared.Tree
             return (terminationNode, visited);
         }
         
-        public static (IEnumerable<T> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,
+        public static (IEnumerable<Node<T>> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,
             Func<T, IEnumerable<T>> neighborFetcher)
         {
-            var visited = new HashSet<T>();
-            var depthFirst = new List<T>();
-            var stack = new Stack<T>();
-
-            stack.Push(start);
-
-            while (stack.Count != 0)
-            {
-                var current = stack.Pop();
-
-                if (!visited.Add(current))
-                {
-                    continue;
-                }
-
-                depthFirst.Add(current);
-
-                var neighbors = neighborFetcher(current).Where(n => !visited.Contains(n));
-
-                // left-to-right order
-                foreach (var neighbor in neighbors.Reverse())
-                {
-                    stack.Push(neighbor);
-                }
-            }
-
-            return (depthFirst, visited);
+            return start.DepthFirst(neighborFetcher, (n) => false);
         }
 
         public static (IEnumerable<Node<T>> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,

@@ -39,7 +39,7 @@ namespace Solutions.Event2016.Day08
         [Fact]
         public void SecondStar()
         {
-            string[] input = File.ReadAllLines(@".\Day08\input.txt");
+            string[] input = File.ReadAllLines(@".\Event2016\Day08\input.txt");
             var display = new Display(6, 50);
             display.SendInstructions(input);
             var result = display.Print();
