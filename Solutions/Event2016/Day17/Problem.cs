@@ -41,7 +41,6 @@ namespace Solutions.Event2016.Day17
 
         public static string ShortestPath(string passcode)
         {
-
             var initialState = new State(passcode, new Point(0,0), "");
             var targetPosition = new Point(3,3);
             var (terminatingState, _) = initialState.ShortestPath((state) => state.Neighbors(), (state) => state.Position == targetPosition);
