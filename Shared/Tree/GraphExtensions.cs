@@ -96,7 +96,7 @@ namespace Shared.Tree
 
         public static (IEnumerable<Node<T>> depthFirst, ISet<T> visited) DepthFirst<T>(this T start,
             Func<T, IEnumerable<T>> neighborFetcher,
-            Predicate<Node<T>> targetCondition)
+            Predicate<Node<T>> targetCondition, bool continueOnTargetCondition = false)
         {
             var visited = new HashSet<T>();
             var depthFirst = new List<Node<T>>();
@@ -117,6 +117,10 @@ namespace Shared.Tree
 
                 if (targetCondition(current))
                 {
+                    if (continueOnTargetCondition)
+                    {
+                        continue;
+                    }
                     break;
                 }
 
