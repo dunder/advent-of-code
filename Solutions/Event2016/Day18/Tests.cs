@@ -105,7 +105,7 @@ namespace Solutions.Event2016.Day18
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
-            Assert.Equal("20002936", actual); // 5.7 s
+            Assert.Equal("20002936", actual); // 4.1 s
         }
     }
 }

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -25,23 +24,23 @@ namespace Solutions.Event2016.Day18
             return safeTiles.ToString();
         }
 
-        private static readonly HashSet<string> TrapCombos = new HashSet<string>
+        private static readonly HashSet<(char,char,char)> TrapCombinations = new HashSet<(char, char, char)>
         {
-            "^^.",
-            ".^^",
-            "^..",
-            "..^"
+            ('^','^','.'),
+            ('.','^','^'),
+            ('^','.','.'),
+            ('.','.','^'),
         };
+
         public static bool IsTrap(char left, char center, char right)
         {
-            var combo = new String(new[] {left, center, right});
-
-            return TrapCombos.Contains(combo);
+            return TrapCombinations.Contains((left, center, right));
         }
 
         public static string NextRow(string row)
         {
             StringBuilder nextRow = new StringBuilder();
+
             for (int i = 0; i < row.Length; i++)
             {
                 var left = i == 0 ? '.' : row[i - 1];
@@ -52,6 +51,7 @@ namespace Solutions.Event2016.Day18
 
                 nextRow.Append(nextRowForPosition);
             }
+
             return nextRow.ToString();
         }
 
@@ -71,7 +71,6 @@ namespace Solutions.Event2016.Day18
         public static int CountSafeTiles(string firstRow, int totalRows)
         {
             var map = CreateMap(firstRow, totalRows);
-
             return map.Aggregate(0, (a, row) => a + row.Count(t => t == '.'));
         }
     }
