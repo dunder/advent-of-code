@@ -9,25 +9,27 @@ namespace Solutions.Event2016.Day20
         public override Event Event => Event.Event2016;
         public override Day Day => Day.Day20;
 
+        private const long MaxIp = 4_294_967_295;
+
         public override string FirstStar()
         {
-            var input = ReadLineInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var blackListedIps = ReadLineInput();
+            var blackList = new Blacklist(MaxIp, ParseBlacklist(blackListedIps));
+            return blackList.LowestValid().ToString();
         }
 
         public override string SecondStar()
         {
-            var input = ReadLineInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var blackListedIps = ReadLineInput();
+            var blackList = new Blacklist(MaxIp, ParseBlacklist(blackListedIps));
+            return blackList.ValidIps().ToString();
         }
 
 
         public class IpRange
         {
-            public int From { get; set; }
-            public int To { get; set; }
+            public long From { get; set; }
+            public long To { get; set; }
 
             // this:  |----|          |----|   |----|    |--|
             // other:     |----|   |----|       |--|    |----|
@@ -72,7 +74,7 @@ namespace Solutions.Event2016.Day20
             }
         }
 
-        public static List<IpRange> ParseBlacklist(string[] blacklist)
+        public static List<IpRange> ParseBlacklist(IList<string> blacklist)
         {
             var blackListRanges = new List<IpRange>();
             foreach (var ipRange in blacklist)
@@ -80,8 +82,8 @@ namespace Solutions.Event2016.Day20
                 var separated = ipRange.Split('-');
                 blackListRanges.Add(new IpRange
                 {
-                    From = int.Parse(separated[0]),
-                    To = int.Parse(separated[1])
+                    From = long.Parse(separated[0]),
+                    To = long.Parse(separated[1])
                 });
             }
 
@@ -90,39 +92,83 @@ namespace Solutions.Event2016.Day20
 
         public class Blacklist
         {
-            public int MaxValue { get; }
+            public long MaxValue { get; }
+            private readonly List<IpRange> _mergedOrderedIpRanges;
 
-            public Blacklist(int maxValue, List<IpRange> ipRangeBlacklist)
+            public Blacklist(long maxValue, List<IpRange> ipRangeBlacklist)
             {
                 MaxValue = maxValue;
 
-                ipRangeBlacklist.Sort();
+                ipRangeBlacklist = ipRangeBlacklist.OrderBy(r => r.From).ToList();
 
-                MergeOverlaps(ipRangeBlacklist);
+                _mergedOrderedIpRanges = MergeOverlaps(ipRangeBlacklist);
             }
 
-            private static void MergeOverlaps(List<IpRange> ipRangeBlacklist)
+            private static List<IpRange> MergeOverlaps(List<IpRange> ipRangeBlacklist)
             {
                 List<IpRange> mergedRanges = new List<IpRange>();
                 IpRange currentMerged = ipRangeBlacklist.First();
                 for (int i = 1; i < ipRangeBlacklist.Count; i++)
                 {
                     IpRange current = ipRangeBlacklist[i];
-                    if (currentMerged.Overlaps(current))
+                    if (current.Overlaps(currentMerged))
                     {
                         currentMerged = currentMerged.Merge(current);
-                        current = currentMerged;
                     }
                     else
                     {
-                        mergedRanges.Add(current);
+                        mergedRanges.Add(currentMerged);
+                        currentMerged = current;
                     }
                 }
+
+                if (currentMerged.To != mergedRanges.Last().To)
+                {
+                    mergedRanges.Add(currentMerged);
+                }
+
+                return mergedRanges;
             }
 
-            public int LowestValid()
+            public long LowestValid()
             {
-                return 0;
+                var firstRange = _mergedOrderedIpRanges.First();
+                if (firstRange.From > 0)
+                {
+                    return 0;
+                }
+                return _mergedOrderedIpRanges.First().To + 1;
+            }
+
+            public long ValidIps()
+            {
+                long count = 0;
+
+                var firstRange = _mergedOrderedIpRanges.First();
+
+                if (firstRange.From > 0)
+                {
+                    count += firstRange.From;
+                }
+
+                IpRange previous = firstRange;
+                for (int i = 1; i < _mergedOrderedIpRanges.Count; i++)
+                {
+                    var current = _mergedOrderedIpRanges[i];
+
+                    count += current.From - previous.To - 1;
+
+                    previous = current;
+                }
+
+                var lastRange = _mergedOrderedIpRanges.Last();
+                if (lastRange.To < MaxValue)
+                {
+                    count += MaxValue - lastRange.To;
+                }
+
+
+                return count;
             }
         }
     }
