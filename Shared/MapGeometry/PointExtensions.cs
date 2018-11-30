@@ -43,5 +43,10 @@ namespace Shared.MapGeometry
                         $"Cannot move in this direction: {direction}");
             }
         }
+
+        public static int ManhattanDistance(this Point point, Point toPoint)
+        {
+            return Math.Abs(point.X - toPoint.X) + Math.Abs(point.Y - toPoint.Y);
+        }
     }
 }

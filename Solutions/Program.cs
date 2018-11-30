@@ -4,18 +4,23 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            ProblemBase day = new Event2016.Day13.Problem();
+            //PrintProblemSolution(new Event2016.Day22.Problem());
+            PrintDay22MemorySetup();
 
-            Console.WriteLine($"Running {day.Event} {day.Day}");
+            Console.ReadKey();
+        }
 
-            var firstStar = day.FirstStar();
-            var secondStar = day.SecondStar();
+        private static void PrintDay22MemorySetup()
+        {
+            Event2016.Day22.Problem.PrintInitialMemoryGrid();
+        }
 
-            var maze = Event2016.Day13.Problem.Print(10, 9, 6);
-            foreach (var row in maze)
-            {
-                Console.WriteLine(row);
-            }
+        private static void PrintProblemSolution(ProblemBase problem)
+        {
+            Console.WriteLine($"Running {problem.Event} {problem.Day}");
+
+            var firstStar = problem.FirstStar();
+            var secondStar = problem.SecondStar();
 
             Console.WriteLine("First star:");
             Console.WriteLine($"{firstStar}");
