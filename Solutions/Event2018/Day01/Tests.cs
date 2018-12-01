@@ -9,5 +9,19 @@ namespace Solutions.Event2018.Day01
         {
 
         }
+
+        [Fact]
+        public void FirstStar()
+        {
+            var actual = new Problem().FirstStar();
+            Assert.Equal("513", actual);
+        }
+
+        [Fact]
+        public void SecondStar()
+        {
+            var actual = new Problem().SecondStar();
+            Assert.Equal("287", actual);
+        }
     }
 }
