@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Solutions.Event2018.Day01
+namespace Solutions.Event2018.Day03
 {
     public class Tests
     {
@@ -8,14 +8,14 @@ namespace Solutions.Event2018.Day01
         public void FirstStar()
         {
             var actual = new Problem().FirstStar();
-            Assert.Equal("513", actual);
+            Assert.Equal("", actual);
         }
 
         [Fact]
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
-            Assert.Equal("287", actual);
+            Assert.Equal("", actual);
         }
     }
 }

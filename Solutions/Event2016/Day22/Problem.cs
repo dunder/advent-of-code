@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Facet.Combinatorics;
 using Shared.MapGeometry;
+using Shared.Tree;
 
 namespace Solutions.Event2016.Day22
 {
@@ -23,9 +24,57 @@ namespace Solutions.Event2016.Day22
 
         public override string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
+            var discUsageOutput = ReadLineInput();
+            var memoryNodeDescriptions = discUsageOutput.Skip(2).ToList();
+            var result = StepsToMoveDataHome(memoryNodeDescriptions);
             return result.ToString();
+        }
+
+        private int StepsToMoveDataHome(IList<string> memoryNodeDescriptions)
+        {
+            var memoryNodes = ParseNodes(memoryNodeDescriptions);
+
+            var maxX = memoryNodes.Max(n => n.Position.X);
+            var maxY = memoryNodes.Max(n => n.Position.Y);
+
+            var targetNode = TargetNode(memoryNodes);
+
+            var emptyNode = memoryNodes.Single(n => n.IsEmpty);
+            var targetPositionForEmpty = targetNode.Position.Move(Direction.West);
+
+            var nodeLookup = memoryNodes.ToLookup(x => x.Position, x => x);
+
+            bool IsWalkable(Point p)
+            {
+                var withinMemoryGrid = p.X >= 0 && p.Y >= 0 && p.X <= maxX && p.Y <= maxY;
+
+                return withinMemoryGrid && emptyNode.FitsContentFrom(nodeLookup[p].Single());
+            }
+
+            var path = AStar.Search(emptyNode.Position, targetPositionForEmpty, IsWalkable);
+
+            var stepsToTargetPosition = path.Depth;
+
+            // stepsToTargetPosition is the number of steps to reach the position left of the target node
+            
+            // swap the node (one step more)
+
+            var totalSteps = stepsToTargetPosition + 1;
+
+            // now to move the target memory (G) one step left requires one swap with the empty node (_) and
+            // moving the empty node to the left around G with a total of 5 steps per move of G to the left
+
+            //     start     1 step    2 steps   3 steps   4 steps   5 steps (has now moved 1 step left)
+            //
+            //     . G _     . G .     . G .     . G -     _ G .     G _ .
+            //     . . .     . . _     . _ .     _ . .     . . .     . . .
+            //     . . .     . . .     . . .     . . .     . . .     . . .
+
+            var distanceFromTargetToAccessNode = targetPositionForEmpty.ManhattanDistance(new Point(0, 0));
+
+            totalSteps = totalSteps + 5 * distanceFromTargetToAccessNode;
+
+            return totalSteps;
         }
 
         public class MemoryNode
@@ -40,7 +89,7 @@ namespace Solutions.Event2016.Day22
             public Point Position { get; }
             public int Size { get; }
             public int Used { get; }
-            public bool Empty => Used == 0;
+            public bool IsEmpty => Used == 0;
             public bool HasAvailableSpace => Available > 0;
             private int Available => Size - Used;
 
@@ -94,6 +143,7 @@ namespace Solutions.Event2016.Day22
             }
             return memoryNodes;
         }
+        
 
         public static MemoryNode TargetNode(IList<MemoryNode> memoryNodes)
         {
@@ -110,7 +160,7 @@ namespace Solutions.Event2016.Day22
 
             var combined = c.Concat(flipped).ToList();
 
-            var notEmpty = combined.Where(nodes => !nodes[0].Empty).ToList();
+            var notEmpty = combined.Where(nodes => !nodes[0].IsEmpty).ToList();
 
             var viable = notEmpty.Where(nodes => nodes[1].FitsContentFrom(nodes[0])).ToList();
 
@@ -131,7 +181,7 @@ namespace Solutions.Event2016.Day22
             var columns = memoryNodes.Max(m => m.Position.X) + 1;
             var rows = memoryNodes.Max(m => m.Position.Y) + 1;
             var printArray = new MemoryNode[columns, rows];
-            var empty = memoryNodes.Single(m => m.Empty);
+            var empty = memoryNodes.Single(m => m.IsEmpty);
 
             foreach (var memoryNode in memoryNodes)
             {
@@ -151,7 +201,7 @@ namespace Solutions.Event2016.Day22
                     {
                         nodeDescription = "G";
                     }
-                    else if (memoryNode.Empty)
+                    else if (memoryNode.IsEmpty)
                     {
                         nodeDescription = "_";
                     }

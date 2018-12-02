@@ -1,10 +1,11 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using Shared.Tree;
 using Xunit;
 
-namespace Solutions.Event2016.Day22
+namespace Shared.Tests.Tree
 {
-    public class AStarThreeTests
+    public class AStarTests
     {
         [Fact]
         public void Example()

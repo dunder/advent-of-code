@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Xunit;
 
 namespace Solutions.Event2018.Day02
@@ -22,7 +20,7 @@ namespace Solutions.Event2018.Day02
         [InlineData("abcdee", 3, false)]
         [InlineData("ababab", 2, false)]
         [InlineData("ababab", 3, true)]
-        public void HasLetterExactlyTwice(string input, int count, bool expected)
+        public void HasLetterExactly(string input, int count, bool expected)
         {
             var actual = Problem.HasLetterExactlyTimes(input, count);
 

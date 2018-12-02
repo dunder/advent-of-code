@@ -4,7 +4,7 @@ using System.Drawing;
 using System.Linq;
 using Shared.MapGeometry;
 
-namespace Solutions.Event2016.Day22
+namespace Shared.Tree
 {
     public class AStar
     {
@@ -21,6 +21,21 @@ namespace Solutions.Event2016.Day22
             public int MovementCost { get; set; }
             public int TotalCost => MovementCost + ManhattanDistanceToTarget;
             public Node Parent { get; set; }
+
+            public int Depth
+            {
+                get
+                {
+                    var depth = 0;
+                    var current = this;
+                    while (current.Parent != null)
+                    {
+                        depth++;
+                        current = current.Parent;
+                    }
+                    return depth;
+                }
+            }
 
             protected bool Equals(Node other)
             {
@@ -53,7 +68,7 @@ namespace Solutions.Event2016.Day22
             var open = new HashSet<Node> { startNode };
             var closed = new HashSet<Node>();
 
-            var currentNode = startNode;
+            Node currentNode;
 
             while (true)
             {
@@ -78,13 +93,10 @@ namespace Solutions.Event2016.Day22
                     break;
                 }
 
-                foreach (var node in adjacent)
-                {
-                    if (!walkable(node.Position) || closed.Contains(node))
-                    {
-                        break;
-                    }
+                var walkableNonClosed = adjacent.Where(n => walkable(n.Position) && !closed.Contains(n)).ToList();
 
+                foreach (var node in walkableNonClosed)
+                {
                     if (open.TryGetValue(node, out var openNode))
                     {
                         if (currentNode.MovementCost < openNode.MovementCost)

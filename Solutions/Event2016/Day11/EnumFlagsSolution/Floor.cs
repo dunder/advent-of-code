@@ -5,7 +5,7 @@ namespace Solutions.Event2016.Day11.EnumFlagsSolution
     [Flags]
     public enum Floor
     {
-        //Empty = 0,
+        //IsEmpty = 0,
         //HydrogenChip = 1,
         //LithiumChip = 2,
         //HydrogenGenerator = 4,
