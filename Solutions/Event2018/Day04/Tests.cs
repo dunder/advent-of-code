@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace Solutions.Event2016.Day23
+namespace Solutions.Event2018.Day04
 {
     public class Tests
     {

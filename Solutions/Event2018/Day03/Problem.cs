@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Facet.Combinatorics;
 
 namespace Solutions.Event2018.Day03
 {
@@ -28,12 +27,33 @@ namespace Solutions.Event2018.Day03
             return result.ToString();
         }
 
+        public static int CountOverlaps(IList<Claim> claims)
+        {
+            var counts = new Dictionary<Point, int>();
+            foreach (var claim in claims)
+            {
+                var points = claim.Points;
+                foreach (var point in points)
+                {
+                    if (counts.ContainsKey(point))
+                    {
+                        counts[point]++;
+                    }
+                    else
+                    {
+                        counts[point] = 1;
+                    }
+                }
+            }
+            return counts.Values.Count(i => i > 1);
+        }
+
         public static int FindOnlyNonOverlapping(List<Claim> claims)
         {
             for (int i = 0; i < claims.Count; i++)
             {
                 var c1 = claims[i];
-                if (claims.Where(c => c.Id != c1.Id).All(c => c1.Overlaps(c).Count == 0))
+                if (claims.Where(c => c.Id != c1.Id).All(c => !c1.Overlaps(c)))
                 {
                     return c1.Id;
                 }
@@ -41,26 +61,6 @@ namespace Solutions.Event2018.Day03
             }
 
             throw new Exception("Could not find any claim that does not overlap any other claim");
-        }
-
-        public static int CountOverlaps(IList<Claim> claims)
-        {
-            var combinations = new Combinations<Claim>(claims, 2);
-
-            var all = new HashSet<Point>();
-
-            foreach (var combination in combinations)
-            {
-                var c1 = combination.First();
-                var c2 = combination.Last();
-
-                foreach (var p in c1.Overlaps(c2))
-                {
-                    all.Add(p);
-
-                }
-            }
-            return all.Count;
         }
 
         public static List<Claim> Parse(IList<string> claimDescriptions)
@@ -78,7 +78,7 @@ namespace Solutions.Event2018.Day03
                 int top = int.Parse(match.Groups[3].Value);
                 int width = int.Parse(match.Groups[4].Value);
                 int height = int.Parse(match.Groups[5].Value);
-                var claim = new Claim(id, new Point(left, top), width, height);
+                var claim = new Claim(id, left, top, width, height);
                 claims.Add(claim);
             }
 
@@ -90,61 +90,31 @@ namespace Solutions.Event2018.Day03
     public class Claim
     {
         public int Id { get; set; }
-        public Point UpperLeft { get; set; }
-        public int Width { get; set; }
-        public int Height { get; set; }
+        public Rectangle Rectangle { get; }
+        public HashSet<Point> Points { get; }
 
-        public HashSet<Point> Points { get; set; }
-
-        public Claim(int id, Point upperLeft, int width, int height)
+        public Claim(int id, int x, int y, int width, int height)
         {
             Id = id;
-            UpperLeft = upperLeft;
-            Width = width;
-            Height = height;
-
+            Rectangle = new Rectangle(x, y, width, height);
             Points = new HashSet<Point>();
-
-            for (int x = UpperLeft.X; x < UpperLeft.X + Width; x++)
+            for (int ix = x; ix < x + width; ix++)
             {
-                for (int y = UpperLeft.Y; y < UpperLeft.Y + Height; y++)
+                for (int iy = y; iy < y + height; iy++)
                 {
-                    Points.Add(new Point(x, y));
+                    Points.Add(new Point(ix, iy));
                 }
             }
         }
 
-        public HashSet<Point> Overlaps(Claim claim)
+        public bool Overlaps(Claim claim)
         {
-            var mine = new HashSet<Point>(Points);
-            var others = new HashSet<Point>(claim.Points);
-
-            mine.IntersectWith(others);
-
-            return mine;
+            return Rectangle.IntersectsWith(claim.Rectangle);
         }
 
         public override string ToString()
         {
-            return $"#{Id} @ {UpperLeft.X},{UpperLeft.Y}: {Width}x{Height}";
-        }
-
-        protected bool Equals(Claim other)
-        {
-            return Id == other.Id;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Claim) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return Id;
+            return $"#{Id} @ {Rectangle.X},{Rectangle.Y}: {Rectangle.Width}x{Rectangle.Height}";
         }
     }
 }
