@@ -40,7 +40,7 @@ namespace Solutions.Event2016.Day22
             var targetNode = TargetNode(memoryNodes);
 
             var emptyNode = memoryNodes.Single(n => n.IsEmpty);
-            var targetPositionForEmpty = targetNode.Position.Move(Direction.West);
+            var leftOfTargetNode = targetNode.Position.Move(Direction.West);
 
             var nodeLookup = memoryNodes.ToLookup(x => x.Position, x => x);
 
@@ -51,7 +51,7 @@ namespace Solutions.Event2016.Day22
                 return withinMemoryGrid && emptyNode.FitsContentFrom(nodeLookup[p].Single());
             }
 
-            var path = AStar.Search(emptyNode.Position, targetPositionForEmpty, IsWalkable);
+            var path = AStar.Search(emptyNode.Position, leftOfTargetNode, IsWalkable);
 
             var stepsToTargetPosition = path.Depth;
 
@@ -70,7 +70,7 @@ namespace Solutions.Event2016.Day22
             //     . . .     . . _     . _ .     _ . .     . . .     . . .
             //     . . .     . . .     . . .     . . .     . . .     . . .
 
-            var distanceFromTargetToAccessNode = targetPositionForEmpty.ManhattanDistance(new Point(0, 0));
+            var distanceFromTargetToAccessNode = leftOfTargetNode.ManhattanDistance(new Point(0, 0));
 
             totalSteps = totalSteps + 5 * distanceFromTargetToAccessNode;
 

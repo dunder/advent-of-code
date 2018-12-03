@@ -20,7 +20,7 @@ namespace Solutions.Event2016.Day12
                 {'d', 0}
             };
 
-            var result = RegisterAfterInstructions(allInstructions, registers, 'd');
+            var result = RegisterAfterInstructions(allInstructions, registers, 'a');
             return result.ToString();
         }
 
@@ -42,7 +42,6 @@ namespace Solutions.Event2016.Day12
 
         public static int RegisterAfterInstructions(IList<string> instructions, Dictionary<char, int> registers, char register)
         {
-           
             for (int i = 0; i < instructions.Count; i++)
             {
                 var instruction = instructions[i];
@@ -63,7 +62,7 @@ namespace Solutions.Event2016.Day12
                 }
             }
 
-            return registers['a'];
+            return registers[register];
         }
 
         private static readonly Regex Cpy = new Regex(@"\w+\s(\w+|\d)\s(\w)");
