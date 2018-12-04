@@ -4,9 +4,6 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            //PrintProblemSolution(new Event2016.Day22.Problem());
-            PrintDay22MemorySetup();
-
             Console.ReadKey();
         }
 
