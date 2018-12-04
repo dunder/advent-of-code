@@ -33,7 +33,7 @@ namespace Solutions.Event2018.Day04
                 .ThenBy(n => n.Substring(12, 2))
                 .ThenBy(n => n.Substring(15, 2)).ToList();
 
-            Regex timeExpression = new Regex(@"\[\d{4}-\d{2}-\d{2} \d{2}:(\d{2})\]");
+            Regex minuteExpression = new Regex(@"\[.*:(\d{2})\]");
             Regex beginsShiftExpression = new Regex(@"Guard #(\d+) begins shift");
             Regex fallsAsleepExpression = new Regex(@"falls asleep");
             Regex wakesUpExpression = new Regex(@"wakes up");
@@ -45,7 +45,7 @@ namespace Solutions.Event2018.Day04
 
             foreach (var note in notes)
             {
-                var timeMatch = timeExpression.Match(note);
+                var timeMatch = minuteExpression.Match(note);
                 var minute = int.Parse(timeMatch.Groups[1].Value);
 
                 switch (note)
@@ -85,13 +85,13 @@ namespace Solutions.Event2018.Day04
         public static int SleepyGuardStrategy1(IDictionary<int, Guard> guards)
         {
             var sleepyGuard = guards.OrderByDescending(g => g.Value.TotalSleep).First();
-            return sleepyGuard.Value.Id * sleepyGuard.Value.MostSleepyMinute.mostSleepyMinute;
+            return sleepyGuard.Value.Id * sleepyGuard.Value.SleepStatistics.mostSleepyMinute;
         }
 
         public static int SleepyGuardStrategy2(IDictionary<int, Guard> guards)
         {
-            var sleepyGuard = guards.OrderByDescending(g => g.Value.MostSleepyMinute.frequency).First();
-            return sleepyGuard.Value.Id * sleepyGuard.Value.MostSleepyMinute.mostSleepyMinute;
+            var sleepyGuard = guards.OrderByDescending(g => g.Value.SleepStatistics.frequency).First();
+            return sleepyGuard.Value.Id * sleepyGuard.Value.SleepStatistics.mostSleepyMinute;
         }
     }
 
@@ -111,7 +111,7 @@ namespace Solutions.Event2018.Day04
 
         public int TotalSleep { get; set; }
 
-        public (int mostSleepyMinute, int frequency) MostSleepyMinute
+        public (int mostSleepyMinute, int frequency) SleepStatistics
         {
             get
             {
@@ -132,7 +132,7 @@ namespace Solutions.Event2018.Day04
 
         public override string ToString()
         {
-            return $"#{Id} Total sleep: {TotalSleep} sleepy minute: {MostSleepyMinute.mostSleepyMinute} ({MostSleepyMinute.frequency})";
+            return $"#{Id} Total sleep: {TotalSleep} sleepy minute: {SleepStatistics.mostSleepyMinute} ({SleepStatistics.frequency})";
         }
     }
 }
