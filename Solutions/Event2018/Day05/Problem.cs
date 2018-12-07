@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
 
 namespace Solutions.Event2018.Day05
 {
@@ -17,7 +17,7 @@ namespace Solutions.Event2018.Day05
         public override string SecondStar()
         {
             var input = ReadInput();
-            var result = "Not implemented";
+            var result = ReduceEnhanced(input);
             return result.ToString();
         }
 
@@ -33,34 +33,52 @@ namespace Solutions.Event2018.Day05
             return polymer.Length;
         }
 
+        public static int ReduceEnhanced(string polymer)
+        {
+            var all = new HashSet<char>(polymer);
+
+            int min = int.MaxValue;
+            foreach (var unit in all)
+            {
+                var polymerToReduce = polymer;
+                char cLower = char.ToLower(unit);
+                char cUpper = char.ToUpper(unit);
+                polymerToReduce = polymerToReduce.Replace(cLower.ToString(), "");
+                polymerToReduce = polymerToReduce.Replace(cUpper.ToString(), "");
+
+                var reduced = ReduceAll(polymerToReduce);
+
+                if (reduced < min)
+                {
+                    min = reduced;
+                }
+            }
+
+            return min;
+        }
+
         public static string ReactReduce(string polymer)
         {
-            var result = new StringBuilder();
-            for (int i = 0; i < polymer.Length - 1; i++)
+            int i = 0;
+            bool reduced = false;
+            for (; i < polymer.Length - 1; i++)
             {
                 var p1 = polymer[i];
                 var p2 = polymer[i + 1];
 
                 if (p1 == p2)
                 {
-                    result.Append(p1);
                     continue;
                 };
 
                 if (char.ToLower(p1) == char.ToLower(p2))
                 {
-                    i++;
-                    continue;
-                }
-
-                result.Append(p1);
-                if (i == polymer.Length - 2)
-                {
-                    result.Append(p2);
-                }
+                    reduced = true;
+                    break;
+                }                
             }
 
-            return result.ToString();
+            return reduced ? polymer.Remove(i, 2) : polymer;
         }
     }
 }
