@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Solutions.Event2018.Day05
 {
@@ -23,14 +24,38 @@ namespace Solutions.Event2018.Day05
 
         public static int ReduceAll(string polymer)
         {
-            string previous = "";
-            while (previous != polymer)
+            var closed = new HashSet<int>();
+            var reduction = 0;
+            for (int i1 = 0, i2 = 1; i2 < polymer.Length;)
             {
-                previous = polymer;
-                polymer = ReactReduce(polymer);
+                char c1 = polymer[i1];
+                char c2 = polymer[i2];
+
+                if (c1 == c2)
+                {
+                    i1 = i2;
+                    i2++;
+                    continue;
+                }
+
+                if (char.ToUpper(c1) == char.ToUpper(c2))
+                {
+                    closed.Add(i1);
+                    closed.Add(i2);
+                    do
+                    {
+                        i1--;
+                    } while (closed.Contains(i1));
+                    i2++;
+                    reduction += 2;
+                    continue;
+                }
+
+                i1 = i2;
+                i2++;
             }
 
-            return polymer.Length;
+            return polymer.Length - reduction;
         }
 
         public static string ReactReduce(string polymer)

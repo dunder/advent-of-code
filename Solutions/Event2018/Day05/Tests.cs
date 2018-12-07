@@ -27,14 +27,14 @@ namespace Solutions.Event2018.Day05
         public void FirstStar()
         {
             var actual = new Problem().FirstStar();
-            Assert.Equal("", actual); // 10134 
+            Assert.Equal("10132", actual);
         }
 
         [Fact]
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("4572", actual);
         }
     }
 }

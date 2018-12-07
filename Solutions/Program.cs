@@ -4,6 +4,8 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
+            var day6 = new Event2018.Day06.Problem();
+            day6.FirstStar();
             Console.ReadKey();
         }
 
