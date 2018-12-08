@@ -17,6 +17,15 @@ namespace Solutions.Event2018.Day08
         }
 
         [Fact]
+        public void SecondStarExample()
+        {
+            var input = "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2";
+            var sum = Problem.CalcualateValueOfRootNode(input);
+
+            Assert.Equal(66, sum);
+        }
+
+        [Fact]
         public void FirstStar()
         {
             var actual = new Problem().FirstStar();

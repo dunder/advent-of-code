@@ -18,33 +18,34 @@ namespace Solutions.Event2018.Day08
         public override string SecondStar()
         {
             var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var valueOfRoot = CalcualateValueOfRootNode(input);
+            return valueOfRoot.ToString();
         }
+
+        private static List<int> _allMetadata = new List<int>();
+
         public static int CalculateSumOfMetadata(string input)
         {
-            var data = input.Split(' ').Select(int.Parse).ToList();
-            var stack = new Stack<int>(data);
-            var allMetadata = new List<int>();
+            var data = input.Split(' ').Select(int.Parse);
 
-            while (stack.Any())
-            {
-                var nrChildren = stack.Pop();
-                var nrMetadata = stack.Pop();
+            var stack = new Stack<int>(data.Reverse());
+            
 
-                for (int _ = 0; _ < nrChildren; _++)
-                {
-                    stack.Pop();
-                }
+            var topNode = ReadNode(stack);
 
-                for (int _ = 0; _ < nrMetadata; _++)
-                {
-                    var metadata = stack.Pop();
-                    allMetadata.Add(metadata);
-                }
-            }
+            return _allMetadata.Sum();
+        }
 
-            return allMetadata.Sum();
+        public static int CalcualateValueOfRootNode(string input)
+        {
+            var data = input.Split(' ').Select(int.Parse);
+
+            var stack = new Stack<int>(data.Reverse());
+
+
+            var topNode = ReadNode(stack);
+
+            return topNode.Value;
         }
 
         public static (int nrChildren, int nrMetadata) ReadHeader(Stack<int> stack)
@@ -54,13 +55,14 @@ namespace Solutions.Event2018.Day08
 
         public static Node ReadNode(Stack<int> stack)
         {
+            var node = new Node();
             var header = ReadHeader(stack);
             var children = ReadChildren(stack, header.nrChildren);
             var metadata = ReadMetadata(stack, header.nrMetadata);
-            return new Node
-            {
 
-            };
+            node.Children = children;
+            node.Metadata = metadata;
+            return node;
         }
 
         private static List<int> ReadMetadata(Stack<int> stack, int nrMetadata)
@@ -70,6 +72,7 @@ namespace Solutions.Event2018.Day08
             {
                 var metaData = stack.Pop();
                 metadatas.Add(metaData);
+                _allMetadata.Add(metaData);
             }
 
             return metadatas;
@@ -89,12 +92,48 @@ namespace Solutions.Event2018.Day08
 
         public class Node
         {
-            private static int CurrentId = (int)'A';
+            private static int _currentId = 'A';
+            private int _id;
 
-            public int NrChildren { get; set; }
-            public int NrMetadata { get; set; }
+            public Node()
+            {
+                _id = _currentId++;
+            }
+
+            public char Id => (char)_id;
             public List<int> Metadata { get; set; }
             public List<Node> Children { get; set; }
+
+            public int Value
+            {
+                get
+                {
+                    if (!Children.Any())
+                    {
+                        return Metadata.Sum();
+                    }
+
+                    var value = 0;
+
+                    foreach (var i in Metadata)
+                    {
+                        if (i == 0)
+                        {
+                            continue;
+                        }
+
+                        var childIndex = i - 1;
+
+                        if (childIndex < Children.Count)
+                        {
+                            var child = Children[childIndex];
+                            value += child.Value;
+                        }
+                    }
+
+                    return value;
+                }
+            }
         }
     }
 }
