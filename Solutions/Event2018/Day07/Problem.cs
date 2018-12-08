@@ -92,8 +92,10 @@ namespace Solutions.Event2018.Day07
                 successors.RemoveAt(indexOfFirstCompleted);
                 path += currentStep.Id;
 
+                var currentSuccessors = new HashSet<Step>(successors);
+
                 // 3: add successors of current to list of current and sort
-                successors = successors.Concat(currentStep.Successors).OrderBy(s => s).ToList();
+                successors = successors.Concat(currentStep.Successors.Where(s => !currentSuccessors.Contains(s))).OrderBy(s => s).ToList();
 
                 // 4: if there are no successors then we are done
                 if (!currentStep.Successors.Any())
@@ -106,7 +108,61 @@ namespace Solutions.Event2018.Day07
 
             return path;
         }
+
+        public static int TotalTime(IList<string> input, int workers, int timeOffset)
+        {
+            var steps = Parse(input);
+
+            var startSteps = steps.Values.Where(s => s.IsStartStep).OrderBy(s => s.Id).ToList();
+
+            var startStep = startSteps.First();
+            startSteps.RemoveAt(0);
+
+            var path = startStep.Id;
+            var time = startStep.WorkerTime + timeOffset;
+
+            // 1: keep list of current
+
+            var successors = startSteps.Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
+
+            while (true)
+            {
+                // 2: take first (with remove) from current and add this to path
+
+                var indexOfFirstCompleted = 0;
+
+                for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
+                {
+                    var successor = successors[indexOfFirstCompleted];
+                    if (successor.Predecessors.All(p => path.Contains(p.Id)))
+                    {
+                        break;
+                    }
+                }
+                var currentStep = successors[indexOfFirstCompleted];
+                successors.RemoveAt(indexOfFirstCompleted);
+                path += currentStep.Id;
+
+                var currentSuccessors = new HashSet<Step>(successors);
+
+                // 3: add successors of current to list of current and sort
+                successors = successors.Concat(currentStep.Successors.Where(s => !currentSuccessors.Contains(s))).OrderBy(s => s).ToList();
+
+                // 4: if there are no successors then we are done
+                if (!currentStep.Successors.Any())
+                {
+                    break;
+                }
+                // 5: goto 2
+
+            }
+
+            return 0;
+
+        }
     }
+
+
 
     public class Step : IComparable<Step>
     {
@@ -119,6 +175,7 @@ namespace Solutions.Event2018.Day07
         public List<Step> Predecessors { get; } = new List<Step>();
         public List<Step> Successors { get; } = new List<Step>();
         public bool IsStartStep => !Predecessors.Any();
+        public int WorkerTime => (char.Parse(Id) - 'A') + 1/*+ 60*/;
 
         protected bool Equals(Step other)
         {
