@@ -65,22 +65,49 @@ namespace Solutions.Event2018.Day07
         {
             var steps = Parse(input);
 
-            var startStep = steps.Values.Single(s => !s.Predecessors.Any());
+            var startSteps = steps.Values.Where(s => !s.Predecessors.Any()).OrderBy(s => s.Id).ToList();
+
+            var startStep = startSteps.First();
+            startSteps.RemoveAt(0);
 
             var path = startStep.Id;
 
             // 1: keep list of current
 
-            // 2: take first (with remove) from current and add this to path
+            var successors = startSteps.Select(s => s.Id).Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
 
-            // 3: add successors of current to list of current and sort
+            while (true)
+            {
+                // 2: take first (with remove) from current and add this to path
 
-            // 4: if there are no successors then we are done
+                var indexOfFirstCompleted = 0;
 
-            // 5: goto 2
-                 
+                for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
+                {
+                    var successorId = successors[indexOfFirstCompleted];
+                    if(steps[successorId].Predecessors.All(p => path.Contains(p)))
+                    {
+                        break;
+                    }
+                }
+                var currentId = successors[indexOfFirstCompleted];
+                var currentStep = steps[currentId];
+                successors.RemoveAt(indexOfFirstCompleted);
+                path += currentId;
 
-            return string.Join("", path);
+                // 3: add successors of current to list of current and sort
+                successors = successors.Concat(currentStep.Successors).OrderBy(s => s).ToList();
+
+                // 4: if there are no successors then we are done
+                if (!currentStep.Successors.Any())
+                {
+                    break;
+                }
+                // 5: goto 2
+
+            }
+
+            return path;
         }
 
         public static Step FindStartNode(Dictionary<string,Step> steps, HashSet<string> allPredecessors)
