@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Shared.Tree;
 
 namespace Solutions.Event2018.Day07
 {
@@ -28,14 +28,12 @@ namespace Solutions.Event2018.Day07
         {
             var expression = new Regex(@"Step (\w) must be finished before step (\w) can begin.");
             var steps = new Dictionary<string, Step>();
-            var allPredecessors = new HashSet<string>();
             foreach (var line in input)
             {
                 var match = expression.Match(line);
                 var predecessorId = match.Groups[1].Value;
                 var stepId = match.Groups[2].Value;
 
-                allPredecessors.Add(predecessorId);
 
                 if (!steps.ContainsKey(stepId))
                 {
@@ -47,14 +45,14 @@ namespace Solutions.Event2018.Day07
                     steps.Add(predecessorId, new Step(predecessorId));
                 }
 
-                steps[stepId].Predecessors.Add(predecessorId);
+                steps[stepId].Predecessors.Add(steps[predecessorId]);
             }
 
             foreach (var step in steps)
             {
                 foreach (var predecessor in step.Value.Predecessors)
                 {
-                    steps[predecessor].Successors.Add(step.Key);
+                    steps[predecessor.Id].Successors.Add(step.Value);
                 }
             }
 
@@ -65,7 +63,7 @@ namespace Solutions.Event2018.Day07
         {
             var steps = Parse(input);
 
-            var startSteps = steps.Values.Where(s => !s.Predecessors.Any()).OrderBy(s => s.Id).ToList();
+            var startSteps = steps.Values.Where(s => s.IsStartStep).OrderBy(s => s.Id).ToList();
 
             var startStep = startSteps.First();
             startSteps.RemoveAt(0);
@@ -74,7 +72,7 @@ namespace Solutions.Event2018.Day07
 
             // 1: keep list of current
 
-            var successors = startSteps.Select(s => s.Id).Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
+            var successors = startSteps.Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
 
             while (true)
             {
@@ -84,16 +82,15 @@ namespace Solutions.Event2018.Day07
 
                 for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
                 {
-                    var successorId = successors[indexOfFirstCompleted];
-                    if(steps[successorId].Predecessors.All(p => path.Contains(p)))
+                    var successor = successors[indexOfFirstCompleted];
+                    if(successor.Predecessors.All(p => path.Contains(p.Id)))
                     {
                         break;
                     }
                 }
-                var currentId = successors[indexOfFirstCompleted];
-                var currentStep = steps[currentId];
+                var currentStep = successors[indexOfFirstCompleted];
                 successors.RemoveAt(indexOfFirstCompleted);
-                path += currentId;
+                path += currentStep.Id;
 
                 // 3: add successors of current to list of current and sort
                 successors = successors.Concat(currentStep.Successors).OrderBy(s => s).ToList();
@@ -109,27 +106,48 @@ namespace Solutions.Event2018.Day07
 
             return path;
         }
-
-        public static Step FindStartNode(Dictionary<string,Step> steps, HashSet<string> allPredecessors)
-        {
-            return steps.Values.Single(s => !s.Predecessors.Any());
-        }
-
     }
-    public class Step
+
+    public class Step : IComparable<Step>
     {
         public Step(string id)
         {
             Id = id;
         }
 
-        public string Id { get; set; }
-        public List<string> Predecessors { get; } = new List<string>();
-        public List<string> Successors { get; } = new List<string>();
+        public string Id { get; }
+        public List<Step> Predecessors { get; } = new List<Step>();
+        public List<Step> Successors { get; } = new List<Step>();
+        public bool IsStartStep => !Predecessors.Any();
+
+        protected bool Equals(Step other)
+        {
+            return string.Equals(Id, other.Id);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (ReferenceEquals(null, obj)) return false;
+            if (ReferenceEquals(this, obj)) return true;
+            if (obj.GetType() != this.GetType()) return false;
+            return Equals((Step) obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (Id != null ? Id.GetHashCode() : 0);
+        }
 
         public override string ToString()
         {
-            return $"{Id} P:[{string.Join(",", Predecessors)}] S:[{string.Join(",", Successors)}]";
+            return $"{Id} P:[{string.Join(",", Predecessors.Select(p => p.Id))}] S:[{string.Join(",", Successors.Select(s => s.Id))}]";
+        }
+
+        public int CompareTo(Step other)
+        {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+            return string.Compare(Id, other.Id, StringComparison.Ordinal);
         }
     }
 
