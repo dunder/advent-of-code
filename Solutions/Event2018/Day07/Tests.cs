@@ -38,7 +38,7 @@ namespace Solutions.Event2018.Day07
                 "Step F must be finished before step E can begin."
             };
 
-            var time = Problem.TotalTime(input, 1, 0);
+            var time = Problem.TotalTime(input, 2, 0);
 
             Assert.Equal(15, time);
         }

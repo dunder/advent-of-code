@@ -114,54 +114,111 @@ namespace Solutions.Event2018.Day07
             var steps = Parse(input);
 
             var startSteps = steps.Values.Where(s => s.IsStartStep).OrderBy(s => s.Id).ToList();
+            var workerPool = new WorkerPool(workers, timeOffset);
+            
+            startSteps.ForEach(s => workerPool.AddTask(s));
 
-            var startStep = startSteps.First();
-            startSteps.RemoveAt(0);
-
-            var path = startStep.Id;
-            var time = startStep.WorkerTime + timeOffset;
+            HashSet<Step> allCompleted = new HashSet<Step>();
+            List<Step> waitingForPrecondition = new List<Step>();
 
             // 1: keep list of current
-
-            var successors = startSteps.Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
-
+            var time = 0;
             while (true)
             {
                 // 2: take first (with remove) from current and add this to path
-
-                var indexOfFirstCompleted = 0;
-
-                for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
+                
+                while (true)
                 {
-                    var successor = successors[indexOfFirstCompleted];
-                    if (successor.Predecessors.All(p => path.Contains(p.Id)))
+                    var completed = workerPool.WorkOne();
+                    time++;
+                    if (completed.Any())
                     {
+                        waitingForPrecondition.AddRange(completed.SelectMany(s => s.Successors));
+                        foreach (var complete in completed)
+                        {
+                            allCompleted.Add(complete);
+                        }
                         break;
                     }
                 }
-                var currentStep = successors[indexOfFirstCompleted];
-                successors.RemoveAt(indexOfFirstCompleted);
-                path += currentStep.Id;
 
-                var currentSuccessors = new HashSet<Step>(successors);
+                var preconditionsMet = waitingForPrecondition
+                    .Where(s => s.Predecessors.All(p => allCompleted.Contains(p)))
+                    .OrderBy(s => s)
+                    .ToList();
 
-                // 3: add successors of current to list of current and sort
-                successors = successors.Concat(currentStep.Successors.Where(s => !currentSuccessors.Contains(s))).OrderBy(s => s).ToList();
+                waitingForPrecondition = waitingForPrecondition
+                    .Where(s => !allCompleted.Contains(s))
+                    .ToList();
 
-                // 4: if there are no successors then we are done
-                if (!currentStep.Successors.Any())
+                preconditionsMet.ForEach(workerPool.AddTask);
+
+                if (!waitingForPrecondition.Any() && workerPool.Empty)
                 {
                     break;
                 }
-                // 5: goto 2
 
             }
 
-            return 0;
-
+            return time;
         }
     }
 
+    public class WorkerPool
+    {
+        private readonly int _size;
+        private readonly int timeOffset;
+        private readonly Dictionary<Step, int> _workInProgress = new Dictionary<Step, int>();
+        private readonly List<Step> _workQueue = new List<Step>();
+
+        public WorkerPool(int size, int timeOffset)
+        {
+            _size = size;
+            this.timeOffset = timeOffset;
+        }
+
+        public List<Step> WorkOne()
+        {
+            var keys = _workInProgress.Keys.ToList();
+            foreach (var task in keys)
+            {
+                _workInProgress[task] -= 1;
+            }
+
+            var done = _workInProgress.Where(t => t.Value == 0).Select(t => t.Key).ToList();
+            foreach (var step in done)
+            {
+                _workInProgress.Remove(step);
+            }
+
+            var freeCapacity = _size - _workInProgress.Count;
+
+            for (int i = 0; i < freeCapacity; i++)
+            {
+                if (_workQueue.Any())
+                {
+                    var newStepForPool = _workQueue.First();
+                    _workQueue.RemoveAt(0);
+                    _workInProgress.Add(newStepForPool, newStepForPool.WorkerTime + timeOffset);
+                }
+            }
+
+            return done;
+        }
+
+        public void AddTask(Step step)
+        {
+            _workQueue.Add(step);
+            _workQueue.Sort();
+            if (WorkerAvailable)
+            {
+                _workInProgress.Add(step, step.WorkerTime + timeOffset);
+            }
+        }
+
+        public bool Empty => _workInProgress.Count == 0;
+        public bool WorkerAvailable => _workInProgress.Count < _size;
+    }
 
 
     public class Step : IComparable<Step>
