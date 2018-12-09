@@ -1,42 +1,9 @@
-﻿using System.Collections.Generic;
-using Xunit;
+﻿using Xunit;
 
 namespace Solutions.Event2018.Day09
 {
     public class Tests
     {
-        [Theory]
-        [InlineData(0, 0, 0)]
-        [InlineData(9, -7, 2)]
-        [InlineData(0, -7, 3)]
-        [InlineData(1, -7, 4)]
-        public void ClockwiseIndexing(int index, int steps, int expectedIndex)
-        {
-            List<int> list = new List<int> {0,1,2,3,4,5,6,7,8,9};
-
-            var actual = Problem.ClockwiseIndex(list, index, steps);
-            Assert.Equal(expectedIndex, actual);
-        }
-
-        [Fact]
-        public void TestEnd()
-        {
-            List<int> list = new List<int> {0, 1, 2, 3, 4, 5};
-            var index = 5;
-
-            list.RemoveAt(index);
-
-            var current = index;
-            if (current >= list.Count)
-            {
-                current = 0;
-            }
-
-            Assert.Equal(5, list.Count);
-            Assert.Equal(0, current);
-
-        }
-
         [Theory]
         [InlineData(9, 25, 32)]
         [InlineData(10, 1618, 8317)]

@@ -47,15 +47,14 @@ namespace Solutions.Event2018.Day07
         public void FirstStar()
         {
             var actual = new Problem().FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("CFGHAEMNBPRDISVWQUZJYTKLOX", actual);
         }
-
 
         [Fact]
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("828", actual);
         }
     }
 }

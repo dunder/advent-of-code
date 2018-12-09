@@ -19,9 +19,9 @@ namespace Solutions.Event2018.Day07
 
         public override string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var input = ReadLineInput();
+            var order = TotalTime(input, 5, 60);
+            return order.ToString();
         }
 
         public static Dictionary<string, Step> Parse(IList<string> input)
@@ -70,14 +70,10 @@ namespace Solutions.Event2018.Day07
 
             var path = startStep.Id;
 
-            // 1: keep list of current
-
             var successors = startSteps.Concat(startStep.Successors.ToList()).OrderBy(s => s).ToList();
 
             while (true)
             {
-                // 2: take first (with remove) from current and add this to path
-
                 var indexOfFirstCompleted = 0;
 
                 for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
@@ -88,22 +84,19 @@ namespace Solutions.Event2018.Day07
                         break;
                     }
                 }
+
                 var currentStep = successors[indexOfFirstCompleted];
                 successors.RemoveAt(indexOfFirstCompleted);
                 path += currentStep.Id;
 
                 var currentSuccessors = new HashSet<Step>(successors);
 
-                // 3: add successors of current to list of current and sort
                 successors = successors.Concat(currentStep.Successors.Where(s => !currentSuccessors.Contains(s))).OrderBy(s => s).ToList();
 
-                // 4: if there are no successors then we are done
                 if (!currentStep.Successors.Any())
                 {
                     break;
                 }
-                // 5: goto 2
-
             }
 
             return path;
@@ -115,25 +108,22 @@ namespace Solutions.Event2018.Day07
 
             var startSteps = steps.Values.Where(s => s.IsStartStep).OrderBy(s => s.Id).ToList();
             var workerPool = new WorkerPool(workers, timeOffset);
-            
+
             startSteps.ForEach(s => workerPool.AddTask(s));
 
             HashSet<Step> allCompleted = new HashSet<Step>();
-            List<Step> waitingForPrecondition = new List<Step>();
+            HashSet<Step> waitingForWorker = new HashSet<Step>();
 
-            // 1: keep list of current
             var time = 0;
             while (true)
             {
-                // 2: take first (with remove) from current and add this to path
-                
                 while (true)
                 {
                     var completed = workerPool.WorkOne();
                     time++;
                     if (completed.Any())
                     {
-                        waitingForPrecondition.AddRange(completed.SelectMany(s => s.Successors));
+                        waitingForWorker.UnionWith(completed.SelectMany(s => s.Successors));
                         foreach (var complete in completed)
                         {
                             allCompleted.Add(complete);
@@ -142,22 +132,30 @@ namespace Solutions.Event2018.Day07
                     }
                 }
 
-                var preconditionsMet = waitingForPrecondition
+                var preconditionsMet = waitingForWorker
                     .Where(s => s.Predecessors.All(p => allCompleted.Contains(p)))
                     .OrderBy(s => s)
                     .ToList();
 
-                waitingForPrecondition = waitingForPrecondition
-                    .Where(s => !allCompleted.Contains(s))
-                    .ToList();
+                waitingForWorker = waitingForWorker
+                    .Where(s => !s.Predecessors.All(p => allCompleted.Contains(p)))
+                    .ToHashSet();
 
-                preconditionsMet.ForEach(workerPool.AddTask);
+                while (workerPool.WorkerAvailable && preconditionsMet.Any())
+                {
+                    workerPool.AddTask(preconditionsMet.First());
+                    preconditionsMet.RemoveAt(0);
+                }
 
-                if (!waitingForPrecondition.Any() && workerPool.Empty)
+                if (preconditionsMet.Any())
+                {
+                    waitingForWorker.UnionWith(preconditionsMet);
+                }
+
+                if (!waitingForWorker.Any() && workerPool.Empty)
                 {
                     break;
                 }
-
             }
 
             return time;
@@ -166,58 +164,40 @@ namespace Solutions.Event2018.Day07
 
     public class WorkerPool
     {
-        private readonly int _size;
+        private readonly int size;
         private readonly int timeOffset;
-        private readonly Dictionary<Step, int> _workInProgress = new Dictionary<Step, int>();
-        private readonly List<Step> _workQueue = new List<Step>();
+        private readonly Dictionary<Step, int> workInProgress = new Dictionary<Step, int>();
 
         public WorkerPool(int size, int timeOffset)
         {
-            _size = size;
+            this.size = size;
             this.timeOffset = timeOffset;
         }
 
         public List<Step> WorkOne()
         {
-            var keys = _workInProgress.Keys.ToList();
-            foreach (var task in keys)
+            var keys = workInProgress.Keys.ToList();
+            foreach (var key in keys)
             {
-                _workInProgress[task] -= 1;
+                workInProgress[key]--;
             }
+            
+            var done = workInProgress.Where(w => w.Value == 0).Select(w => w.Key).ToList();
 
-            var done = _workInProgress.Where(t => t.Value == 0).Select(t => t.Key).ToList();
-            foreach (var step in done)
-            {
-                _workInProgress.Remove(step);
-            }
-
-            var freeCapacity = _size - _workInProgress.Count;
-
-            for (int i = 0; i < freeCapacity; i++)
-            {
-                if (_workQueue.Any())
-                {
-                    var newStepForPool = _workQueue.First();
-                    _workQueue.RemoveAt(0);
-                    _workInProgress.Add(newStepForPool, newStepForPool.WorkerTime + timeOffset);
-                }
-            }
+            done.ForEach(d => workInProgress.Remove(d));
 
             return done;
         }
 
         public void AddTask(Step step)
         {
-            _workQueue.Add(step);
-            _workQueue.Sort();
-            if (WorkerAvailable)
-            {
-                _workInProgress.Add(step, step.WorkerTime + timeOffset);
-            }
+            if (!WorkerAvailable) throw new InvalidOperationException("Worker is at full capacity already");
+
+            workInProgress.Add(step, step.WorkerTime + timeOffset);
         }
 
-        public bool Empty => _workInProgress.Count == 0;
-        public bool WorkerAvailable => _workInProgress.Count < _size;
+        public bool Empty => workInProgress.Count == 0;
+        public bool WorkerAvailable => workInProgress.Count < size;
     }
 
 
@@ -232,7 +212,7 @@ namespace Solutions.Event2018.Day07
         public List<Step> Predecessors { get; } = new List<Step>();
         public List<Step> Successors { get; } = new List<Step>();
         public bool IsStartStep => !Predecessors.Any();
-        public int WorkerTime => (char.Parse(Id) - 'A') + 1/*+ 60*/;
+        public int WorkerTime => (char.Parse(Id) - 'A') + 1;
 
         protected bool Equals(Step other)
         {
