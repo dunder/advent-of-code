@@ -6,24 +6,6 @@ namespace Solutions.Event2018.Day06
 {
     public class Tests
     {
-        [Fact]
-        public void FirstStarExample()
-        {
-            var input = new List<string>
-            {
-                "1, 1",
-                "1, 6",
-                "8, 3",
-                "3, 4",
-                "5, 5",
-                "8, 9"
-            };
-
-            var x = Problem.LargestArea(input);
-
-            Assert.Equal(17, x);
-        }
-
         [Theory]
         [InlineData(3,4,3,4,true)]
         [InlineData(3,4,2,5,false)]
@@ -96,10 +78,45 @@ namespace Solutions.Event2018.Day06
         }
 
         [Fact]
+        public void FirstStarExample()
+        {
+            var input = new List<string>
+            {
+                "1, 1",
+                "1, 6",
+                "8, 3",
+                "3, 4",
+                "5, 5",
+                "8, 9"
+            };
+
+            var area = Problem.LargestArea(input);
+
+            Assert.Equal(17, area);
+        }
+        [Fact]
+        public void SecondStarExample()
+        {
+            var input = new List<string>
+            {
+                "1, 1",
+                "1, 6",
+                "8, 3",
+                "3, 4",
+                "5, 5",
+                "8, 9"
+            };
+
+            var size = Problem.LargestRegion(input, 32);
+
+            Assert.Equal(16, size);
+        }
+
+        [Fact]
         public void FirstStar()
         {
             var actual = new Problem().FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("4475", actual);
         }
 
         [Fact]

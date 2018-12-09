@@ -1,8 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Text;
 using Shared.MapGeometry;
 
 namespace Solutions.Event2018.Day06
@@ -16,6 +15,13 @@ namespace Solutions.Event2018.Day06
         {
             var input = ReadLineInput();
             var result = LargestArea(input);
+            return result.ToString();
+        }
+
+        public override string SecondStar()
+        {
+            var input = ReadLineInput();
+            var result = LargestRegion(input, 10_000);
             return result.ToString();
         }
 
@@ -39,55 +45,14 @@ namespace Solutions.Event2018.Day06
         {
             var coordinates = ParseCoordinates(input);
 
-            var coordinatesWithinBoundry = new HashSet<Point>();
-
-
-            foreach (var coordinate in coordinates)
-            {
-                var others = coordinates.Where(c => c != coordinate).ToList();
-                var surroundingPoints = PointsAtRadius(coordinate, 1);
-
-                foreach (var point in others)
-                {
-                    var distance = point.ManhattanDistance(coordinate);
-                    
-                    var closingIn = surroundingPoints.Where(s => s.ManhattanDistance(point) < distance).ToList();
-                }
-
-                
-
-            }
-            //foreach (var coordinate in coordinates)
-            //{
-            //    var other = coordinates.Where(c => c != coordinate).ToList();
-
-            //    bool left = false;
-            //    bool up = false;
-            //    bool right = false;
-            //    bool down = false;
-
-
-            //    foreach (var point in other)
-            //    {
-            //        left = left || point.X < coordinate.X;
-            //        up = up || point.Y > coordinate.Y;
-            //        right = right || point.X > coordinate.X;
-            //        down = down || point.Y < coordinate.Y;
-            //    }
-
-            //    if (left && up && right && down)
-            //    {
-            //        coordinatesWithinBoundry.Add(coordinate);
-            //    }
-            //}
-
-            var notIn = coordinates.Where(c => !coordinatesWithinBoundry.Contains(c)).ToHashSet();
-
-            //Print(coordinates, coordinatesWithinBoundry, notIn);
+            var coordinatesExpandingToInfinity = ExpandingToInfinity(coordinates);
+            var coordinatesNotExpandingToInfinity = coordinates
+                .Where(c => !coordinatesExpandingToInfinity.Contains(c))
+                .ToList();
 
             var areas = new Dictionary<Point, int>();
 
-            foreach (var coordinate in coordinatesWithinBoundry)
+            foreach (var coordinate in coordinatesNotExpandingToInfinity)
             {
                 var radius = 1;
                 var area = 1;
@@ -95,7 +60,7 @@ namespace Solutions.Event2018.Day06
                 {
                     var pointsAtRadius = PointsAtRadius(coordinate, radius);
 
-                    var pointsWithMinDistance = pointsAtRadius.Select(p => HasMinDistance(coordinate, p, coordinates)).ToList();
+                    var pointsWithMinDistance = pointsAtRadius.Where(p => HasMinDistance(coordinate, p, coordinates)).ToList();
                     area += pointsWithMinDistance.Count;
                     if (pointsWithMinDistance.Count == 0)
                     {
@@ -110,38 +75,82 @@ namespace Solutions.Event2018.Day06
             return areas.Values.Max();
         }
 
-        public static void Print(IList<Point> coordinates, HashSet<Point> withinBoundry, HashSet<Point> notWithin)
+        public static int LargestRegion(IList<string> input, int maxDistance)
         {
+            var coordinates = ParseCoordinates(input);
+
             var minX = coordinates.Min(c => c.X);
             var maxX = coordinates.Max(c => c.X);
             var minY = coordinates.Min(c => c.Y);
             var maxY = coordinates.Max(c => c.Y);
-            var lines = new List<string>();
-            for (int y = minY; y <= maxY; y++)
+
+            var pointInRegion = new HashSet<Point>();
+
+            for (var x = minX; x <= maxX; x++)
             {
-                var line = new StringBuilder();
-                for (int x = minX; x <= maxX; x++)
+                for (var y = minY; y <= maxY; y++)
                 {
                     var point = new Point(x, y);
-                    var print = " ";
-                    if (withinBoundry.Contains(point))
-                    {
-                        print = $"O({x},{y})";
-                    }
 
-                    if (notWithin.Contains(point))
+                    var totalDistance = coordinates.Sum(c => c.ManhattanDistance(point));
+                    if (totalDistance < maxDistance)
                     {
-                        print = $"X({x},{y})";
+                        pointInRegion.Add(point);
                     }
-                    line.Append(print);
-                    //Console.Write(print);
                 }
-
-                lines.Add(line.ToString());
-                //Console.WriteLine();
             }
 
-            File.WriteAllLines(@".\output.txt", lines);
+            return pointInRegion.Count;
+        }
+
+        public static HashSet<Point> ExpandingToInfinity(List<Point> coordinates)
+        {
+            var expandingToInfinity = new HashSet<Point>();
+
+            foreach (var coordinate in coordinates)
+            {
+                var others = coordinates.Where(c => c != coordinate).ToList();
+
+                var rightOf = others.Where(o => o.X > coordinate.X).ToList();
+                if (!rightOf.Any())
+                {
+                    expandingToInfinity.Add(coordinate);
+                    continue;
+                }
+
+                var leftOf = others.Where(o => o.X < coordinate.X).ToList();
+                if (!leftOf.Any())
+                {
+                    expandingToInfinity.Add(coordinate);
+                    continue;
+                }
+
+                var above = others.Where(o => o.Y < coordinate.Y).ToList();
+                if (!above.Any())
+                {
+                    expandingToInfinity.Add(coordinate);
+                    continue;
+                }
+
+                var below = others.Where(o => o.Y > coordinate.Y).ToList();
+                if (!below.Any())
+                {
+                    expandingToInfinity.Add(coordinate);
+                    continue;
+                }
+
+                var aboveBlock = above.Any(o => Math.Abs(coordinate.Y - o.Y) >= Math.Abs(coordinate.X - o.X));
+                var rightBlock = rightOf.Any(o => Math.Abs(coordinate.X - o.X) >= Math.Abs(coordinate.Y - o.Y));
+                var leftBlock = leftOf.Any(o => Math.Abs(coordinate.X - o.X) >= Math.Abs(coordinate.Y - o.Y));
+                var belowBlock = below.Any(o => Math.Abs(coordinate.Y - o.Y) >= Math.Abs(coordinate.X - o.X));
+
+                if (!aboveBlock || !rightBlock || !leftBlock || !belowBlock)
+                {
+                    expandingToInfinity.Add(coordinate);
+                }
+            }
+
+            return expandingToInfinity;
         }
 
         public static IList<Point> PointsAtRadius(Point point, int radius)
@@ -182,13 +191,5 @@ namespace Solutions.Event2018.Day06
             var mine = me.ManhattanDistance(point);
             return mine < minDistance;
         }
-
-        public override string SecondStar()
-        {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
-        }
     }
-
 }
