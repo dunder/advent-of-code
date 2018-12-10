@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Xunit;
 
-namespace Solutions {
-    class Program {
-        static void Main(string[] args)
+namespace Solutions.Event2018.Day10
+{
+    public class Tests
+    {
+        [Fact]
+        public void FirstStarExample()
         {
-            var day10 = new Event2018.Day10.Problem();
             var input = new List<string>
             {
                 "position=< 9,  1> velocity=< 0,  2>",
@@ -40,29 +42,20 @@ namespace Solutions {
                 "position=<14,  7> velocity=<-2,  0>",
                 "position=<-3,  6> velocity=< 2, -1>"
             };
-
-            day10.MoveToMessage(input);
-
-            Console.ReadKey();
         }
 
-        private static void PrintDay22MemorySetup()
+        [Fact]
+        public void FirstStar()
         {
-            Event2016.Day22.Problem.PrintInitialMemoryGrid();
+            var actual = new Problem().FirstStar();
+            Assert.Equal("", actual);
         }
 
-        private static void PrintProblemSolution(ProblemBase problem)
+        [Fact]
+        public void SecondStar()
         {
-            Console.WriteLine($"Running {problem.Event} {problem.Day}");
-
-            var firstStar = problem.FirstStar();
-            var secondStar = problem.SecondStar();
-
-            Console.WriteLine("First star:");
-            Console.WriteLine($"{firstStar}");
-            Console.WriteLine("Second star:");
-            Console.WriteLine($"{secondStar}");
-            Console.ReadKey();
+            var actual = new Problem().SecondStar();
+            Assert.Equal("", actual);
         }
     }
 }
