@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Shared.MapGeometry;
 
@@ -15,28 +14,32 @@ namespace Solutions.Event2018.Day10
 
         public override string FirstStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var input = ReadLineInput();
+            MoveToMessage(input);
+            return "The message must be read from the console";
         }
 
         public override string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var input = ReadLineInput();
+            MoveToMessage(input);
+            
+            return "The t was printed to the console";
+        }
+        public void FirstStarExample()
+        {
+            var input = FirstStarExampleInput();
+            MoveToMessage(input);
         }
 
-        public IList<string> ReadInput()
-        {
-            return ReadLineInput();
-        }
 
-        public int MoveToMessage(IList<string> input)
+        public void MoveToMessage(IList<string> input)
         {
+            Console.WriteLine("Press [Enter] to generate the next second. Press [t] to exit and print second");
+
             var points = Parse(input);
             var pointSet = new HashSet<PointOfLight>(points);
-            int t = 0;
+            int t = 1;
             for (; ; t++)
             {
                 foreach (var point in points)
@@ -47,23 +50,22 @@ namespace Solutions.Event2018.Day10
                 if (pointSet.First().Position.ManhattanDistance(pointSet.Last().Position) < 100)
                 {
                     var point = pointSet.First().Position;
-                    var xFrom = point.X - 25;
-                    var xTo = point.X + 25;
-                    var yFrom = point.Y - 25;
-                    var yTo = point.Y + 25;
+                    var xFrom = point.X - 60;
+                    var xTo = point.X + 20;
+                    var yFrom = point.Y - 10;
+                    var yTo = point.Y + 10;
                     Console.WriteLine($"t={t}");
                     Print(points, xFrom, xTo, yFrom, yTo);
-                    var key = Console.ReadKey();
-                    if (key.Key == ConsoleKey.X)
+                    var key = Console.ReadKey(true);
+                    if (key.KeyChar == 't')
                     {
                         break;
                     }
 
                 }
-                Console.ReadKey();
             }
 
-            return t;
+            Console.WriteLine($"Exit at t = {t}");
         }
 
         public void Print(IList<PointOfLight> points, int xFrom, int xTo, int yFrom, int yTo)
@@ -116,6 +118,45 @@ namespace Solutions.Event2018.Day10
             {
                 Position = new Point(Position.X + Velocity.X, Position.Y + Velocity.Y);
             }
+        }
+
+        private IList<string> FirstStarExampleInput()
+        {
+            var input = new List<string>
+            {
+                "position=< 9,  1> velocity=< 0,  2>",
+                "position=< 7,  0> velocity=<-1,  0>",
+                "position=< 3, -2> velocity=<-1,  1>",
+                "position=< 6, 10> velocity=<-2, -1>",
+                "position=< 2, -4> velocity=< 2,  2>",
+                "position=<-6, 10> velocity=< 2, -2>",
+                "position=< 1,  8> velocity=< 1, -1>",
+                "position=< 1,  7> velocity=< 1,  0>",
+                "position=<-3, 11> velocity=< 1, -2>",
+                "position=< 7,  6> velocity=<-1, -1>",
+                "position=<-2,  3> velocity=< 1,  0>",
+                "position=<-4,  3> velocity=< 2,  0>",
+                "position=<10, -3> velocity=<-1,  1>",
+                "position=< 5, 11> velocity=< 1, -2>",
+                "position=< 4,  7> velocity=< 0, -1>",
+                "position=< 8, -2> velocity=< 0,  1>",
+                "position=<15,  0> velocity=<-2,  0>",
+                "position=< 1,  6> velocity=< 1,  0>",
+                "position=< 8,  9> velocity=< 0, -1>",
+                "position=< 3,  3> velocity=<-1,  1>",
+                "position=< 0,  5> velocity=< 0, -1>",
+                "position=<-2,  2> velocity=< 2,  0>",
+                "position=< 5, -2> velocity=< 1,  2>",
+                "position=< 1,  4> velocity=< 2,  1>",
+                "position=<-2,  7> velocity=< 2, -2>",
+                "position=< 3,  6> velocity=<-1, -1>",
+                "position=< 5,  0> velocity=< 1,  0>",
+                "position=<-6,  0> velocity=< 2,  0>",
+                "position=< 5,  9> velocity=< 1, -2>",
+                "position=<14,  7> velocity=<-2,  0>",
+                "position=<-3,  6> velocity=< 2, -1>"
+            };
+            return input;
         }
     }
 }
