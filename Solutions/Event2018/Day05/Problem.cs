@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 
 namespace Solutions.Event2018.Day05
 {
@@ -45,7 +46,18 @@ namespace Solutions.Event2018.Day05
                     {
                         i1--;
                     } while (closed.Contains(i1));
-                    i2++;
+
+                    if (i1 < 0)
+                    {
+                        i2++;
+                        i1 = i2;
+                        i2++;
+                    }
+                    else
+                    {
+                        i2++;
+                    }
+;
                     reduction += 2;
                     continue;
                 }
