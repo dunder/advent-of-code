@@ -16,16 +16,16 @@ namespace Solutions.Event2018.Day11
         public override string FirstStar()
         {
             var result = CoordinateOfHighestPowerGrid(Input);
-            return $"{result.X},{result.Y}";
+            return result;
         }
 
         public override string SecondStar()
         {
-            var result = "Not implemented";
-            return result.ToString();
+            var result = VaryingGridSize(Input);
+            return result;
         }
 
-        public static Point CoordinateOfHighestPowerGrid(int serialNumber)
+        public static string CoordinateOfHighestPowerGrid(int serialNumber)
         {
             var grid = PowerGrid(serialNumber);
             var minX = 1;
@@ -48,7 +48,7 @@ namespace Solutions.Event2018.Day11
                     }
                 }
             }
-            return maxAt;
+            return $"{maxAt.X},{maxAt.Y}";
         }
 
         public static int PowerForGrid(int serialNumber, Point topLeft, int size, int[,] grid)
@@ -58,11 +58,9 @@ namespace Solutions.Event2018.Day11
             {
                 for (int yi = topLeft.Y; yi < topLeft.Y + size; yi++)
                 {
-                    //var point = new Point(xi, yi);
                     power = power + grid[xi -1, yi - 1];
                 }
             }
-
             return power;
         }
 
@@ -81,12 +79,21 @@ namespace Solutions.Event2018.Day11
             return grid;
         }
 
-        public static (Point topLeft, int size) VaryingGridSize(int serialNumber)
+        public static string VaryingGridSize(int serialNumber)
         {
+            var grid = PowerGrid(serialNumber);
+
             int sizeAtMax = 0;
             var maxPowerLevel = 0;
             Point maxAt = new Point();
-            var grid = PowerGrid(serialNumber);
+
+            string CurrentMax()
+            {
+                return $"{maxAt.X},{maxAt.Y},{sizeAtMax}";
+            }
+
+            var previousMax = CurrentMax();
+            var noChangeCounter = 0;
 
             for (int size = 1; size <= 300; size++)
             {
@@ -95,13 +102,13 @@ namespace Solutions.Event2018.Day11
                 var minY = 1;
                 var maxY = 300 - size;
                 
+
                 for (int y = minY; y <= maxY; y++)
                 {
                     for (int x = minX; x <= maxX; x++)
                     {
                         var topLeft = new Point(x, y);
                         var power = PowerForGrid(serialNumber, topLeft, size, grid);
-
                         if (power > maxPowerLevel)
                         {
                             maxPowerLevel = power;
@@ -110,26 +117,22 @@ namespace Solutions.Event2018.Day11
                         }
                     }
                 }
-            }
-            
-            return (maxAt, sizeAtMax);
-        }
 
-        public static void Print(int serialNumber)
-        {
-            var lines = new List<string>();
-            for (int y = 1; y <= 300; y++)
-            {
-                var line = new StringBuilder();
-                for (int x = 1; x <= 300; x++)
+                var maxAfterNewSize = CurrentMax();
+                if (previousMax == maxAfterNewSize)
                 {
-                    var power = CalculatePower(new Point(x, y), serialNumber);
-                    var print = power < 0 ? $"{power.ToString()} " : $" {power.ToString()} ";
-                    line.Append(print);
+                    noChangeCounter++;
                 }
-                lines.Add(line.ToString());
+
+                if (noChangeCounter > 3)
+                {
+                    break;
+                }
+
+                previousMax = CurrentMax();
             }
-            File.WriteAllLines(@".\power.txt", lines);
+
+            return CurrentMax();
         }
 
         public static int CalculatePower(Point topLeft, int serialNumber)

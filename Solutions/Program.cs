@@ -4,9 +4,6 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            Event2018.Day11.Problem.Print(6303);
-
-
             Console.ReadKey();
         }
 

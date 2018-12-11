@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Drawing;
-using System.Reflection.Metadata;
 using Xunit;
 
 namespace Solutions.Event2018.Day11
@@ -39,13 +38,13 @@ namespace Solutions.Event2018.Day11
         }
 
         [Theory]
-        [InlineData(18, 33, 45)]
-        [InlineData(42, 21, 61)]
-        public void FirstStarExamples(int serialNumber, int expectedX, int expectedY)
+        [InlineData(18, "33,45")]
+        [InlineData(42, "21,61")]
+        public void FirstStarExamples(int serialNumber, string expected)
         {
-            var power = Problem.CoordinateOfHighestPowerGrid(serialNumber);
-            Assert.Equal(expectedX, power.X);
-            Assert.Equal(expectedY, power.Y);
+            var coordinate = Problem.CoordinateOfHighestPowerGrid(serialNumber);
+            Assert.Equal(expected, coordinate);
+            Assert.Equal(expected, coordinate);
         }
 
         [Fact]
@@ -56,21 +55,21 @@ namespace Solutions.Event2018.Day11
         }
 
         [Theory]
-        [InlineData(18, 90, 269, 16)]
-        //[InlineData(42, 232, 251, 12)]
-        public void SecondStarExamples(int serialNumber, int expectedX, int expectedY, int expectedSize)
+        [InlineData(18, "90,269,16")]
+        [InlineData(42, "232,251,12")]
+        public void SecondStarExamples(int serialNumber, string expected)
         {
             var actual = Problem.VaryingGridSize(serialNumber);
 
-            Assert.Equal(new Point(expectedX, expectedY), actual.topLeft);
-            Assert.Equal(expectedSize, actual.size);
+            Assert.Equal(expected, actual);
+            Assert.Equal(expected, actual);
         }
 
         [Fact]
         public void SecondStar()
         {
             var actual = new Problem().SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("284,172,12", actual);
         }
     }
 }
