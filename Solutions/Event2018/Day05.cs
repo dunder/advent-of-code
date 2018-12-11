@@ -1,21 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Text;
+using Xunit;
+using static Solutions.InputReader;
 
-namespace Solutions.Event2018.Day05
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day05
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day05;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day05;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var input = ReadInput();
             var result = ReduceAll(input);
             return result.ToString();
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var input = ReadInput();
             var result = ReduceEnhanced(input);
@@ -111,10 +114,54 @@ namespace Solutions.Event2018.Day05
                 {
                     reduced = true;
                     break;
-                }                
+                }
             }
 
             return reduced ? polymer.Remove(i, 2) : polymer;
         }
+
+        [Theory]
+        [InlineData("dabAcCaCBAcCcaDA", "dabAaCBAcCcaDA")]
+        [InlineData("dabAaCBAcCcaDA", "dabCBAcCcaDA")]
+        public void ReactReduceTest(string polymer, string expected)
+        {
+            var reduced = ReactReduce(polymer);
+
+            Assert.Equal(expected, reduced);
+        }
+
+        [Fact]
+        public void FirstStarExample()
+        {
+            var polymer = "dabAcCaCBAcCcaDA";
+            var reduced = ReduceAll(polymer);
+
+            Assert.Equal(10, reduced);
+        }
+        [Fact]
+        public void SecondStarExample()
+        {
+            var polymer = "dabAcCaCBAcCcaDA";
+            var reduced = ReduceEnhanced(polymer);
+
+            Assert.Equal(4, reduced);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("10132", actual);
+        }
+
+        [Trait("Category", "LongRunning")] // 3 min 18 s
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("4572", actual);
+        }
+
+
     }
 }

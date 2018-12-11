@@ -1,22 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Xunit;
 
-namespace Solutions.Event2018.Day09
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day09
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day09;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day09;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var score = WinnerScore(473, 70904);
             return score.ToString();
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
-            var score = WinnerScore(473, 70904*100);
+            var score = WinnerScore(473, 70904 * 100);
             return score.ToString();
         }
 
@@ -48,7 +49,7 @@ namespace Solutions.Event2018.Day09
                     var tmp = current.Next;
                     circle.Remove(current);
                     current = tmp;
-                    
+
                     if (!scores.ContainsKey(player))
                     {
                         scores.Add(player, score);
@@ -61,6 +62,34 @@ namespace Solutions.Event2018.Day09
             }
 
             return scores.Values.Max();
+        }
+
+        [Theory]
+        [InlineData(9, 25, 32)]
+        [InlineData(10, 1618, 8317)]
+        [InlineData(13, 7999, 146373)]
+        [InlineData(17, 1104, 2764)]
+        [InlineData(21, 6111, 54718)]
+        [InlineData(30, 5807, 37305)]
+        public void FirstStar_Example(int players, int scoreLastMarble, int expectedScore)
+        {
+            var score = WinnerScore(players, scoreLastMarble);
+
+            Assert.Equal(expectedScore, score);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("371284", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("3038972494", actual);
         }
     }
 }

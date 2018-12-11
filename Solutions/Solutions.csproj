@@ -155,37 +155,37 @@
     <None Update="Event2016\Day23\input.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day01\input.txt">
+    <None Update="Event2018\Input\Day12.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day02\input.txt">
+    <None Update="Event2018\Input\Day01.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day03\input.txt">
+    <None Update="Event2018\Input\Day02.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day04\input.txt">
+    <None Update="Event2018\Input\Day03.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day05\input.txt">
+    <None Update="Event2018\Input\Day04.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day06\input.txt">
+    <None Update="Event2018\Input\Day05.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day07\input.txt">
+    <None Update="Event2018\Input\Day06.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day08\input.txt">
+    <None Update="Event2018\Input\Day07.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day09\input.txt">
+    <None Update="Event2018\Input\Day08.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day10\input.txt">
+    <None Update="Event2018\Input\Day09.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="Event2018\Day11\input.txt">
+    <None Update="Event2018\Input\Day10.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

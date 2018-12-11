@@ -4,26 +4,27 @@ using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Shared.MapGeometry;
+using static Solutions.InputReader;
 
-namespace Solutions.Event2018.Day10
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day10
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day10;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day10;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var input = ReadLineInput();
             MoveToMessage(input);
             return "The message must be read from the console";
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var input = ReadLineInput();
             MoveToMessage(input);
-            
+
             return "The t was printed to the console";
         }
         public void FirstStarExample()
@@ -76,7 +77,7 @@ namespace Solutions.Event2018.Day10
             {
                 for (int x = xFrom; x <= xTo; x++)
                 {
-                    var drawPoint = new Point(x,y);
+                    var drawPoint = new Point(x, y);
                     var print = pointSet.Contains(drawPoint) ? "#" : ".";
                     Console.Write(print);
                 }
@@ -158,5 +159,6 @@ namespace Solutions.Event2018.Day10
             };
             return input;
         }
+
     }
 }

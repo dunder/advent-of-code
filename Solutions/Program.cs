@@ -1,20 +1,22 @@
 ﻿using System;
+using Solutions.Event2018;
 
 namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
+            Run2018Day10();
+
             Console.ReadKey();
         }
 
         private static void Run2018Day10Example()
         {
-            var day10 = new Event2018.Day10.Problem();
-            day10.FirstStarExample();
+            new Day10().FirstStarExample();
         }
         private static void Run2018Day10()
         {
-            new Event2018.Day10.Problem().SecondStar();
+            new Day10().SecondStar();
         }
 
         private static void PrintDay22MemorySetup()

@@ -2,22 +2,24 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Xunit;
+using static Solutions.InputReader;
 
-namespace Solutions.Event2018.Day07
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day07
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day07;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day07;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var input = ReadLineInput();
             var order = Order(input);
             return order;
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var input = ReadLineInput();
             var order = TotalTime(input, 5, 60);
@@ -79,7 +81,7 @@ namespace Solutions.Event2018.Day07
                 for (; indexOfFirstCompleted < successors.Count; indexOfFirstCompleted++)
                 {
                     var successor = successors[indexOfFirstCompleted];
-                    if(successor.Predecessors.All(p => path.Contains(p.Id)))
+                    if (successor.Predecessors.All(p => path.Contains(p.Id)))
                     {
                         break;
                     }
@@ -160,89 +162,140 @@ namespace Solutions.Event2018.Day07
 
             return time;
         }
-    }
-
-    public class WorkerPool
-    {
-        private readonly int size;
-        private readonly int timeOffset;
-        private readonly Dictionary<Step, int> workInProgress = new Dictionary<Step, int>();
-
-        public WorkerPool(int size, int timeOffset)
+        public class WorkerPool
         {
-            this.size = size;
-            this.timeOffset = timeOffset;
-        }
+            private readonly int size;
+            private readonly int timeOffset;
+            private readonly Dictionary<Step, int> workInProgress = new Dictionary<Step, int>();
 
-        public List<Step> WorkOne()
-        {
-            var keys = workInProgress.Keys.ToList();
-            foreach (var key in keys)
+            public WorkerPool(int size, int timeOffset)
             {
-                workInProgress[key]--;
+                this.size = size;
+                this.timeOffset = timeOffset;
             }
-            
-            var done = workInProgress.Where(w => w.Value == 0).Select(w => w.Key).ToList();
 
-            done.ForEach(d => workInProgress.Remove(d));
+            public List<Step> WorkOne()
+            {
+                var keys = workInProgress.Keys.ToList();
+                foreach (var key in keys)
+                {
+                    workInProgress[key]--;
+                }
 
-            return done;
+                var done = workInProgress.Where(w => w.Value == 0).Select(w => w.Key).ToList();
+
+                done.ForEach(d => workInProgress.Remove(d));
+
+                return done;
+            }
+
+            public void AddTask(Step step)
+            {
+                if (!WorkerAvailable) throw new InvalidOperationException("Worker is at full capacity already");
+
+                workInProgress.Add(step, step.WorkerTime + timeOffset);
+            }
+
+            public bool Empty => workInProgress.Count == 0;
+            public bool WorkerAvailable => workInProgress.Count < size;
         }
 
-        public void AddTask(Step step)
+
+        public class Step : IComparable<Step>
         {
-            if (!WorkerAvailable) throw new InvalidOperationException("Worker is at full capacity already");
+            public Step(string id)
+            {
+                Id = id;
+            }
 
-            workInProgress.Add(step, step.WorkerTime + timeOffset);
+            public string Id { get; }
+            public List<Step> Predecessors { get; } = new List<Step>();
+            public List<Step> Successors { get; } = new List<Step>();
+            public bool IsStartStep => !Predecessors.Any();
+            public int WorkerTime => (char.Parse(Id) - 'A') + 1;
+
+            protected bool Equals(Step other)
+            {
+                return string.Equals(Id, other.Id);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((Step)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                return (Id != null ? Id.GetHashCode() : 0);
+            }
+
+            public override string ToString()
+            {
+                return $"{Id} P:[{string.Join(",", Predecessors.Select(p => p.Id))}] S:[{string.Join(",", Successors.Select(s => s.Id))}]";
+            }
+
+            public int CompareTo(Step other)
+            {
+                if (ReferenceEquals(this, other)) return 0;
+                if (ReferenceEquals(null, other)) return 1;
+                return string.Compare(Id, other.Id, StringComparison.Ordinal);
+            }
         }
 
-        public bool Empty => workInProgress.Count == 0;
-        public bool WorkerAvailable => workInProgress.Count < size;
+        [Fact]
+        public void FirstStarExample()
+        {
+            var input = new List<string>
+            {
+                "Step C must be finished before step A can begin.",
+                "Step C must be finished before step F can begin.",
+                "Step A must be finished before step B can begin.",
+                "Step A must be finished before step D can begin.",
+                "Step B must be finished before step E can begin.",
+                "Step D must be finished before step E can begin.",
+                "Step F must be finished before step E can begin."
+            };
+
+            var order = Order(input);
+
+            Assert.Equal("CABDFE", order);
+        }
+
+        [Fact]
+        public void SecondStarExample()
+        {
+            var input = new List<string>
+            {
+                "Step C must be finished before step A can begin.",
+                "Step C must be finished before step F can begin.",
+                "Step A must be finished before step B can begin.",
+                "Step A must be finished before step D can begin.",
+                "Step B must be finished before step E can begin.",
+                "Step D must be finished before step E can begin.",
+                "Step F must be finished before step E can begin."
+            };
+
+            var time = TotalTime(input, 2, 0);
+
+            Assert.Equal(15, time);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("CFGHAEMNBPRDISVWQUZJYTKLOX", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("828", actual);
+        }
+
     }
-
-
-    public class Step : IComparable<Step>
-    {
-        public Step(string id)
-        {
-            Id = id;
-        }
-
-        public string Id { get; }
-        public List<Step> Predecessors { get; } = new List<Step>();
-        public List<Step> Successors { get; } = new List<Step>();
-        public bool IsStartStep => !Predecessors.Any();
-        public int WorkerTime => (char.Parse(Id) - 'A') + 1;
-
-        protected bool Equals(Step other)
-        {
-            return string.Equals(Id, other.Id);
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (ReferenceEquals(null, obj)) return false;
-            if (ReferenceEquals(this, obj)) return true;
-            if (obj.GetType() != this.GetType()) return false;
-            return Equals((Step) obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return (Id != null ? Id.GetHashCode() : 0);
-        }
-
-        public override string ToString()
-        {
-            return $"{Id} P:[{string.Join(",", Predecessors.Select(p => p.Id))}] S:[{string.Join(",", Successors.Select(s => s.Id))}]";
-        }
-
-        public int CompareTo(Step other)
-        {
-            if (ReferenceEquals(this, other)) return 0;
-            if (ReferenceEquals(null, other)) return 1;
-            return string.Compare(Id, other.Id, StringComparison.Ordinal);
-        }
-    }
-
 }

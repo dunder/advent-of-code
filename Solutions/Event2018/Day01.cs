@@ -1,22 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-
-namespace Solutions.Event2018.Day01
+using Xunit;
+using static Solutions.InputReader;
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day01 : IDay
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day01;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day01;
+        public string Name => "Chronal Calibration";
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var frequencyChanges = ReadLineInput();
             var adjustedFrequency = ApplyFrequencyChanges(0, frequencyChanges);
             return adjustedFrequency.ToString();
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var input = ReadLineInput();
             var result = ApplyFrequencyChangesUntilFoundTwice(0, input);
@@ -31,7 +32,7 @@ namespace Solutions.Event2018.Day01
         public static int ApplyFrequencyChangesUntilFoundTwice(int initialFrequency, IList<string> input)
         {
             int currentFrequency = initialFrequency;
-            var foundFrequencies = new HashSet<int> {currentFrequency};
+            var foundFrequencies = new HashSet<int> { currentFrequency };
             bool foundTwice = false;
             while (!foundTwice)
             {
@@ -50,6 +51,20 @@ namespace Solutions.Event2018.Day01
             }
 
             return currentFrequency;
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("513", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("287", actual);
         }
     }
 }

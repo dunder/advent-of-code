@@ -1,21 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Xunit;
+using static Solutions.InputReader;
 
-namespace Solutions.Event2018.Day08
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day08
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day08;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day08;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var input = ReadInput();
             var sumOfMetadataEntries = CalculateSumOfMetadata(input);
             return sumOfMetadataEntries.ToString();
         }
 
-        public override string SecondStar()
+        public  string SecondStar()
         {
             var input = ReadInput();
             var valueOfRoot = CalcualateValueOfRootNode(input);
@@ -29,7 +31,6 @@ namespace Solutions.Event2018.Day08
             var data = input.Split(' ').Select(int.Parse);
 
             var stack = new Stack<int>(data.Reverse());
-            
 
             var topNode = ReadNode(stack);
 
@@ -134,6 +135,38 @@ namespace Solutions.Event2018.Day08
                     return value;
                 }
             }
+        }
+
+        [Fact]
+        public void FirstStarExample()
+        {
+            var input = "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2";
+            var sum = CalculateSumOfMetadata(input);
+
+            Assert.Equal(138, sum);
+        }
+
+        [Fact]
+        public void SecondStarExample()
+        {
+            var input = "2 3 0 3 10 11 12 1 1 0 1 99 2 1 1 2";
+            var sum = CalcualateValueOfRootNode(input);
+
+            Assert.Equal(66, sum);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("47112", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("28237", actual);
         }
     }
 }

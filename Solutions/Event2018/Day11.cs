@@ -1,25 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
-using System.Text;
+using Xunit;
 
-namespace Solutions.Event2018.Day11
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day11
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day11;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day11;
 
         private const int Input = 6303;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var result = CoordinateOfHighestPowerGrid(Input);
             return result;
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var result = VaryingGridSize(Input);
             return result;
@@ -58,7 +56,7 @@ namespace Solutions.Event2018.Day11
             {
                 for (int yi = topLeft.Y; yi < topLeft.Y + size; yi++)
                 {
-                    power = power + grid[xi -1, yi - 1];
+                    power = power + grid[xi - 1, yi - 1];
                 }
             }
             return power;
@@ -101,7 +99,7 @@ namespace Solutions.Event2018.Day11
                 var maxX = 300 - size;
                 var minY = 1;
                 var maxY = 300 - size;
-                
+
 
                 for (int y = minY; y <= maxY; y++)
                 {
@@ -145,6 +143,71 @@ namespace Solutions.Event2018.Day11
             powerLevel = powerLevel - 5;
 
             return powerLevel;
+        }
+
+        [Theory]
+        [InlineData(12345, 3)]
+        [InlineData(30000000, 0)]
+        [InlineData(45, 0)]
+        public void HundredsDigit(int input, int expected)
+        {
+            int actual = Math.Abs(input / 100 % 10);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(3, 5, 8, 4)]
+        [InlineData(122, 79, 57, -5)]
+        [InlineData(217, 196, 39, 0)]
+        [InlineData(101, 153, 71, 4)]
+        public void PowerCalculation(int x, int y, int serialNumber, int expectedPower)
+        {
+            var power = CalculatePower(new Point(x, y), serialNumber);
+            Assert.Equal(expectedPower, power);
+        }
+
+        [Theory]
+        [InlineData(33, 45, 18, 29)]
+        public void PowerForGridTest(int x, int y, int serialNumber, int expectedPower)
+        {
+            var grid = PowerGrid(serialNumber);
+            var power = PowerForGrid(serialNumber, new Point(x, y), 3, grid);
+
+            Assert.Equal(expectedPower, power);
+        }
+
+        [Theory]
+        [InlineData(18, "33,45")]
+        [InlineData(42, "21,61")]
+        public void FirstStarExamples(int serialNumber, string expected)
+        {
+            var coordinate = CoordinateOfHighestPowerGrid(serialNumber);
+            Assert.Equal(expected, coordinate);
+            Assert.Equal(expected, coordinate);
+        }
+        [Theory]
+        [InlineData(18, "90,269,16")]
+        [InlineData(42, "232,251,12")]
+        public void SecondStarExamples(int serialNumber, string expected)
+        {
+            var actual = VaryingGridSize(serialNumber);
+
+            Assert.Equal(expected, actual);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("243,27", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("284,172,12", actual);
         }
     }
 }

@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using Shared.MapGeometry;
+using Xunit;
+using static Solutions.InputReader;
 
-namespace Solutions.Event2018.Day06
+namespace Solutions.Event2018
 {
-    public class Problem : ProblemBase
+    public class Day06
     {
-        public override Event Event => Event.Event2018;
-        public override Day Day => Day.Day06;
+        public Event Event => Event.Event2018;
+        public Day Day => Day.Day06;
 
-        public override string FirstStar()
+        public string FirstStar()
         {
             var input = ReadLineInput();
             var result = LargestArea(input);
             return result.ToString();
         }
 
-        public override string SecondStar()
+        public string SecondStar()
         {
             var input = ReadLineInput();
             var result = LargestRegion(input, 10_000);
@@ -36,7 +38,7 @@ namespace Solutions.Event2018.Day06
                 var x = int.Parse(split[0]);
                 var y = int.Parse(split[1]);
 
-                coordinates.Add(new Point(x,y));
+                coordinates.Add(new Point(x, y));
             }
             return coordinates;
         }
@@ -190,6 +192,126 @@ namespace Solutions.Event2018.Day06
             var minDistance = sortedByDistance.First().ManhattanDistance(point);
             var mine = me.ManhattanDistance(point);
             return mine < minDistance;
+        }
+
+        [Theory]
+        [InlineData(3, 4, 3, 4, true)]
+        [InlineData(3, 4, 2, 5, false)]
+        [InlineData(3, 4, 3, 5, true)]
+        public void HasMinDinstance(int myX, int myY, int px, int py, bool expected)
+        {
+            var input = new List<string>
+            {
+                "1, 1",
+                "1, 6",
+                "8, 3",
+                "3, 4",
+                "5, 5",
+                "8, 9"
+            };
+
+            var coordinates = ParseCoordinates(input);
+
+            var hasMin = HasMinDistance(new Point(myX, myY), new Point(px, py), coordinates);
+
+            Assert.Equal(expected, hasMin);
+        }
+
+        [Fact]
+        public void PointsAtRadiusTest()
+        {
+            var points = PointsAtRadius(new Point(0, 0), 1);
+
+            var expected = new List<Point>
+            {
+                // top and bottom pairwise left->right
+                new Point(-1,-1),
+                new Point(-1,1),
+                new Point(0,-1),
+                new Point(0,1),
+                new Point(1,-1),
+                new Point(1,1),
+                // left and right pairwise up->down
+                new Point(-1,0),
+                new Point(1,0)
+            };
+
+            Assert.Equal(expected, points);
+
+            points = PointsAtRadius(new Point(0, 0), 2);
+
+            expected = new List<Point>
+            {
+                // top and bottom pairwise left->right
+                new Point(-2,-2),
+                new Point(-2, 2),
+                new Point(-1,-2),
+                new Point(-1,2),
+                new Point(0,-2),
+                new Point(0,2),
+                new Point(1,-2),
+                new Point(1,2),
+                new Point(2,-2),
+                new Point(2,2),
+                // left and right pairwise up->down
+                new Point(-2, -1),
+                new Point(2, -1),
+                new Point(-2, 0),
+                new Point(2, 0),
+                new Point(-2, 1),
+                new Point(2, 1),
+            };
+
+            Assert.Equal(expected, points);
+        }
+
+        [Fact]
+        public void FirstStarExample()
+        {
+            var input = new List<string>
+            {
+                "1, 1",
+                "1, 6",
+                "8, 3",
+                "3, 4",
+                "5, 5",
+                "8, 9"
+            };
+
+            var area = LargestArea(input);
+
+            Assert.Equal(17, area);
+        }
+        [Fact]
+        public void SecondStarExample()
+        {
+            var input = new List<string>
+            {
+                "1, 1",
+                "1, 6",
+                "8, 3",
+                "3, 4",
+                "5, 5",
+                "8, 9"
+            };
+
+            var size = LargestRegion(input, 32);
+
+            Assert.Equal(16, size);
+        }
+
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("4475", actual);
+        }
+
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("35237", actual);
         }
     }
 }
