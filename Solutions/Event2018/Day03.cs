@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day03
+    public class Day03 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day03;
+        public string Name => "No Matter How You Slice It";
 
         public string FirstStar()
         {

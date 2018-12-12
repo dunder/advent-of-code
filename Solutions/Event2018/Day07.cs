@@ -7,10 +7,11 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day07
+    public class Day07 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day07;
+        public string Name => "The Sum of Its Parts";
 
         public string FirstStar()
         {

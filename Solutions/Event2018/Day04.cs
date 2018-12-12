@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
 using Xunit;
 using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day04
+    public class Day04 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day04;
+        public string Name => "Repose Record";
 
         public string FirstStar()
         {

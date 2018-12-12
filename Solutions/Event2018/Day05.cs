@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using Xunit;
 using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day05
+    public class Day05 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day05;
+        public string Name => "Alchemical Reduction";
 
         public string FirstStar()
         {

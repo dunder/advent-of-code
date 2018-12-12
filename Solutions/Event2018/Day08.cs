@@ -5,10 +5,11 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day08
+    public class Day08 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day08;
+        public string Name => "Memory Maneuver";
 
         public string FirstStar()
         {

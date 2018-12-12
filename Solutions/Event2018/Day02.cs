@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Text;
 using Facet.Combinatorics;
@@ -8,10 +7,11 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day02
+    public class Day02 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day02;
+        public string Name => "Inventory Management System";
 
         public string FirstStar()
         {

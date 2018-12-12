@@ -8,10 +8,11 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Day06
+    public class Day06 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day06;
+        public string Name => "Chronal Coordinates";
 
         public string FirstStar()
         {

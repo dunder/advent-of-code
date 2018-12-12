@@ -4,10 +4,11 @@ using Xunit;
 
 namespace Solutions.Event2018
 {
-    public class Day11
+    public class Day11 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day11;
+        public string Name => "Chronal Charge";
 
         private const int Input = 6303;
 

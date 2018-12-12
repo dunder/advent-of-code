@@ -4,10 +4,11 @@ using Xunit;
 
 namespace Solutions.Event2018
 {
-    public class Day09
+    public class Day09 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day09;
+        public string Name => "Marble Mania";
 
         public string FirstStar()
         {
