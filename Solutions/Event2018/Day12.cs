@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -6,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
-    public class Problem : IDay
+    public class Day12 : IDay
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day12;
@@ -26,35 +28,32 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        public static (string initialState, Dictionary<string, bool> generations) ParseInput(IList<string> input)
+        public static (string initialState, Dictionary<string, bool> rules) ParseInput(IList<string> input)
         {
             string initialState = input.First().Substring(15);
-            var generationNotes = input.Skip(2).ToList();
+            var ruleNotes = input.Skip(2).ToList();
 
-            var generations = new Dictionary<string, bool>();
-            foreach (var generationNote in generationNotes)
+            var rules = new Dictionary<string, bool>();
+            foreach (var ruleNote in ruleNotes)
             {
-                var pattern = generationNote.Substring(0, 5);
-                var result = generationNote.Substring(9, 1);
+                var pattern = ruleNote.Substring(0, 5);
+                var result = ruleNote.Substring(9, 1);
 
                 if (result == "#")
                 {
-                    generations.Add(pattern, result == "#");
+                    rules.Add(pattern, result == "#");
                 }
             }
 
-
-
-            return (initialState, generations);
+            return (initialState, rules);
         }
 
-        public static (string state, int indexOfCenter) Fill(string state, int indexOfCenter)
+        public static (string state, int indexOfCenter) Extend(string state, int indexOfCenter)
         {
             var firstPlant = state.IndexOf("#");
             var prefix = "";
             var postfix = "";
-            //     #..#
-            // ....#
+
             if (firstPlant < 4)
             {
                 var fillCount = 4 - firstPlant;
@@ -74,33 +73,45 @@ namespace Solutions.Event2018
 
         public static long SumPotsWithPlants(IList<string> input, long generations)
         {
-            var (initialState, generation) = ParseInput(input);
+            var (initialState, rules) = ParseInput(input);
             var state = $"{initialState}";
-
+            var sum = 0L;
+            var diff = 0L;
+            var stabilityCounter = 0;
             var indexOfCenter = 0;
-            (state, indexOfCenter) = Fill(state, indexOfCenter);
+            (state, indexOfCenter) = Extend(state, indexOfCenter);
 
-            for (int _ = 1; _ <= generations; _++)
+            for (int g = 1; g <= generations; g++)
             {
-
                 var newGeneration = new StringBuilder(state);
 
                 for (int i = 2; i < state.Length - 2; i++)
                 {
                     var pattern = state.Substring(i - 2, 5);
-                    if (generation.ContainsKey(pattern))
-                    {
-                        newGeneration[i] = '#';
-                    }
-                    else
-                    {
-                        newGeneration[i] = '.';
-                    }
+                    newGeneration[i] = rules.ContainsKey(pattern) ? '#' : '.';
                 }
 
-                (state, indexOfCenter) = Fill(newGeneration.ToString(), indexOfCenter);
+                (state, indexOfCenter) = Extend(newGeneration.ToString(), indexOfCenter);
+
+                var newSum = SumPotValues(state, indexOfCenter);
+                var newDiff = newSum - sum;
+
+                stabilityCounter = diff == newDiff ? stabilityCounter + 1 : 0;
+
+                diff = newDiff;
+                sum = newSum;
+
+                if (stabilityCounter > 5)
+                {
+                    return (generations - g)*diff + sum;
+                }
             }
 
+            return sum;
+        }
+
+        private static long SumPotValues(string state, int indexOfCenter)
+        {
             long sum = 0;
 
             for (int i = 0; i < state.Length; i++)
@@ -135,7 +146,7 @@ namespace Solutions.Event2018
         [InlineData("......##.....", "......##.....", 0)]
         public void FillTests(string input, string expectetState, int expectedCenter)
         {
-            var(state, indexOfCenter) = Fill(input, 0);
+            var(state, indexOfCenter) = Extend(input, 0);
 
             Assert.Equal(expectetState, state);
             Assert.Equal(expectedCenter, indexOfCenter);
@@ -170,16 +181,6 @@ namespace Solutions.Event2018
         }
 
         [Fact]
-        public void PerformanceTest()
-        {
-            bool[] check = new bool[50_000_000_000];
-            
-
-            Assert.Equal(50_000_000_000, check.Length);
-        }
-
-
-        [Fact]
         public void FirstStarTest()
         {
             var actual = FirstStar();
@@ -190,7 +191,7 @@ namespace Solutions.Event2018
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("1700000000011", actual);
         }
     }
 }

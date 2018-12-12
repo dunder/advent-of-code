@@ -5,7 +5,8 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            Run2018Day10();
+
+            new Day12().SecondStar();
 
             Console.ReadKey();
         }
@@ -14,6 +15,7 @@ namespace Solutions {
         {
             new Day10().FirstStarExample();
         }
+
         private static void Run2018Day10()
         {
             new Day10().SecondStar();
