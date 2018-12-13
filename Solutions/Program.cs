@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Solutions.Event2018;
 
 namespace Solutions {
@@ -6,7 +7,18 @@ namespace Solutions {
         static void Main(string[] args)
         {
 
-            new Day12().SecondStar();
+            var input = new List<string>
+            {
+                @"/>-<\  ",
+                @"|   |  ",
+                @"| /<+-\",
+                @"| | | v",
+                @"\>+</ |",
+                @"  |   ^",
+                @"  \<->/",
+            };
+
+            var lastCarPosition = new Day13().LocationOfLastCart(input);
 
             Console.ReadKey();
         }

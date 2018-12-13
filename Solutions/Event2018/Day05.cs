@@ -24,6 +24,45 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
+        public static int LinkedReduce(string polymer)
+        {
+            var linkedPolymer = new LinkedList<char>(polymer);
+            
+            var left = linkedPolymer.First;
+            var right = left.Next;
+
+            while (right.Next != null)
+            {
+                var leftUnit = left.Value;
+                var rightUnit = right.Value;
+
+                if (leftUnit != rightUnit && char.ToUpper(leftUnit) == char.ToUpper(rightUnit))
+                {
+                    var newLeft = left.Previous;
+                    var newRight = right.Next;
+
+                    if (newLeft == null)
+                    {
+                        newLeft = right;
+                        newRight = right.Next;
+                    }
+
+                    linkedPolymer.Remove(left);
+                    linkedPolymer.Remove(right);
+
+                    left = newLeft;
+                    right = newRight;
+                }
+                else
+                {
+                    left = right;
+                    right = left.Next;
+                }
+            }
+
+            return linkedPolymer.Count;
+        }
+
         public static int ReduceAll(string polymer)
         {
             var closed = new HashSet<int>();
@@ -137,6 +176,16 @@ namespace Solutions.Event2018
 
             Assert.Equal(10, reduced);
         }
+
+        [Fact]
+        public void LinkedReducedExample()
+        {
+            var polymer = "dabAcCaCBAcCcaDA";
+            var reduced = LinkedReduce(polymer);
+
+            Assert.Equal(10, reduced);
+        }
+
         [Fact]
         public void SecondStarExample()
         {
@@ -153,14 +202,11 @@ namespace Solutions.Event2018
             Assert.Equal("10132", actual);
         }
 
-        [Trait("Category", "LongRunning")] // 3 min 18 s
         [Fact]
         public void SecondStarTest()
         {
             var actual = SecondStar();
             Assert.Equal("4572", actual);
         }
-
-
     }
 }

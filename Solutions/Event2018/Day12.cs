@@ -12,7 +12,7 @@ namespace Solutions.Event2018
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day12;
-        public string Name => "Day12";
+        public string Name => "Subterranean Sustainability";
 
         public string FirstStar()
         {
