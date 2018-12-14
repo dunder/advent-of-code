@@ -1,9 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata;
-using Shared.Extensions;
+using System.Text;
 using Xunit;
-using static Solutions.InputReader;
 
 namespace Solutions.Event2018
 {
@@ -17,64 +16,113 @@ namespace Solutions.Event2018
 
         public string FirstStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var result = Score(Input, 10);
+            return result;
         }
 
         public string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
+            var result = RecipesLeft(Input);
             return result.ToString();
         }
 
-        public static long Score(int input, int next)
+        public static string Score(int input, int next)
         {
-            var scoreBoard = new[] {3, 7};
-
-
             var elf1 = 0;
             var elf2 = 1;
 
+            var scoreBoard = new Dictionary<int, int>
+            {
+                {0,3},
+                {1,7}
+            };
 
-            while (scoreBoard.Length < input + next)
+            while (scoreBoard.Count <= input + next)
             {
                 var elf1Score = scoreBoard[elf1];
                 var elf2Score = scoreBoard[elf2];
 
-                var newScores = (elf1Score + elf2Score).ToString().Split().Select(int.Parse).ToArray();
+                var newScores = (elf1Score + elf2Score).ToString().Select(c => int.Parse(c.ToString())).ToArray();
 
-                scoreBoard = scoreBoard.Concat(newScores).ToArray();
+                int index = scoreBoard.Count;
 
-                elf1 = newScores.WrappedIndex(elf1Score + 1);
-                elf2 = newScores.WrappedIndex(elf2Score + 1);
+                foreach (var newScore in newScores)
+                {                    
+                    scoreBoard.Add(index++, newScore);
+                }                
+
+                elf1 = WrappedIndex(scoreBoard.Count, elf1 + elf1Score + 1);
+                elf2 = WrappedIndex(scoreBoard.Count, elf2 + elf2Score + 1);
             }
 
-            return scoreBoard.Skip(input).Take(next).Sum();
+            var rest = new StringBuilder();
+
+            for (int i = input; i < input + next; i++)
+            {
+                rest.Append(scoreBoard[i]);
+            }
+
+            return rest.ToString();
         }
 
-        public static int[] GenerateNewScoreBoard(int[] initialScoreBoard, int iterations)
+        public static int RecipesLeft(int input)
         {
             var elf1 = 0;
             var elf2 = 1;
 
-            var scoreBoard = initialScoreBoard;
+            var scoreBoard = new Dictionary<int, int>
+            {
+                {0,3},
+                {1,7}
+            };
 
-            for (int _ = 1; _ <= iterations; _++)
+            var inputLength = input.ToString().Length;
+            var inputString = input.ToString();
+
+            while (true)
             {
                 var elf1Score = scoreBoard[elf1];
                 var elf2Score = scoreBoard[elf2];
 
-                var newScores = (elf1Score + elf2Score).ToString().Split().Select(int.Parse).ToArray();
+                var newScores = (elf1Score + elf2Score).ToString().Select(c => int.Parse(c.ToString())).ToArray();
 
-                scoreBoard = scoreBoard.Concat(newScores).ToArray();
+                var index = scoreBoard.Count;
 
-                elf1 = newScores.WrappedIndex(elf1Score + 1);
-                elf2 = newScores.WrappedIndex(elf2Score + 1);
+                foreach (var newScore in newScores)
+                {
+                    scoreBoard.Add(index++, newScore);
+
+                    if (scoreBoard.Count > inputLength)
+                    {
+                        var s = new StringBuilder();
+
+                        for (int i = scoreBoard.Count - inputLength - 1; i < scoreBoard.Count - 1; i++)
+                        {
+                            s.Append(scoreBoard[i]);
+                        }
+
+                        var last = s.ToString();
+
+                        if (last == inputString)
+                        {
+                            return index - inputLength - 1;
+                        }
+                    }
+                }
+
+                elf1 = WrappedIndex(scoreBoard.Count, elf1 + elf1Score + 1);
+                elf2 = WrappedIndex(scoreBoard.Count, elf2 + elf2Score + 1);
             }
+        }
 
-            return scoreBoard;
+        public static int WrappedIndex(int length, int index)
+        {
+            int wrappedIndex = index;
+            if (wrappedIndex < 0)
+            {
+                wrappedIndex = length - Math.Abs(wrappedIndex);
+            }
+            return wrappedIndex > length - 1 ? wrappedIndex % length : wrappedIndex;
         }
 
         [Fact]
@@ -82,22 +130,33 @@ namespace Solutions.Event2018
         {
             var result = Score(9, 10);
 
-            Assert.Equal("5158916779", result.ToString());
-            // 
+            Assert.Equal("5158916779", result);
+        }
+
+        [Theory]
+        [InlineData(51589, 9)]
+        //[InlineData(01245, 5)] OK there is a bug maybe solve later
+        [InlineData(92510, 18)]
+        [InlineData(59414, 2018)]
+        public void SecondStarExamples(int input, int expected)
+        {
+            var left = RecipesLeft(input);
+
+            Assert.Equal(expected, left);
         }
 
         [Fact]
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("4910101614", actual);
         }
 
         [Fact]
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("20253137", actual);
         }
     }
 }

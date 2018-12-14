@@ -5,7 +5,7 @@ using Solutions.Event2018;
 namespace Solutions {
     class Program {
         static void Main(string[] args)
-        {
+       {
 
             var input = new List<string>
             {
