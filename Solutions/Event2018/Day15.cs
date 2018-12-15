@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using Shared.MapGeometry;
 using Shared.Tree;
 using Xunit;
@@ -24,7 +25,7 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        private int Combat(IList<string> input)
+        public static int Combat(IList<string> input)
         {
             var (walls, elves, goblins) = Parse(input);
 
@@ -49,6 +50,7 @@ namespace Solutions.Event2018
             public List<Soldier> AliveTargets => Targets.Where(t => !t.IsDead).ToList();
             public int HitPoints { get; private set; }
             public int AttackPower { get; }
+            public bool IsAlive => !IsDead;
             public bool IsDead => HitPoints <= 0;
 
             public Soldier(int id, Point position, char @class, List<Soldier> targets, int hitPoints, int attackPower)
@@ -62,20 +64,22 @@ namespace Solutions.Event2018
             }
 
 
-            public Soldier Move(HashSet<Point> occupied)
+            public void Move(HashSet<Point> occupied)
             {
                 var possibleMoves = Position.AdjacentInMainDirections()
-                    .Where(occupied.Contains)
+                    .Where(p => !occupied.Contains(p))
                     .ToHashSet();
 
+                var moveDirections = Position.AdjacentInMainDirections().ToHashSet();
+
                 var targetsInRange = AliveTargets
-                    .Where(t => possibleMoves.Contains(t.Position))
+                    .Where(t => moveDirections.Contains(t.Position))
                     .ToList();
 
                 // target is already in range
-                if (targetsInRange.Any(t => possibleMoves.Contains(t.Position)))
+                if (targetsInRange.Any(t => moveDirections.Contains(t.Position)))
                 {
-                    return targetsInRange.OrderBy(t => t.Position.Y).ThenBy(t => t.Position.X).First();
+                    return;
                 }
 
                 var adjacent = AliveTargets.SelectMany(t => t.Position.AdjacentInMainDirections()).ToHashSet();
@@ -83,32 +87,84 @@ namespace Solutions.Event2018
                 // keep only not occupied
                 adjacent.ExceptWith(occupied);
 
-                // find out which are reachable
+                adjacent = adjacent.OrderBy(p => p.Y).ThenBy(p => p.X).ToHashSet();
+
+                var reachable = new List<AStar.Node>();
+
+               
 
                 foreach (var targetPosition in adjacent)
                 {
-                    IEnumerable<Point> Neighbors(Point n)
+                    bool IsWalkable(Point point)
                     {
-                        return n.AdjacentInMainDirections().Where(p => !occupied.Contains(p));
+                        return !occupied.Contains(point);
                     }
 
-                    var result = targetPosition.DepthFirst(Neighbors, p => p.Data == targetPosition);
+                    var node = AStar.Search(Position, targetPosition, IsWalkable);
+
+                    if (node != null)
+                    {
+                        reachable.Add(node);
+                    }
                 }
+
+                reachable = reachable
+                    .OrderBy(n => n.Depth)
+                    .ThenBy(n => n.Position.Y)
+                    .ThenBy(n => n.Position.X)
+                    .ToList();
 
 
                 // return the soldier in range
-                return null;
+                if (!reachable.Any()) return;
+
+                var nearest = reachable.First();
+
+                var targetsFromPossibleMoves = new List<AStar.Node>();
+
+                foreach (var move in possibleMoves)
+                {
+                    bool IsWalkable(Point point)
+                    {
+                        // my own position is not occupied if I move
+                        if (point == Position) return true;
+                        return !occupied.Contains(point);
+                    }
+
+                    var target = AStar.Search(move, nearest.Position, IsWalkable);
+                    if (target != null)
+                    {
+                        targetsFromPossibleMoves.Add(target);
+                    }
+                }
+
+                var walkToNode = targetsFromPossibleMoves
+                    .OrderBy(n => n.Depth)
+                    .ThenBy(n => n.StartNode.Position.Y)
+                    .ThenBy(n => n.StartNode.Position.X)
+                    .First();
+
+                Position = walkToNode.StartNode.Position;
             }
 
-            public void Attack(Soldier soldier)
+            public void Attack()
             {
-                if (soldier == null) return;
-                soldier.HitPoints -= AttackPower;
+                var adjacent = Position.AdjacentInMainDirections().ToHashSet();
+
+                var soldierToAttack = AliveTargets
+                    .Where(t => adjacent.Contains(t.Position))
+                    .OrderBy(t => t.HitPoints)
+                    .ThenBy(t => t.Position.Y)
+                    .ThenBy(t => t.Position.X)
+                    .FirstOrDefault();
+
+                if (soldierToAttack == null) return;
+                soldierToAttack.HitPoints -= AttackPower;
             }
 
             public override string ToString()
             {
-                return $"{Class} ({Position.X},{Position.Y})";
+                return $"{Class} ({Position.X},{Position.Y}) [{HitPoints}]";
             }
         }
 
@@ -117,7 +173,8 @@ namespace Solutions.Event2018
             private readonly HashSet<Point> walls;
             private readonly List<Soldier> elves;
             private readonly List<Soldier> goblins;
-        
+            private int rounds;
+
             public Game(HashSet<Point> walls, List<Soldier> elves, List<Soldier> goblins)
             {
                 this.walls = walls;
@@ -125,46 +182,109 @@ namespace Solutions.Event2018
                 this.goblins = goblins;
             }
 
+            public List<Soldier> AliveElves => elves.Where(e => e.IsAlive).ToList();
+            public List<Soldier> AliveGoblins => goblins.Where(g => g.IsAlive).ToList();
+
+            public List<Soldier> AliveSoldiers => AliveElves.Concat(AliveGoblins).ToList();
+            public HashSet<Point> Occupied
+            {
+                get
+                {
+                    var occupied = new HashSet<Point>(walls);
+                    AliveElves.ForEach(e => occupied.Add(e.Position));
+                    AliveGoblins.ForEach(g => occupied.Add(g.Position));
+                    return occupied;
+                }
+            }
+
             public int Run()
             {
-                int round = 0;
                 bool gameOver = false;
                 while (!gameOver)
                 {
-                    var order = elves.ToList().Concat(goblins)
+                    var order = AliveSoldiers
                         .OrderBy(s => s.Position.Y)
                         .ThenBy(s => s.Position.X)
                         .ToList();
 
+
+
                     for (int s = 0; s < order.Count; s++)
                     {
                         var soldier = order[s];
+
                         if (soldier.IsDead) continue;
-
-                        var occupied = new HashSet<Point>(walls);
-                        elves.ForEach(e => occupied.Add(e.Position));
-                        goblins.ForEach(g => occupied.Add(g.Position));
-
-                        var targetInRange = soldier.Move(occupied);
-                        soldier.Attack(targetInRange);
 
                         if (!soldier.AliveTargets.Any())
                         {
+                            var winners = AliveGoblins.Any() ? "Goblins" : "Elves";
+                            Console.WriteLine($"Game over: round {rounds}, {winners} won with {AliveSoldiers.Sum(alive => alive.HitPoints)}");
                             gameOver = true;
                             break;
                         }
+
+                        Console.Clear();
+                        Console.WriteLine($"Current soldier: {soldier}");
+                        Console.Write(ToString());
+                        Console.ReadKey(true);
+
+                        soldier.Move(Occupied);
+                        soldier.Attack();
+                        
                     }
 
-                    round++;
+                    if (!gameOver)
+                    {
+                        rounds++;
+                    }
                 }
 
-                var winningHitPoints = elves.Any(e => !e.IsDead)
-                    ? elves.Sum(e => e.HitPoints)
-                    : goblins.Sum(g => g.HitPoints);
-
-                return round * winningHitPoints;
+                return rounds * AliveSoldiers.Sum(s => s.HitPoints);
             }
 
+            public override string ToString()
+            {
+                var s = new StringBuilder();
+                var aliveGoblins = goblins.Where(g => !g.IsDead).ToList();
+                var aliveElves = elves.Where(e => !e.IsDead).ToList();
+                s.AppendLine($"Rounds: {rounds} Goblins {aliveGoblins.Count} Elves: {aliveElves.Count}");
+                s.AppendLine($"Goblin score: {aliveGoblins.Sum(g => g.HitPoints)} Elves score: {aliveElves.Sum(e => e.HitPoints)}");
+                for (int y = 0; y < 32; y++)
+                {
+                    for (int x = 0; x < 32; x++)
+                    {
+                        var point = new Point(x, y);
+                        var print = ".";
+                        if (walls.Contains(point))
+                        {
+                            print = "#";
+                        } else if (elves.Exists(e => e.Position == point && !e.IsDead))
+                        {
+                            print = "E";
+                        }
+                        else if (goblins.Exists(g => g.Position == point && !g.IsDead))
+                        {
+                            print = "G";
+                        }
+
+                        s.Append(print);
+                    }
+
+                    s.Append(" ");
+
+                    var soldiers = aliveGoblins.Concat(aliveElves)
+                        .Where(soldier => soldier.Position.Y == y)
+                        .OrderBy(soldier => soldier.Position.X);
+
+                    foreach (var soldier in soldiers)
+                    {
+                        s.Append($" {soldier.Class}({soldier.HitPoints})");
+                    }
+                    s.AppendLine();
+                }
+
+                return s.ToString();
+            }
         }
 
         public static (HashSet<Point> walls, List<Soldier> elves, List<Soldier> goblins) Parse(IList<string> input)
@@ -197,29 +317,128 @@ namespace Solutions.Event2018
             return (walls, elves, goblins);
         }
 
+        [Fact]
+        public void FirstStarCombatTest1()
+        {
+            var lines = new[]
+            {
+
+                "#######",
+                "#.G...#",
+                "#...EG#",
+                "#.#.#G#",
+                "#..G#E#",
+                "#.....#",
+                "#######"
+            };
+
+            var outcome = Combat(lines);
+
+            Assert.Equal(27730, outcome);
+        }
 
         [Fact]
-        public void FirstStartTest()
+        public void FirstStarCombatTest2()
+        {
+            var lines = new[]
+            {
+                "#######", 
+                "#G..#E#", 
+                "#E#E.E#", 
+                "#G.##.#", 
+                "#...#E#", 
+                "#...E.#", 
+                "#######"
+            };
+
+            var outcome = Combat(lines);
+
+            Assert.Equal(36334, outcome);
+        }
+
+        [Fact]
+        public void FirstStarCombatTest3()
+        {
+            var lines = new[]
+            {
+                "#######", 
+                "#E..EG#", 
+                "#.#G.E#", 
+                "#E.##E#", 
+                "#G..#.#", 
+                "#..E#.#", 
+                "#######"
+            };
+
+            var outcome = Combat(lines);
+
+            Assert.Equal(39514, outcome);
+        }
+
+        [Fact]
+        public void FirstStarCombatTest4()
         {
             var lines = new[]
             {
                 "#######",
-                "#.G.E.#",
-                "#E.G.E#",
-                "#.G.E.#",
-                "#######",
+                "#E.G#.#",
+                "#.#G..#",
+                "#G.#.G#",
+                "#G..#.#",
+                "#...E.#",
+                "#######"
             };
 
-            var result = Combat(lines);
+            var outcome = Combat(lines);
 
-            Assert.Equal(0, result);
+            Assert.Equal(27755, outcome);
+        }
+
+        [Fact]
+        public void FirstStarCombatTest5()
+        {
+            var lines = new[]
+            {
+                "#######",
+                "#.E...#",
+                "#.#..G#",
+                "#.###.#",
+                "#E#G#G#",
+                "#...#G#",
+                "#######"
+            };
+
+            var outcome = Combat(lines);
+
+            Assert.Equal(28944, outcome);
+        }
+
+        [Fact]
+        public void FirstStarCombatTest6()
+        {
+            var lines = new[]
+            {
+                "#########",
+                "#G......#",
+                "#.E.#...#",
+                "#..##..G#",
+                "#...##..#",
+                "#...#...#",
+                "#.G...G.#",
+                "#.....G.#",
+                "#########"
+            };
+
+            var outcome = Combat(lines);
+
+            Assert.Equal(18740, outcome);
         }
 
         [Fact]
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("", actual);  // 236832 (too high) 214512 (too high) 211896 (too high) 213516 (81 * 2636) obviously too high) 210880 (80 * 2636)
         }
 
         [Fact]

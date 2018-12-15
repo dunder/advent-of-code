@@ -22,6 +22,20 @@ namespace Shared.Tree
             public int TotalCost => MovementCost + ManhattanDistanceToTarget;
             public Node Parent { get; set; }
 
+            public Node StartNode
+            {
+                get
+                {
+                    var root = this;
+                    while (root.Parent != null)
+                    {
+                        root = root.Parent;
+                    }
+
+                    return root;
+                }
+            }
+
             public int Depth
             {
                 get
@@ -72,9 +86,9 @@ namespace Shared.Tree
 
             while (true)
             {
-                currentNode = open.OrderBy(n => n.TotalCost).First();
+                currentNode = open.OrderBy(n => n.TotalCost).FirstOrDefault();
 
-                if (currentNode.Position == targetPosition)
+                if (currentNode == null ||currentNode.Position == targetPosition)
                 {
                     break;
                 }
