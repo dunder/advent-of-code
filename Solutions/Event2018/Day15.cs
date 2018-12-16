@@ -16,8 +16,6 @@ namespace Solutions.Event2018
         public Day Day => Day.Day15;
         public string Name => "Beverage Bandits";
 
-        public int Input => 793031;
-
         public string FirstStar()
         {
             var input = ReadLineInput();
@@ -41,19 +39,19 @@ namespace Solutions.Event2018
             return result;
         }
 
-        public class Soldier
+        public class Unit
         {
             public int Id { get; set; }
             public Point Position { get; set; }
             public char Class { get; }
-            public List<Soldier> Targets { get; }
-            public List<Soldier> AliveTargets => Targets.Where(t => !t.IsDead).ToList();
+            public List<Unit> Targets { get; }
+            public List<Unit> AliveTargets => Targets.Where(t => !t.IsDead).ToList();
             public int HitPoints { get; private set; }
             public int AttackPower { get; }
             public bool IsAlive => !IsDead;
             public bool IsDead => HitPoints <= 0;
 
-            public Soldier(int id, Point position, char @class, List<Soldier> targets, int hitPoints, int attackPower)
+            public Unit(int id, Point position, char @class, List<Unit> targets, int hitPoints, int attackPower)
             {
                 Id = id;
                 Position = position;
@@ -64,7 +62,7 @@ namespace Solutions.Event2018
             }
 
 
-            public void Move(HashSet<Point> occupied)
+            public void Move(HashSet<Point> occupied, HashSet<Point> walls)
             {
                 var possibleMoves = Position.AdjacentInMainDirections()
                     .Where(p => !occupied.Contains(p))
@@ -91,8 +89,6 @@ namespace Solutions.Event2018
 
                 var reachable = new List<AStar.Node>();
 
-               
-
                 foreach (var targetPosition in adjacent)
                 {
                     bool IsWalkable(Point point)
@@ -114,8 +110,7 @@ namespace Solutions.Event2018
                     .ThenBy(n => n.Position.X)
                     .ToList();
 
-
-                // return the soldier in range
+                // return the unit in range
                 if (!reachable.Any()) return;
 
                 var nearest = reachable.First();
@@ -171,21 +166,21 @@ namespace Solutions.Event2018
         public class Game
         {
             private readonly HashSet<Point> walls;
-            private readonly List<Soldier> elves;
-            private readonly List<Soldier> goblins;
+            private readonly List<Unit> elves;
+            private readonly List<Unit> goblins;
             private int rounds;
 
-            public Game(HashSet<Point> walls, List<Soldier> elves, List<Soldier> goblins)
+            public Game(HashSet<Point> walls, List<Unit> elves, List<Unit> goblins)
             {
                 this.walls = walls;
                 this.elves = elves;
                 this.goblins = goblins;
             }
 
-            public List<Soldier> AliveElves => elves.Where(e => e.IsAlive).ToList();
-            public List<Soldier> AliveGoblins => goblins.Where(g => g.IsAlive).ToList();
+            public List<Unit> AliveElves => elves.Where(e => e.IsAlive).ToList();
+            public List<Unit> AliveGoblins => goblins.Where(g => g.IsAlive).ToList();
 
-            public List<Soldier> AliveSoldiers => AliveElves.Concat(AliveGoblins).ToList();
+            public List<Unit> AliveUnits => AliveElves.Concat(AliveGoblins).ToList();
             public HashSet<Point> Occupied
             {
                 get
@@ -202,34 +197,32 @@ namespace Solutions.Event2018
                 bool gameOver = false;
                 while (!gameOver)
                 {
-                    var order = AliveSoldiers
-                        .OrderBy(s => s.Position.Y)
-                        .ThenBy(s => s.Position.X)
+                    var order = AliveUnits
+                        .OrderBy(u => u.Position.Y)
+                        .ThenBy(u => u.Position.X)
                         .ToList();
 
-
-
-                    for (int s = 0; s < order.Count; s++)
+                    for (int u = 0; u < order.Count; u++)
                     {
-                        var soldier = order[s];
+                        var unit = order[u];
 
-                        if (soldier.IsDead) continue;
+                        if (unit.IsDead) continue;
 
-                        if (!soldier.AliveTargets.Any())
+                        if (!unit.AliveTargets.Any())
                         {
                             var winners = AliveGoblins.Any() ? "Goblins" : "Elves";
-                            Console.WriteLine($"Game over: round {rounds}, {winners} won with {AliveSoldiers.Sum(alive => alive.HitPoints)}");
+                            Console.WriteLine($"Game over: round {rounds}, {winners} won with {AliveUnits.Sum(alive => alive.HitPoints)} outcome {rounds * AliveUnits.Sum(alive => alive.HitPoints)}");
                             gameOver = true;
                             break;
                         }
 
                         Console.Clear();
-                        Console.WriteLine($"Current soldier: {soldier}");
+                        Console.WriteLine($"Current soldier: {unit}");
                         Console.Write(ToString());
                         Console.ReadKey(true);
 
-                        soldier.Move(Occupied);
-                        soldier.Attack();
+                        unit.Move(Occupied, walls);
+                        unit.Attack();
                         
                     }
 
@@ -239,7 +232,7 @@ namespace Solutions.Event2018
                     }
                 }
 
-                return rounds * AliveSoldiers.Sum(s => s.HitPoints);
+                return rounds * AliveUnits.Sum(u => u.HitPoints);
             }
 
             public override string ToString()
@@ -272,13 +265,13 @@ namespace Solutions.Event2018
 
                     s.Append(" ");
 
-                    var soldiers = aliveGoblins.Concat(aliveElves)
-                        .Where(soldier => soldier.Position.Y == y)
-                        .OrderBy(soldier => soldier.Position.X);
+                    var units = aliveGoblins.Concat(aliveElves)
+                        .Where(unit => unit.Position.Y == y)
+                        .OrderBy(unit => unit.Position.X);
 
-                    foreach (var soldier in soldiers)
+                    foreach (var unit in units)
                     {
-                        s.Append($" {soldier.Class}({soldier.HitPoints})");
+                        s.Append($" {unit.Class}({unit.HitPoints})");
                     }
                     s.AppendLine();
                 }
@@ -287,11 +280,11 @@ namespace Solutions.Event2018
             }
         }
 
-        public static (HashSet<Point> walls, List<Soldier> elves, List<Soldier> goblins) Parse(IList<string> input)
+        public static (HashSet<Point> walls, List<Unit> elves, List<Unit> goblins) Parse(IList<string> input)
         {
             var walls = new HashSet<Point>();
-            var elves = new List<Soldier>();
-            var goblins = new List<Soldier>();
+            var elves = new List<Unit>();
+            var goblins = new List<Unit>();
             var id = 1;
             for (var y = 0; y < input.Count; y++)
             {
@@ -306,10 +299,10 @@ namespace Solutions.Event2018
                             walls.Add(point);
                             break;
                         case 'E':
-                            elves.Add(new Soldier(id++, point, c, goblins, 200, 3));
+                            elves.Add(new Unit(id++, point, c, goblins, 200, 3));
                             break;
                         case 'G':
-                            goblins.Add(new Soldier(id++, point, c, elves, 200, 3));
+                            goblins.Add(new Unit(id++, point, c, elves, 200, 3));
                             break;
                     }
                 }
