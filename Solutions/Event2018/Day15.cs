@@ -61,9 +61,24 @@ namespace Solutions.Event2018
                 AttackPower = attackPower;
             }
 
+            private static void MarkOnMap(IList<Point> points, char c, ConsoleColor color)
+            {
+                var currentColor = Console.ForegroundColor;
+                Console.ForegroundColor = color;
+                foreach (var point in points)
+                {
+                    Console.SetCursorPosition(point.X, point.Y + 3);
+                    Console.Write(c);
+                }
+
+                Console.ForegroundColor = currentColor;
+                Console.ReadKey(true);
+            }
 
             public void Move(HashSet<Point> occupied, HashSet<Point> walls)
             {
+                MarkOnMap(new [] {Position}, Class, ConsoleColor.Green);
+
                 var possibleMoves = Position.AdjacentInMainDirections()
                     .Where(p => !occupied.Contains(p))
                     .ToHashSet();
@@ -86,6 +101,8 @@ namespace Solutions.Event2018
                 adjacent.ExceptWith(occupied);
 
                 adjacent = adjacent.OrderBy(p => p.Y).ThenBy(p => p.X).ToHashSet();
+
+                MarkOnMap(new List<Point>(adjacent), '+', ConsoleColor.Cyan);
 
                 var reachable = new List<AStar.Node>();
 
@@ -113,6 +130,8 @@ namespace Solutions.Event2018
                 // return the unit in range
                 if (!reachable.Any()) return;
 
+                MarkOnMap(new List<Point>(reachable.Select(r => r.Position)), '+', ConsoleColor.DarkYellow);
+
                 var nearest = reachable.First();
 
                 var targetsFromPossibleMoves = new List<AStar.Node>();
@@ -133,11 +152,15 @@ namespace Solutions.Event2018
                     }
                 }
 
-                var walkToNode = targetsFromPossibleMoves
+                var walkToNodes = targetsFromPossibleMoves
                     .OrderBy(n => n.Depth)
                     .ThenBy(n => n.StartNode.Position.Y)
                     .ThenBy(n => n.StartNode.Position.X)
-                    .First();
+                    .ToList();
+
+                MarkOnMap(new List<Point>(walkToNodes.Select(w => w.Position)), '+', ConsoleColor.Yellow);
+
+                var walkToNode = walkToNodes.First();
 
                 Position = walkToNode.StartNode.Position;
             }
@@ -154,6 +177,9 @@ namespace Solutions.Event2018
                     .FirstOrDefault();
 
                 if (soldierToAttack == null) return;
+
+                MarkOnMap(new [] {soldierToAttack.Position}, soldierToAttack.Class, ConsoleColor.Red);
+
                 soldierToAttack.HitPoints -= AttackPower;
             }
 

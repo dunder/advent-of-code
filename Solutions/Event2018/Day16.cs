@@ -26,7 +26,8 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        private static readonly Dictionary<string, Func<int[], int, int, int, int, int[]>> Instructions = new Dictionary<string, Func<int[], int, int, int, int, int[]>>
+        private static readonly Dictionary<string, Func<int[], int, int, int, int, int[]>> Instructions = 
+            new Dictionary<string, Func<int[], int, int, int, int, int[]>>
         {
             {"addr", (rin, opCode, a, b, c) =>
             {
@@ -218,7 +219,7 @@ namespace Solutions.Event2018
             return sampleCounter;
         }
 
-        public Dictionary<int, string> UnderstandMapping(IList<string> input)
+        public Dictionary<int, string> CreateInstructionMappingFromSamples(IList<string> input)
         {
             var sampleMatches = new Dictionary<int, HashSet<string>>();
             var samples = ReadSamples(input);
@@ -293,33 +294,13 @@ namespace Solutions.Event2018
             }
 
             return opToInstructionMappings;
-
-            //return new Dictionary<int, string>
-            //{
-            //  {6 , "addr"}, 
-            //  {9, "addi"}, 
-            //  {14, "mulr"}, 
-            //  {1 , "muli"}, 
-            //  {2 , "banr"}, 
-            //  {3 , "bani"}, 
-            //  {12, "borr"}, 
-            //  {0 , "bori"}, 
-            //  {5 , "setr"}, 
-            //  {8 , "seti"}, 
-            //  {4 , "gtir"}, 
-            //  {15, "gtri"}, 
-            //  {13, "gtrr"}, 
-            //  {7 , "eqir"}, 
-            //  {11, "eqri"},
-            //  { 10, "eqrr"}, 
-            //};
         }
 
         public int RunProgram(IList<string> input)
         {
             var instructions = ReadInstructions(input);
 
-            var mapping = UnderstandMapping(input);
+            var mapping = CreateInstructionMappingFromSamples(input);
 
             var register = new[] {0, 0, 0, 0};
 
