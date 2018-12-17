@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
-using Solutions.Event2017.Day09;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -31,12 +33,50 @@ namespace Solutions.Event2018
         {
             var clay = ParseClay(input);
 
+            // håll lista på "taps" (initialt 1 st på x=500 y=0)
 
+            // följ flödet nedåt tills första #
+            // testa om "compartment" eller open left, open right, open both
+            // om compartment fyll tills open left, open right, open both
+
+            // open right -> lägg till en "tap" i änden osv
+
+
+           
+            
 
             return 0;
         }
 
-       
+        public static void WriteToFile(HashSet<Point> clay)
+        {
+            var minX = clay.Min(p => p.X);
+            var maxX = clay.Max(p => p.X);
+            var minY = 0;
+            var maxY = clay.Max(p => p.Y);
+
+            var lines = new List<string>();
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                var line = new StringBuilder(maxX - minX + 1);
+                for (int x = minX; x <= maxX; x++)
+                {
+                    var point = new Point(x, y);
+                    var print = clay.Contains(point) ? "#" : ".";
+                    if (point.X == 500 && point.Y == 0)
+                    {
+                        print = "+";
+                    }
+                    line.Append(print);
+                }
+                lines.Add(line.ToString());
+            }
+
+            File.WriteAllLines(@".\underground.txt", lines);
+        }
+
+
         public HashSet<Point> ParseClay(IList<string> input)
         {
             var clay = new HashSet<Point>();
@@ -66,10 +106,11 @@ namespace Solutions.Event2018
 
                     for (int y = yFrom; y <= yTo; y++)
                     {
-                        clay.Add(new Point(x, x));
+                        clay.Add(new Point(x, y));
                     }
                 }
             }
+
             return clay;
         }
 

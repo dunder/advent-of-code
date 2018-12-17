@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Shared.MapGeometry;
-using Shared.Tree;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -77,11 +76,7 @@ namespace Solutions.Event2018
 
             public void Move(HashSet<Point> occupied, HashSet<Point> walls)
             {
-                MarkOnMap(new [] {Position}, Class, ConsoleColor.Green);
-
-                var possibleMoves = Position.AdjacentInMainDirections()
-                    .Where(p => !occupied.Contains(p))
-                    .ToHashSet();
+                //MarkOnMap(new[] { Position }, Class, ConsoleColor.Green);
 
                 var moveDirections = Position.AdjacentInMainDirections().ToHashSet();
 
@@ -89,80 +84,56 @@ namespace Solutions.Event2018
                     .Where(t => moveDirections.Contains(t.Position))
                     .ToList();
 
-                // target is already in range
                 if (targetsInRange.Any(t => moveDirections.Contains(t.Position)))
                 {
                     return;
                 }
 
                 var adjacent = AliveTargets.SelectMany(t => t.Position.AdjacentInMainDirections()).ToHashSet();
-
-                // keep only not occupied
                 adjacent.ExceptWith(occupied);
 
-                adjacent = adjacent.OrderBy(p => p.Y).ThenBy(p => p.X).ToHashSet();
+                //MarkOnMap(new List<Point>(adjacent), '+', ConsoleColor.Cyan);
 
-                MarkOnMap(new List<Point>(adjacent), '+', ConsoleColor.Cyan);
+                var reachable = new List<Node<Point>>();
 
-                var reachable = new List<AStar.Node>();
-
-                foreach (var targetPosition in adjacent)
+                bool IsWalkable(Point point)
                 {
-                    bool IsWalkable(Point point)
-                    {
-                        return !occupied.Contains(point);
-                    }
+                    return !occupied.Contains(point);
+                }
 
-                    var node = AStar.Search(Position, targetPosition, IsWalkable);
-
-                    if (node != null)
+                foreach (var movePosition in moveDirections.Where(IsWalkable))
+                {
+                    foreach (var targetPosition in adjacent)
                     {
-                        reachable.Add(node);
+                        IEnumerable<Point> Neighbors(Point p)
+                        {
+                            return p.AdjacentInMainDirections().Where(IsWalkable);
+                        }
+
+                        var targetNode = movePosition.ShortestPath(Neighbors, p => p == targetPosition);
+
+                        if (targetNode != null)
+                        {
+                            reachable.Add(targetNode);
+                        }
                     }
                 }
+                
+
+                if (!reachable.Any()) return;
 
                 reachable = reachable
                     .OrderBy(n => n.Depth)
-                    .ThenBy(n => n.Position.Y)
-                    .ThenBy(n => n.Position.X)
+                    .ThenBy(n => n.Start.Data.Y)
+                    .ThenBy(n => n.Start.Data.X)
                     .ToList();
 
-                // return the unit in range
-                if (!reachable.Any()) return;
+                var shortestPath = reachable.First();
 
-                MarkOnMap(new List<Point>(reachable.Select(r => r.Position)), '+', ConsoleColor.DarkYellow);
+                //MarkOnMap(new List<Point> { shortestPath.Start.Data }, '+', ConsoleColor.DarkYellow);
+                //MarkOnMap(new List<Point> { shortestPath.Data }, '+', ConsoleColor.DarkYellow);
 
-                var nearest = reachable.First();
-
-                var targetsFromPossibleMoves = new List<AStar.Node>();
-
-                foreach (var move in possibleMoves)
-                {
-                    bool IsWalkable(Point point)
-                    {
-                        // my own position is not occupied if I move
-                        if (point == Position) return true;
-                        return !occupied.Contains(point);
-                    }
-
-                    var target = AStar.Search(move, nearest.Position, IsWalkable);
-                    if (target != null)
-                    {
-                        targetsFromPossibleMoves.Add(target);
-                    }
-                }
-
-                var walkToNodes = targetsFromPossibleMoves
-                    .OrderBy(n => n.Depth)
-                    .ThenBy(n => n.StartNode.Position.Y)
-                    .ThenBy(n => n.StartNode.Position.X)
-                    .ToList();
-
-                MarkOnMap(new List<Point>(walkToNodes.Select(w => w.Position)), '+', ConsoleColor.Yellow);
-
-                var walkToNode = walkToNodes.First();
-
-                Position = walkToNode.StartNode.Position;
+                Position = shortestPath.Start.Data;
             }
 
             public void Attack()
@@ -178,7 +149,7 @@ namespace Solutions.Event2018
 
                 if (soldierToAttack == null) return;
 
-                MarkOnMap(new [] {soldierToAttack.Position}, soldierToAttack.Class, ConsoleColor.Red);
+                //MarkOnMap(new[] { soldierToAttack.Position }, soldierToAttack.Class, ConsoleColor.Red);
 
                 soldierToAttack.HitPoints -= AttackPower;
             }
@@ -237,15 +208,15 @@ namespace Solutions.Event2018
                         if (!unit.AliveTargets.Any())
                         {
                             var winners = AliveGoblins.Any() ? "Goblins" : "Elves";
-                            Console.WriteLine($"Game over: round {rounds}, {winners} won with {AliveUnits.Sum(alive => alive.HitPoints)} outcome {rounds * AliveUnits.Sum(alive => alive.HitPoints)}");
+                            //Console.WriteLine($"Game over: round {rounds}, {winners} won with {AliveUnits.Sum(alive => alive.HitPoints)} outcome {rounds * AliveUnits.Sum(alive => alive.HitPoints)}");
                             gameOver = true;
                             break;
                         }
 
-                        Console.Clear();
-                        Console.WriteLine($"Current soldier: {unit}");
-                        Console.Write(ToString());
-                        Console.ReadKey(true);
+                        //Console.Clear();
+                        //Console.WriteLine($"Current soldier: {unit}");
+                        //Console.Write(ToString());
+                        //Console.ReadKey(true);
 
                         unit.Move(Occupied, walls);
                         unit.Attack();
@@ -457,7 +428,7 @@ namespace Solutions.Event2018
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);  // 236832 (too high) 214512 (too high) 211896 (too high) 213516 (81 * 2636) obviously too high) 210880 (80 * 2636)
+            Assert.Equal("207059", actual);
         }
 
         [Fact]
@@ -465,6 +436,74 @@ namespace Solutions.Event2018
         {
             var actual = SecondStar();
             Assert.Equal("", actual);
+        }
+    }
+
+    public class Node<T>
+    {
+        public T Data { get; }
+        public int Depth { get; }
+
+        public Node<T> Parent { get; }
+
+        public Node<T> Start
+        {
+            get
+            {
+                var walkTo = this;
+                while (walkTo.Parent != null)
+                {
+                    walkTo = walkTo.Parent;
+                }
+
+                return walkTo;
+            }
+        }
+
+        public Node(T data, int depth, Node<T> parent)
+        {
+            Data = data;
+            Depth = depth;
+            Parent = parent;
+        }
+    }
+    public static class PointExtensions
+    {
+        public static Node<T> ShortestPath<T>(this T start,
+            Func<T, IEnumerable<T>> neighborFetcher,
+            Predicate<T> targetCondition)
+        {
+            var visited = new HashSet<T>();
+
+            var queue = new Queue<Node<T>>();
+            Node<T> terminationNode = null;
+
+            queue.Enqueue(new Node<T>(start, 0, null));
+
+            while (queue.Count != 0)
+            {
+                var current = queue.Dequeue();
+
+                if (!visited.Add(current.Data))
+                {
+                    continue;
+                }
+
+                if (targetCondition(current.Data))
+                {
+                    terminationNode = current;
+                    break;
+                }
+
+                var neighbors = neighborFetcher(current.Data).Where(n => !visited.Contains(n)).ToList();
+
+                foreach (var neighbor in neighbors)
+                {
+                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1, current));
+                }
+            }
+
+            return terminationNode;
         }
     }
 }

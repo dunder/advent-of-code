@@ -22,17 +22,18 @@ namespace Shared.Tree
             public int TotalCost => MovementCost + ManhattanDistanceToTarget;
             public Node Parent { get; set; }
 
-            public Node StartNode
+            public Node WalkToNode
             {
                 get
                 {
-                    var root = this;
-                    while (root.Parent != null)
+                    var walkTo = this;
+
+                    while (walkTo?.Parent?.Parent != null)
                     {
-                        root = root.Parent;
+                        walkTo = walkTo.Parent;
                     }
 
-                    return root;
+                    return walkTo;
                 }
             }
 
