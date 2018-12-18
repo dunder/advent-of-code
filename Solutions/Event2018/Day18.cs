@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Shared.MapGeometry;
@@ -76,11 +74,6 @@ namespace Solutions.Event2018
             }
 
             return land.Trees.Count * land.Lumberyard.Count;
-        }
-
-        private long InfiniteTotalValue(IList<string> input)
-        {
-            return TotalValueAfter(input, 1000);
         }
 
         public class Land
