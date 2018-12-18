@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Shared.MapGeometry;
@@ -22,6 +23,15 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
+
+        public string SecondStar()
+        {
+            var input = ReadLineInput();
+            var result = TotalValueAfterMany(input, 1000000000);
+
+            return result.ToString();
+        }
+
         private long TotalValueAfter(IList<string> input, int count)
         {
             var land = Land.Parse(input);
@@ -34,11 +44,43 @@ namespace Solutions.Event2018
             return land.Trees.Count * land.Lumberyard.Count;
         }
 
-        public string SecondStar()
+        private long TotalValueAfterMany(IList<string> input, int count)
         {
-            var input = ReadInput();
-            var result = "Not implemented";
-            return result.ToString();
+            var land = Land.Parse(input);
+
+            var history = new List<string>();
+
+            for (int i = 0; i < count; i++)
+            {
+                land = land.Next();
+
+                int x = history.IndexOf(land.ToString());
+
+                if (x != -1)
+                {
+                    int frequency = history.Count - x;
+                    while (count % frequency != (i + 1) % frequency)
+                    {
+                        land = land.Next();
+                        i++;
+                    }
+
+                    return land.Trees.Count * land.Lumberyard.Count;
+                }
+
+                history.Add(land.ToString());
+                if (history.Count > 50)
+                {
+                    history.RemoveAt(0);
+                }
+            }
+
+            return land.Trees.Count * land.Lumberyard.Count;
+        }
+
+        private long InfiniteTotalValue(IList<string> input)
+        {
+            return TotalValueAfter(input, 1000);
         }
 
         public class Land
@@ -243,14 +285,14 @@ namespace Solutions.Event2018
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("456225", actual);
         }
 
         [Fact]
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("190164", actual);
         }
     }
 }
