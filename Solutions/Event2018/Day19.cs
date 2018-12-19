@@ -21,36 +21,47 @@ namespace Solutions.Event2018
 
         public string SecondStar()
         {
-            var input = ReadInput();
-            var result = "Not implemented";
+            var input = ReadLineInput();
+            var result = RunProgram(input, 1);
             return result.ToString();
         }
 
-        [Fact]
-        public void FirstStarTest()
+        public void SecondStarConsole()
         {
-            var actual = FirstStar();
-            Assert.Equal("", actual);
+            var input = ReadLineInput();
+            RunProgram(input, 1, true);
         }
 
-        [Fact]
-        public void SecondStarTest()
-        {
-            var actual = SecondStar();
-            Assert.Equal("", actual);
-        }
-
-        public int RunProgram(IList<string> program)
+        public long RunProgram(IList<string> program, int register0Value = 0, bool print = false)
         {
             var instructionPointerRegistry = int.Parse(program[0].Substring(4, 1));
 
-            var registry = new[] { 0, 0, 0, 0, 0, 0 };
+            // optimization 1 start with i = 1
+            //var registry = new[] { 0, 10550400L, 0L, 34L, 0L, 10551381L };
+
+            // optimization 2 start with i = 9
+            //var registry = new[] { 0, 1L, 10551382L, 8L, 1L, 10551381L };
+
+
+            // optimization 3 start with i = 9
+            var registry = new[] { 0, 1L, 10551382L, 8L, 2L, 10551381L };
 
             var programInstructions = program.Skip(1).ToList();
 
-            for(int i = 0; i < programInstructions.Count; i++)
+            if (print)
             {
-                var programInstruction = programInstructions[i];
+                Print(programInstructions);
+            }
+
+            for (long i = 9; i < programInstructions.Count; i++)
+            {
+                var programInstruction = programInstructions[(int)i];
+
+                if (print)
+                {
+                    Print(i, programInstruction, registry);
+                }
+
                 var op = programInstruction.Substring(0, 4);
 
                 var arguments = programInstruction.Substring(5)
@@ -70,6 +81,50 @@ namespace Solutions.Event2018
             }
 
             return registry[0];
+        }
+
+        public void Print(IList<string> instructions)
+        {
+            Console.WindowHeight = 50;
+            Console.WindowWidth = 25;
+
+            foreach (var instruction in instructions)
+            {
+                Console.WriteLine($" {instruction}");
+            }
+        }
+
+        public void Print(long i, string instruction, long[] registry)
+        {
+            var registry0 = registry[0].ToString();
+            var registry1 = registry[1].ToString();
+            var registry2 = registry[2].ToString();
+            var registry3 = registry[3].ToString();
+            var registry4 = registry[4].ToString();
+            var registry5 = registry[5].ToString();
+
+            Console.CursorTop = 0;
+            Console.CursorLeft = 0;
+
+            for (int y = 0; y < 36; y++)
+            {
+                Console.Write(y == i ? '>' : ' ');
+                Console.CursorLeft--;
+                Console.CursorTop++;
+            }
+
+            Console.CursorTop = 38;
+            Console.CursorLeft = 0;
+
+            Console.WriteLine();
+            Console.WriteLine($"0: {registry0.PadLeft(20, ' ')}");
+            Console.WriteLine($"1: {registry1.PadLeft(20, ' ')}");
+            Console.WriteLine($"2: {registry2.PadLeft(20, ' ')}");
+            Console.WriteLine($"3: {registry3.PadLeft(20, ' ')}");
+            Console.WriteLine($"4: {registry4.PadLeft(20, ' ')}");
+            Console.WriteLine($"5: {registry5.PadLeft(20, ' ')}");
+
+            Console.ReadKey(true);
         }
 
         [Fact]
@@ -92,9 +147,22 @@ namespace Solutions.Event2018
             Assert.Equal(6, result);
         }
 
+        [Fact]
+        public void FirstStarTest()
+        {
+            var actual = FirstStar();
+            Assert.Equal("1430", actual);
+        }
 
-        private static readonly Dictionary<string, Func<int[], int, int, int, int, int[]>> Instructions =
-            new Dictionary<string, Func<int[], int, int, int, int, int[]>>
+        [Fact]
+        public void SecondStarTest()
+        {
+            var actual = SecondStar();
+            Assert.Equal("", actual);
+        }
+
+        private static readonly Dictionary<string, Func<long[], int, int, int, int, long[]>> Instructions =
+            new Dictionary<string, Func<long[], int, int, int, int, long[]>>
         {
             {"addr", (rin, opCode, a, b, c) =>
             {
