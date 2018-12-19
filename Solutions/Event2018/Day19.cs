@@ -36,6 +36,9 @@ namespace Solutions.Event2018
         {
             var instructionPointerRegistry = int.Parse(program[0].Substring(4, 1));
 
+            // original i = 0
+            var registry = new[] { 1L, 0L, 0L, 0L, 0L, 0L };
+
             // optimization 1 start with i = 1
             //var registry = new[] { 0, 10550400L, 0L, 34L, 0L, 10551381L };
 
@@ -44,7 +47,10 @@ namespace Solutions.Event2018
 
 
             // optimization 3 start with i = 9
-            var registry = new[] { 0, 1L, 10551382L, 8L, 2L, 10551381L };
+            //var registry = new[] { 0, 1L, 10551382L, 8L, 2L, 10551381L };
+
+            // optimization 4 start with i = 9
+            //var registry = new[] { 0, 1L, 10551382L, 8L, 10551381L, 10551381L };
 
             var programInstructions = program.Skip(1).ToList();
 
@@ -53,7 +59,7 @@ namespace Solutions.Event2018
                 Print(programInstructions);
             }
 
-            for (long i = 9; i < programInstructions.Count; i++)
+            for (long i = 0; i < programInstructions.Count; i++)
             {
                 var programInstruction = programInstructions[(int)i];
 
