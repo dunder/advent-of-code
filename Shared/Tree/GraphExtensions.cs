@@ -129,7 +129,7 @@ namespace Shared.Tree
                 // left-to-right order
                 foreach (var neighbor in neighbors.Reverse())
                 {
-                    stack.Push(new Node<T>(neighbor, current.Depth + 1));
+                    stack.Push(new Node<T>(neighbor, current.Depth + 1, current));
                 }
             }
 

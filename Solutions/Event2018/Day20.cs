@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
-using Shared.MapGeometry;
 using Xunit;
+using Shared.MapGeometry;
+using Shared.Tree;
 using static Solutions.InputReader;
 
 namespace Solutions.Event2018
@@ -25,7 +25,7 @@ namespace Solutions.Event2018
         public string SecondStar()
         {
             var input = ReadInput();
-            var result = "Not implemented";
+            var result = MaxDoors1000(input);
             return result.ToString();
         }
 
@@ -36,7 +36,7 @@ namespace Solutions.Event2018
             rooms.Add(currentRoom, new HashSet<Point>());
             var branch = new Stack<Point>();
 
-            foreach (var direction in input.Skip(1).Take(input.Length-2))
+            foreach (var direction in input.Skip(1).Take(input.Length - 2))
             {
                 switch (direction)
                 {
@@ -61,8 +61,7 @@ namespace Solutions.Event2018
                     case '|':
                         currentRoom = branch.Peek();
                         break;
-
-                }    
+                }
             }
 
             return rooms;
@@ -86,19 +85,37 @@ namespace Solutions.Event2018
             rooms[next].Add(room);
 
             return next;
-            // should we also add other way around?
         }
 
         public static int MaxDoorsShortestPath(string input)
         {
-            var rooms = BuildMap(input);
-            var output = Print(rooms);
-            File.WriteAllLines(@".\maze.txt", output);
-            return 0;
+            return PathsOnMap(input).OrderBy(s => s.Depth).Last().Depth;
         }
 
-        private static List<string> Print(Dictionary<Point, HashSet<Point>> rooms)
+        public static int MaxDoors1000(string input)
         {
+            return PathsOnMap(input).Count(s => s.Depth >= 1000);
+        }
+
+        public static IEnumerable<Shared.Tree.Node<Point>> PathsOnMap(string input)
+        {
+            var rooms = BuildMap(input);
+
+            IEnumerable<Point> Neighbors(Point point)
+            {
+                return rooms[point];
+            }
+
+            var start = new Point(0, 0);
+            var (paths, _) = start.DepthFirst(Neighbors);
+
+            return paths;
+        }
+
+        private static List<string> Print(Dictionary<Point, HashSet<Point>> rooms, Node<Point> endNode = null)
+        {
+            var pathPoints = endNode?.Path.ToHashSet();
+
             var minX = rooms.Keys.Min(k => k.X);
             var maxX = rooms.Keys.Max(k => k.X);
             var minY = rooms.Keys.Min(k => k.Y);
@@ -109,49 +126,66 @@ namespace Solutions.Event2018
 
             for (int y = minY; y <= maxY; y++)
             {
-                for (int y2 = 0; y2 < 3; y2++)
+                // build 3 rows to fit surrounding walls and doors
+                for (int row = 0; row < 3; row++)
                 {
-                    var line = new StringBuilder();
-                    for (int x = minX; x <= maxX; x++)
+                    // rows share walls except for the first and last, print all three for first row
+                    // and just center and bottom for the rest
+                    if ((row == 0 && y == minY) || row > 0)
                     {
-                        var room = new Point(x, y);
-                        if (y2 == 0 && y == minY)
+                        var line = new StringBuilder();
+                        for (int x = minX; x <= maxX; x++)
                         {
-                            // #, north, #
-                            line.Append('#');
-                            var print = rooms[room].Contains(room.Move(Direction.North)) ? "-" : "#";
-                            line.Append(print);
-                            if (x == minX)
-                            { 
-                                line.Append('#');
-                            }
-                        }
-                        else if (y2 == 1)
-                        {
-                            // west, ., east
-                            var print = rooms[room].Contains(room.Move(Direction.West)) ? "|" : "#";
-                            line.Append(print);
-                            var center = room == startRoom ? 'X' : '.';
-                            line.Append(center);
-                            if (x == minX)
+                            var room = new Point(x, y);
+                            if (row == 0)
                             {
-                                print = rooms[room].Contains(room.Move(Direction.East)) ? "|" : "#";
+                                // # , north , #
+                                if (x == minX)
+                                {
+                                    line.Append('#');
+
+                                }
+
+                                var print = rooms[room].Contains(room.Move(Direction.North)) ? "-" : "#";
                                 line.Append(print);
+                                line.Append('#');
                             }
-                        }
-                        else
-                        {
-                            // #, south, #
-                            line.Append('#');
-                            var print = rooms[room].Contains(room.Move(Direction.South)) ? "-" : "#";
-                            line.Append(print);
-                            if (x == minX)
+                            else if (row == 1)
                             {
+                                // west , . , east
+
+                                if (x == minX)
+                                {
+                                    var west = rooms[room].Contains(room.Move(Direction.West)) ? "|" : "#";
+                                    line.Append(west);
+                                }
+
+                                var center = room == startRoom ? 'X' : '.';
+                                if (pathPoints != null && pathPoints.Contains(room))
+                                {
+                                    center = 'O';
+                                }
+                                line.Append(center);
+
+                                var east = rooms[room].Contains(room.Move(Direction.East)) ? "|" : "#";
+                                line.Append(east);
+                            }
+                            else
+                            {
+                                // # , south , #
+                                if (x == minX)
+                                {
+                                    line.Append('#');
+                                }
+
+                                var print = rooms[room].Contains(room.Move(Direction.South)) ? "-" : "#";
+                                line.Append(print);
                                 line.Append('#');
                             }
                         }
+
+                        lines.Add(line.ToString());
                     }
-                    lines.Add(line.ToString());
                 }
             }
 
@@ -159,18 +193,129 @@ namespace Solutions.Event2018
         }
 
         [Fact]
+        public void FirstStarMapExample1()
+        {
+            var input = "^ENWWW(NEEE|SSE(EE|N))$";
+
+            var rooms = BuildMap(input);
+            var output = Print(rooms);
+
+            var expected = new List<string>
+            {
+                "#########",
+                "#.|.|.|.#",
+                "#-#######",
+                "#.|.|.|.#",
+                "#-#####-#",
+                "#.#.#X|.#",
+                "#-#-#####",
+                "#.|.|.|.#",
+                "#########"
+            };
+
+            Assert.Equal(expected, output);
+        }
+
+        [Fact]
+        public void FirstStarMapExample2()
+        {
+            var input = "^ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))$";
+
+            var rooms = BuildMap(input);
+            var output = Print(rooms);
+
+            var expected = new List<string>
+            {
+                "#############",
+                "#.|.|.|.|.|.#",
+                "#-#####-###-#",
+                "#.#.|.#.#.#.#",
+                "#-#-###-#-#-#",
+                "#.#.#.|.#.|.#",
+                "#-#-#-#####-#",
+                "#.#.#.#X|.#.#",
+                "#-#-#-###-#-#",
+                "#.|.#.|.#.#.#",
+                "###-#-###-#-#",
+                "#.|.#.|.|.#.#",
+                "#############",
+            };
+
+            Assert.Equal(expected, output);
+        }
+
+        [Fact]
+        public void FirstStarMapExample3()
+        {
+            var input = "^WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))$";
+
+            var rooms = BuildMap(input);
+            var output = Print(rooms);
+
+            var expected = new List<string>
+            {
+                "###############",
+                "#.|.|.|.#.|.|.#",
+                "#-###-###-#-#-#",
+                "#.|.#.|.|.#.#.#",
+                "#-#########-#-#",
+                "#.#.|.|.|.|.#.#",
+                "#-#-#########-#",
+                "#.#.#.|X#.|.#.#",
+                "###-#-###-#-#-#",
+                "#.|.#.#.|.#.|.#",
+                "#-###-#####-###",
+                "#.|.#.|.|.#.#.#",
+                "#-#-#####-#-#-#",
+                "#.#.|.|.|.#.|.#",
+                "###############",
+            };
+
+            Assert.Equal(expected, output);
+        }
+
+        [Fact]
+        public void FirstStarExample1()
+        {
+            var input = "^ENWWW(NEEE|SSE(EE|N))$";
+
+            var max = MaxDoorsShortestPath(input);
+
+            Assert.Equal(10, max);
+        }
+
+        [Fact]
+        public void FirstStarExample2()
+        {
+            var input = "^ESSWWN(E|NNENN(EESS(WNSE|)SSS|WWWSSSSE(SW|NNNE)))$";
+
+            var max = MaxDoorsShortestPath(input);
+
+            Assert.Equal(23, max);
+        }
+
+        [Fact]
+        public void FirstStarExample3()
+        {
+            var input = "^WSSEESWWWNW(S|NENNEEEENN(ESSSSW(NWSW|SSEN)|WSWWN(E|WWS(E|SS))))$";
+
+            var max = MaxDoorsShortestPath(input);
+
+            Assert.Equal(31, max);
+        }
+
+        [Fact]
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("4274", actual);
         }
 
         [Fact]
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("8547", actual);
         }
-
     }
 }

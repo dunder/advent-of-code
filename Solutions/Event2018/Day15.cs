@@ -677,6 +677,25 @@ namespace Solutions.Event2018
             }
         }
 
+        public IList<T> Path
+        {
+            get
+            {
+                var path = new List<T>();
+                var node = this;
+                path.Add(node.Data);
+                while (node.Parent != null)
+                {
+                    node = node.Parent;
+                    path.Add(node.Data);
+                }
+
+                path.Reverse();
+
+                return path;
+            }
+        }
+
         public Node(T data, int depth, Node<T> parent)
         {
             Data = data;
