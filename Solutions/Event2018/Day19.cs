@@ -10,58 +10,40 @@ namespace Solutions.Event2018
     {
         public Event Event => Event.Event2018;
         public Day Day => Day.Day19;
-        public string Name => "Day19";
+        public string Name => "Go With The Flow";
 
         public string FirstStar()
         {
             var input = ReadLineInput();
-            var result = RunProgram(input);
+            var result = RunProgram(input, 0, new [] {0, 0, 0, 0, 0, 0});
             return result.ToString();
         }
 
         public string SecondStar()
         {
             var input = ReadLineInput();
-            var result = RunProgram(input, 1);
+            var result = RunProgram(input, 3, new [] {14266944, 0, 10551381, 2, 10551381, 10551381});
             return result.ToString();
         }
 
         public void SecondStarConsole()
         {
             var input = ReadLineInput();
-            RunProgram(input, 1, true);
-        }
-
-        public long RunProgram(IList<string> program, int register0Value = 0, bool print = false)
-        {
-            var instructionPointerRegistry = int.Parse(program[0].Substring(4, 1));
-            //var registry = new[] { register0Value, 0L, 0L, 0L, 0L, 0L };
-
-            // original i = 0
-
-
-            var factors = Enumerable.Range(1, 10551381).Where(x => 10551381 % x == 0).ToList();
 
             //[0]	1	10551381
             //[1]	3	3517127
             //[2]	71	148611
             //[3]	213	49537
-            //var registry = new[] { 0L, 0L, 10551381L, 2L, 1L, 10551381L };
-            //var registry = new[] { 1L, 0L, 10551381L, 2L, 2L, 10551381L }; // faktorer ej med i listan "onödiga"
-            //var registry = new[] { 1L, 0L, 3517127L, 2L, 3L, 10551381L };
-            //var registry = new[] { 4L, 0L, 10551381L, 2L, 3L, 10551381L };
-            //var registry = new[] { 4L, 0L, 10551381L, 2L, 4L, 10551381L };
-            //var registry = new[] { 4L, 0L, 148611L, 2L, 71L, 10551381L };
-            //var registry = new[] { 75L, 0L, 10551381L, 2L, 71L, 10551381L };
-            //var registry = new[] { 75L, 0L, 49537L, 2L, 213L, 10551381L };
-            //var registry = new[] { 288L, 0L, 10551381L, 2L, 213L, 10551381L };
-            //var registry = new[] { 288L, 0L, 213, 2L, 49537L, 10551381L };
-            //var registry = new[] { 49825L, 0L, 10551381, 2L, 49537L, 10551381L };
-            //var registry = new[] { 49825L, 0L, 3, 2L, 3517127L, 10551381L };
-            //var registry = new[] { 3566952L, 0L, 10551381L, 2L, 3517127L, 10551381L };
-            //var registry = new[] { 3566952L, 0L, 1, 2L, 10551381, 10551381L };
-            var registry = new[] { 14118333, 0L, 10551381, 2L, 10551381, 10551381L };
-            long i = 3;
+            var factors = Enumerable.Range(1, 10551381).Where(x => 10551381 % x == 0).ToList();
+
+            RunProgram(input, 0, new [] { 1, 0, 0, 0, 0, 0 }, true);
+        }
+
+
+
+        public long RunProgram(IList<string> program, int i, int[] registry, bool print = false)
+        {
+            var instructionPointerRegistry = int.Parse(program[0].Substring(4, 1));
 
             var programInstructions = program.Skip(1).ToList();
 
@@ -111,7 +93,7 @@ namespace Solutions.Event2018
             }
         }
 
-        public void Print(long i, string instruction, long[] registry)
+        public void Print(long i, string instruction, int[] registry)
         {
             var registry0 = registry[0].ToString();
             var registry1 = registry[1].ToString();
@@ -161,7 +143,7 @@ namespace Solutions.Event2018
                 "seti 9 0 5",
             };
 
-            var result = RunProgram(instructions);
+            var result = RunProgram(instructions, 0, new []{0,0,0,0,0,0});
 
             Assert.Equal(6, result);
         }
@@ -177,11 +159,11 @@ namespace Solutions.Event2018
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);  // 3715563 too low, 14118333 too low
+            Assert.Equal("14266944", actual);
         }
 
-        private static readonly Dictionary<string, Func<long[], int, int, int, int, long[]>> Instructions =
-            new Dictionary<string, Func<long[], int, int, int, int, long[]>>
+        private static readonly Dictionary<string, Func<int[], int, int, int, int, int[]>> Instructions =
+            new Dictionary<string, Func<int[], int, int, int, int, int[]>>
         {
             {"addr", (rin, opCode, a, b, c) =>
             {
