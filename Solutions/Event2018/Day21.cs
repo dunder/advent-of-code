@@ -21,8 +21,12 @@ namespace Solutions.Event2018
 
         public string FirstStarConsole()
         {
+            // i = 18
+            // x, 9784884, 65536, 0, 17, 255 (counter = )
+            // x, 9784884, 6548735, 0, 17, 25579
+            // x, 1508639, 15202945, 0, 17, 59385
             var input = ReadLineInput();
-            var result = RunProgram(input, 0, new[] { 3333333, 0, 0, 0, 0, 0 }, int.MaxValue, true);
+            var result = RunProgram(input, 0, new[] { 0, 0, 0, 0, 0, 0 }, int.MaxValue, true);
             return result.ToString();
         }
 
@@ -71,7 +75,7 @@ namespace Solutions.Event2018
 
                 if (print)
                 {
-                    Print(i, programInstruction, registry);
+                    Print(i, programInstruction, registry, instructionCount);
                 }
 
                 var op = programInstruction.Substring(0, 4);
@@ -108,7 +112,7 @@ namespace Solutions.Event2018
             }
         }
 
-        public void Print(long i, string instruction, int[] registry)
+        public void Print(long i, string instruction, int[] registry, int instructionCount)
         {
             var registry0 = registry[0].ToString();
             var registry1 = registry[1].ToString();
@@ -131,7 +135,7 @@ namespace Solutions.Event2018
             Console.CursorLeft = 0;
 
             Console.WriteLine();
-            Console.WriteLine($"i: {i.ToString().PadLeft(2, ' ')}");
+            Console.WriteLine($"i: {i.ToString().PadLeft(2, ' ')} ({instructionCount.ToString().PadLeft(14, ' ')})");
             Console.WriteLine();
             Console.WriteLine($"0: {registry0.PadLeft(20, ' ')}");
             Console.WriteLine($"1: {registry1.PadLeft(20, ' ')}");
