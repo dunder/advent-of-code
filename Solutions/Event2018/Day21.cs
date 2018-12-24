@@ -15,18 +15,18 @@ namespace Solutions.Event2018
         public string FirstStar()
         {
             var input = ReadLineInput();
-            var result = TryRunProgram(input, 10000);
+            var result = RunProgram(input, 0, 0, new []{ 6483199, 0,0,0,0,0});
             return result.ToString();
         }
 
         public string FirstStarConsole()
         {
             // i = 18
-            // x, 9784884, 65536, 0, 17, 255 (counter = )
+            // x, 9784884, 65536, 0, 17, 255 (counter = 23 + 7*(255-1) = 1801)
             // x, 9784884, 6548735, 0, 17, 25579
             // x, 1508639, 15202945, 0, 17, 59385
             var input = ReadLineInput();
-            var result = RunProgram(input, 0, new[] { 0, 0, 0, 0, 0, 0 }, int.MaxValue, true);
+            var result = RunProgram(input, 18, 1801, new[] { 0, 9784884, 65536, 0, 17, 255 }, true);
             return result.ToString();
         }
 
@@ -37,26 +37,7 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        public int TryRunProgram(IList<string> program, int maxIterations)
-        {
-            int i = 0;
-            var values = new List<int>();
-            for (var x = 0; x < 10000; x++)
-            {
-                var registry = new[] { i++, 0, 0, 0, 0, 0 };
-
-                var instructionCount = RunProgram(program, 0, registry, maxIterations);
-
-                if (instructionCount < maxIterations)
-                {
-                    values.Add(instructionCount);
-                }
-            }
-
-            return values.Min();
-        }
-
-        public int RunProgram(IList<string> program, int i, int[] registry, int maxIterations, bool print = false)
+        public int RunProgram(IList<string> program, int i, int instructionCounter, int[] registry, bool print = false)
         {
             var instructionPointerRegistry = int.Parse(program[0].Substring(4, 1));
 
@@ -67,15 +48,13 @@ namespace Solutions.Event2018
                 Print(programInstructions);
             }
 
-            int instructionCount = 0;
-
-            for (; i < programInstructions.Count && instructionCount < maxIterations; i++)
+            for (; i < programInstructions.Count; i++)
             {
                 var programInstruction = programInstructions[(int) i];
 
                 if (print)
                 {
-                    Print(i, programInstruction, registry, instructionCount);
+                    Print(i, programInstruction, registry, instructionCounter);
                 }
 
                 var op = programInstruction.Substring(0, 4);
@@ -95,10 +74,10 @@ namespace Solutions.Event2018
 
                 i = registry[instructionPointerRegistry];
 
-                instructionCount++;
+                instructionCounter++;
             }
 
-            return instructionCount;
+            return instructionCounter;
         }
 
         public void Print(IList<string> instructions)
@@ -151,14 +130,14 @@ namespace Solutions.Event2018
         public void FirstStarTest()
         {
             var actual = FirstStar();
-            Assert.Equal("", actual);
+            Assert.Equal("", actual); // register 0 input = 6483199
         }
 
         [Fact]
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("", actual); // register 0 input = ?
         }
 
         private static readonly Dictionary<string, Func<int[], int, int, int, int, int[]>> Instructions =
