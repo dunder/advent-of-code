@@ -378,7 +378,7 @@ namespace Solutions.Event2018
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("3467", actual);
         }
     }
 }
