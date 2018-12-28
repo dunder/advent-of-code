@@ -66,6 +66,10 @@ namespace Solutions.Event2018
 
                 registry[instructionPointerRegistry] = i;
 
+                // The natural end condition for the program is the eqrr 1 0 5 (i == 28) expression.
+                // The program will terminate when register 0 is equal to register 1 at this execution point.
+                // The program never updates register 0 so register 0 should be set to the value encountered 
+                // in register 1 when the eqrr 1 0 5 expression is reached for the first time
                 if (programInstruction == "eqrr 1 0 5")
                 {
                     return registry[1];
@@ -115,6 +119,8 @@ namespace Solutions.Event2018
                 var c = arguments[2];
 
                 registry[instructionPointerRegistry] = i;
+
+                // Optimize the loop between instructions i == 17 and i == 25
                 if (programInstruction == "addi 5 1 5")
                 {
                     var r2 = registry[2];
@@ -125,6 +131,10 @@ namespace Solutions.Event2018
                 }
                 else
                 {
+                    // Assume that the values for register 1 sooner or later repeats 
+                    // The first time a repeated value is found twice the sequence starts
+                    // to repeat itself and then the last value in the repeated sequence
+                    // must be the answer
                     if (programInstruction == "eqrr 1 0 5")
                     { 
                         var r1 = registry[1];
