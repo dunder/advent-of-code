@@ -61,6 +61,30 @@ namespace Solutions.Event2018
                 return obj is Point other && Equals(other);
             }
 
+            public static Point operator *(Point a, int b)
+            {
+                return new Point(a.X * b, a.Y * b, a.Z * b);
+            }
+
+            public static Point operator *(Point a, Point b)
+            {
+                return new Point(a.X*b.X, a.Y*b.Y, a.Z*b.Z);
+            }
+
+            public static Point operator +(Point a, int b)
+            {
+                return new Point(a.X + b, a.Y + b, a.Z + b);
+            }
+            public static Point operator +(Point a, Point b)
+            {
+                return new Point(a.X + b.X, a.Y + b.Y, a.Z + b.Z);
+            }
+
+            public static Point operator -(Point a, Point b)
+            {
+                return new Point(a.X - b.X, a.Y - b.Y, a.Z - b.Z);
+            }
+
             public static bool operator ==(Point a, Point b)
             {
                 return a.Equals(b);
@@ -81,8 +105,6 @@ namespace Solutions.Event2018
                     return hashCode;
                 }
             }
-
-
         }
 
         public static int BotsInRange(IList<string> input)
@@ -96,38 +118,146 @@ namespace Solutions.Event2018
 
         public static int ShortestDistanceToPointInRangeOfMostBots(IList<string> input)
         {
+            // create a bounding box
+
             var bots = ParseBots(input);
+            var me = new Point(0, 0, 0);
 
-            var botsInRangeCount = new Dictionary<Point, int>();
+            var maxX = bots.Keys.Max(b => b.X);
+            var maxY = bots.Keys.Max(b => b.Y);
+            var maxZ = bots.Keys.Max(b => b.Z);
 
-            foreach (var bot in bots)
+            var minX = bots.Keys.Min(b => b.X);
+            var minY = bots.Keys.Min(b => b.Y);
+            var minZ = bots.Keys.Min(b => b.Z);
+
+            var totalMax = new[] {maxX, maxY, maxZ, Math.Abs(minX), Math.Abs(minY), Math.Abs(minZ)}.Max();
+
+            if (totalMax % 2 != 0)
             {
-                var botsInRange = bots.Count(b => b.Key.ManhattanDistanceTo(bot.Key) <= bot.Value);
-                botsInRangeCount.Add(bot.Key, botsInRange);
+                totalMax = totalMax + 1;
             }
 
-            var ordered = botsInRangeCount.OrderByDescending(b => b.Value).ToDictionary(b => b.Key);
+            var binDepths = new[] {0};
+            var binParents = new[] {0};
+            var binCorners = new List<List<Point>> {Corners(totalMax, totalMax)};
 
-            var botWithMostInRange = ordered.First();
-            var locationOfBotWithMostInRange = botWithMostInRange.Key;
-            var radiusForBotWithMostInRange = bots[locationOfBotWithMostInRange];
+            var pointBins = bots.Keys.ToDictionary(b => b, b => 1);
 
-            // not feasible to list all points in a sphere ... Is it possible to find overlapping number of points between each pair?
-           
-           // try finding the box of overlaps between two spheres?
-
-            foreach (var botInRange in botsInRangeCount)
-            {
-                var botInRangeLocation = botInRange.Key;
-                var botInRangeRadius = bots[botInRangeLocation];
-
-                var (xOverlap, yOverlap, zOverlap) = Overlap(locationOfBotWithMostInRange, radiusForBotWithMostInRange,
-                    botInRangeLocation, botInRangeRadius);
-            }
-
-            // try to calculate overlap between botWithMostInRange and someBotInRange
+            Split(0, binDepths, binParents, binCorners, pointBins);
 
             return 0;
+        }
+
+        public static void Split(int binNo, IList<int> binDepths, IList<int> binParents, List<List<Point>> binCorners, Dictionary<Point, int> pointBins)
+        {
+            //% If this bin meets any exit conditions, do not divide it any further.
+            //    binPointCount = nnz(pointBins == binNo)
+            //binEdgeLengths = binCorners(binNo, 1:3) - binCorners(binNo, 4:6)
+
+            var binEdgeLengths = BoxEdgeLength(binCorners[binNo]);
+            
+
+            //binDepth = binDepths(binNo)
+            var binDepth = binDepths[0];
+
+            //exitConditionsMet = binPointCount < value || min(binEdgeLengths) < value || binDepth > value
+            //if exitConditionsMet
+            //return; % Exit recursive function
+            //end
+
+            //    % Otherwise, split this bin into 8 new sub- bins with a new division point
+            //    newDiv = (binCorners(binNo, 1:3) +binCorners(binNo, 4:6)) / 2
+            //for i = 1:8
+            for (int i = 1; i <= 8; i++)
+            {
+                //newBinNo = length(binDepths) + 1
+
+                var newBinNo = binDepths.Count + 1;
+
+                //binDepths(newBinNo) = binDepths(binNo) + 1
+                
+                binDepths.Add(binDepth + 1);
+                //binParents(newBinNo) = binNo
+                binParents.Add(binNo);
+                //binCorners(newBinNo) = [one of the 8 pairs of the newDiv with minCorner or maxCorner]
+                
+                //oldBinMask = pointBins == binNo
+                //             % Calculate which points in pointBins == binNo now belong in newBinNo
+                //pointBins(newBinMask) = newBinNo
+                //                        % Recursively divide this newly created bin
+                //divide(newBinNo)
+                Split(newBinNo, binDepths, binParents, binCorners, pointBins);
+            }
+        }
+
+        public static List<Point> NewBox(int i, IList<Point> corners)
+        {
+            switch (i)
+            {
+                case 1:
+                    break;
+            }
+
+            return null;
+        }
+
+        public static int BoxEdgeLength(IList<Point> corners)
+        {
+            return corners[1].Z - corners[0].Z;
+        }
+
+        // T = top,  B = bottom, F = front, B = back, L = left, R = right
+        // order of corners: BFL, BBL, TBL, TFL, BFR, BBR, TBR, TFR
+        public static List<Point> Corners(int min ,int max)
+        {
+            var corners = from x in new[] { -min, max }
+                from y in new[] { -min, max }
+                from z in new[] { -min, max }
+                select new Point(x, y, z);
+            return corners.ToList();
+        }
+
+        public static bool IsBoxInRange(Point point, int signalRadius, IList<Point> corners)
+        {
+            return corners.Any(p => point.ManhattanDistanceTo(p) <= signalRadius);
+        }
+
+        public static List<Point> InRangeForDirection(Point point, int signalRadius, Point direction)
+        {
+            var xProjection = new Point(point.X, point.X, point.X) * direction;
+            var yProjection = new Point(point.Y, point.Y, point.Y) * direction;
+            var zProjection = new Point(point.Z, point.Z, point.Z) * direction;
+
+            IEnumerable<Point> projections = new List<Point> {xProjection, yProjection, zProjection};
+            projections = projections.OrderBy(p => p.X + p.Y + p.Y);
+
+            var from = projections.First();
+            var to = projections.Last();
+
+            var distanceToLine = point.ManhattanDistanceTo(from);
+
+            if (distanceToLine > signalRadius)
+            {
+                return Enumerable.Empty<Point>().ToList();
+            }
+
+            var diff = signalRadius - distanceToLine;
+
+            var missingPoints = diff / 2;
+
+            from = from - direction * missingPoints;
+            to = to + direction * missingPoints;
+
+            //var onLine = from;
+            //points.Add(onLine);
+            //while (onLine != to)
+            //{
+            //    onLine = onLine + direction;
+            //    points.Add(onLine);
+            //}
+
+            return new List<Point> {from,to};
         }
 
         public static (int xOverlap, int yOverlap, int zOverlap) Overlap(Point p1, int r1, Point p2, int r2)
@@ -193,6 +323,20 @@ namespace Solutions.Event2018
             return bots;
         }
 
+        [Theory]
+        [InlineData(4, 4, 0, 2, 1, 0, 0, 0)]
+        [InlineData(4,4,4,2,1,1,1,2)]
+        [InlineData(73918241,31307474,5543451,86899473,1,1,1,0)]
+        public void InRangeForDirectionTests(int x, int y, int z, int radius, int dx, int dy, int dz, int expected)
+        {
+            var point = new Point(x, y, z);
+            var direction = new Point(dx, dy, dz);
+
+            var inRangeOnLine = InRangeForDirection(point, radius, direction);
+
+            Assert.Equal(expected, inRangeOnLine.Count);
+        }
+
         [Fact]
         public void FirstStarExample()
         {
@@ -217,7 +361,6 @@ namespace Solutions.Event2018
         [Fact]
         public void SecondStarExample()
         {
-
             var input = new[]
             {
                 "pos=<10,12,12>, r=2",
@@ -242,8 +385,6 @@ namespace Solutions.Event2018
             var r2 = 2;
 
             var overlap = Overlap(p1, r1, p2, r2);
-
-
         }
 
         [Fact]
@@ -257,7 +398,7 @@ namespace Solutions.Event2018
         public void SecondStarTest()
         {
             var actual = SecondStar();
-            Assert.Equal("", actual);
+            Assert.Equal("", actual); // 57053824 too low, 106323090 too low
         }
     }
 }
