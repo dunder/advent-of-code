@@ -31,31 +31,36 @@ namespace Solutions.Event2018
 
         public void FirstStarConsole()
         {
-            Combat(ReadLineInput(), true);
+            Combat(ReadLineInput(), new ConsoleUi(GamePauseFrequency.Round));
         }
 
-        public static int Combat(IList<string> input, bool toConsole = false)
+        public static int Combat(IList<string> input, IGameEventHandler gameEventHandler = null)
         {
-            var ui = toConsole ? (IGameEventHandler) new ConsoleUi() : new NoUi();
-            var game = Game.Create(input, ui);
+            var game = Game.Create(input, gameEventHandler ?? new NoUi());
 
             return game.Run();
         }
 
-        public static int CombatWithElevatedElfPower(IList<string> input, bool toConsole = false)
+        public static int CombatWithElevatedElfPower(IList<string> input, IGameEventHandler gameEventHandler = null)
         {
-            var ui = toConsole ? (IGameEventHandler)new ConsoleUi() : new NoUi();
+            var ui = gameEventHandler ?? new NoUi();
             int survivingElves;
             int elvesAtStart;
             int outcome;
             var elvesAttackingPower = 3;
             do
             {
+                elvesAttackingPower++;
                 var game = Game.Create(input, ui);
                 elvesAtStart = game.AliveElves.Count;
-                game.AliveElves.ForEach(e => e.UpdateAttackPower(elvesAttackingPower++));
-                outcome = game.Run();
-                survivingElves = game.AliveGoblins.Count;
+
+                foreach (var elf in game.AliveElves)
+                {
+                    elf.UpdateAttackPower(elvesAttackingPower);
+                }
+
+                outcome = game.Run(true);
+                survivingElves = game.AliveElves.Count;
 
             } while (survivingElves < elvesAtStart);
 
@@ -261,18 +266,20 @@ namespace Solutions.Event2018
             return game;
         }
 
-        public int Run()
+        public int Run(bool stopOnDeadElf = false)
         {
             bool gameOver = false;
+            var numberOfElvesFromStart = AliveElves.Count;
 
-            while (!gameOver)
+            bool StopWhenFirstElfDies()
             {
-                var order = AliveUnitsInOrder;
+                return stopOnDeadElf && AliveElves.Count < numberOfElvesFromStart;
+            }
 
-                for (int u = 0; u < order.Count; u++)
+            while (!gameOver && !StopWhenFirstElfDies())
+            {
+                foreach (var unit in AliveUnitsInOrder)
                 {
-                    var unit = order[u];
-
                     gameHandler.ReportCurrentUnitTurn(unit);
 
                     if (unit.IsDead) continue;
@@ -289,6 +296,8 @@ namespace Solutions.Event2018
                     unit.Move(Occupied, walls);
                     unit.Attack();
                 }
+                
+                gameHandler.ReportRoundComplete(rounds);
 
                 if (!gameOver)
                 {
@@ -529,8 +538,9 @@ namespace Solutions.Event2018
 
             var shortestPath = reachable.First();
 
-            ReportPositions(new HashSet<Point> { shortestPath.Start.Data }, GameEvent.AdjacentReachableForShortestPath);
+            ReportPositions(new HashSet<Point>(reachable.Select(r => r.Data)), GameEvent.AdjacentReachableForShortestPath);
             ReportPositions(new HashSet<Point> { shortestPath.Start.Data }, GameEvent.WalkToForShortestPath);
+            ReportPositions(new HashSet<Point> {shortestPath.Data}, GameEvent.WalkToForShortestPath);
 
             Position = shortestPath.Start.Data;
         }
@@ -574,6 +584,13 @@ namespace Solutions.Event2018
         UnitPosition
     }
 
+    public enum GamePauseFrequency
+    {
+        Never,
+        Event,
+        Round
+    }
+
     public class GameSituationEvent
     {
         public char Description { get; set; }
@@ -587,6 +604,7 @@ namespace Solutions.Event2018
         void ReportEvent(GameSituationEvent @event);
         void ReportGameOver(int rounds, string winners, int score, int outcome);
         void ReportCurrentUnitTurn(Unit unit);
+        void ReportRoundComplete(int rounds);
         void SetGame(Game game);
     }
 
@@ -597,13 +615,22 @@ namespace Solutions.Event2018
         private static readonly Dictionary<GameEvent, ConsoleColor> UpdateColors =
             new Dictionary<GameEvent, ConsoleColor>
             {
-                {GameEvent.AdjacentToTarget, ConsoleColor.Magenta},
+                {GameEvent.AdjacentToTarget, ConsoleColor.Cyan},
                 {GameEvent.ReachableAdjacentToTarget, ConsoleColor.Green},
-                {GameEvent.WalkToForShortestPath, ConsoleColor.DarkYellow},
+                {GameEvent.WalkToForShortestPath, ConsoleColor.Yellow},
                 {GameEvent.AdjacentReachableForShortestPath, ConsoleColor.DarkYellow},
                 {GameEvent.UnitPosition, ConsoleColor.Green },
                 {GameEvent.UnitAttacked, ConsoleColor.Red }
             };
+
+        public ConsoleUi(GamePauseFrequency pauseFrequency = GamePauseFrequency.Event)
+        {
+            PauseFrequency = pauseFrequency;
+            Console.WindowHeight = 40;
+            Console.WindowWidth = 60;
+        }
+
+        private GamePauseFrequency PauseFrequency { get; }
 
         public void ReportEvent(GameSituationEvent @event)
         {
@@ -616,7 +643,18 @@ namespace Solutions.Event2018
             }
 
             Console.ForegroundColor = currentColor;
-            Console.ReadKey(true);
+            if (PauseFrequency == GamePauseFrequency.Event)
+            {
+                Console.ReadKey(true);
+            }
+        }
+
+        public void ReportRoundComplete(int rounds)
+        {
+            if (PauseFrequency == GamePauseFrequency.Round)
+            {
+                Console.ReadKey(true);
+            }
         }
 
         public void ReportGameOver(int rounds, string winners, int score, int outcome)
@@ -639,22 +677,11 @@ namespace Solutions.Event2018
 
     public class NoUi : IGameEventHandler
     {
-        public void ReportEvent(GameSituationEvent @event)
-        {
-        }
-
-        public void ReportGameOver(int rounds, string winners, int score, int outcome)
-        {
-        }
-
-        public void ReportCurrentUnitTurn(Unit unit)
-        {
-        }
-
-        public void SetGame(Game game)
-        {
-
-        }
+        public void ReportEvent(GameSituationEvent @event) { }
+        public void ReportGameOver(int rounds, string winners, int score, int outcome) { }
+        public void ReportCurrentUnitTurn(Unit unit) { }
+        public void ReportRoundComplete(int rounds) { }
+        public void SetGame(Game game) { }
     }
 
     public class Node<T>

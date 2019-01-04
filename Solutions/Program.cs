@@ -6,7 +6,7 @@ namespace Solutions {
         static void Main(string[] args)
         {
 
-            var day = new Day21();
+            var day = new Day15();
 
             day.FirstStarConsole();
 
