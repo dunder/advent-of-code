@@ -31,7 +31,7 @@ namespace Solutions.Event2018
 
         public void FirstStarConsole()
         {
-            Combat(ReadLineInput(), new ConsoleUi(GamePauseFrequency.Round));
+            Combat(ReadLineInput(), new ConsoleUi());
         }
 
         public static int Combat(IList<string> input, IGameEventHandler gameEventHandler = null)
@@ -56,10 +56,10 @@ namespace Solutions.Event2018
 
                 foreach (var elf in game.AliveElves)
                 {
-                    elf.UpdateAttackPower(elvesAttackingPower);
+                    elf.PowerUp(elvesAttackingPower);
                 }
 
-                outcome = game.Run(true);
+                outcome = game.Run(stopOnDeadElf:true);
                 survivingElves = game.AliveElves.Count;
 
             } while (survivingElves < elvesAtStart);
@@ -202,18 +202,20 @@ namespace Solutions.Event2018
     public class Game
     {
         private readonly IGameEventHandler gameHandler;
-
+        private readonly HashSet<Point> allPositions;
         private readonly HashSet<Point> walls;
         private readonly List<Unit> elves;
         private readonly List<Unit> goblins;
         private int rounds;
 
-        public Game(HashSet<Point> walls, List<Unit> elves, List<Unit> goblins, IGameEventHandler gameHandler)
+        public Game(HashSet<Point> allPositions, HashSet<Point> walls, List<Unit> elves, List<Unit> goblins, IGameEventHandler gameHandler)
         {
+            this.allPositions = allPositions;
             this.gameHandler = gameHandler;
             this.walls = walls;
             this.elves = elves;
             this.goblins = goblins;
+            gameHandler.SetGame(this);
         }
 
         public List<Unit> AliveElves => elves.Where(e => e.IsAlive).ToList();
@@ -237,6 +239,7 @@ namespace Solutions.Event2018
 
         public static Game Create(IList<string> input, IGameEventHandler gameHandler)
         {
+            var allPositions = new HashSet<Point>();
             var walls = new HashSet<Point>();
             var elves = new List<Unit>();
             var goblins = new List<Unit>();
@@ -246,6 +249,7 @@ namespace Solutions.Event2018
                 for (int x = 0; x < line.Length; x++)
                 {
                     var point = new Point(x, y);
+                    allPositions.Add(point);
                     var c = line[x];
                     switch (c)
                     {
@@ -253,17 +257,16 @@ namespace Solutions.Event2018
                             walls.Add(point);
                             break;
                         case 'E':
-                            elves.Add(new Unit(point, c, goblins, 200, 3, gameHandler));
+                            elves.Add(new Unit(point, c, goblins, 200, 3));
                             break;
                         case 'G':
-                            goblins.Add(new Unit(point, c, elves, 200, 3, gameHandler));
+                            goblins.Add(new Unit(point, c, elves, 200, 3));
                             break;
                     }
                 }
             }
-            var game = new Game(walls, elves, goblins, gameHandler);
-            gameHandler.SetGame(game);
-            return game;
+
+            return new Game(allPositions, walls, elves, goblins, gameHandler);
         }
 
         public int Run(bool stopOnDeadElf = false)
@@ -292,9 +295,8 @@ namespace Solutions.Event2018
                         break;
                     }
 
-                    //MoveUnit(unit); trying to move responsibility for movement to game but something is wrong
-                    unit.Move(Occupied, walls);
-                    unit.Attack();
+                    MoveUnit(unit);
+                    Attack(unit);
                 }
                 
                 gameHandler.ReportRoundComplete(rounds);
@@ -310,6 +312,8 @@ namespace Solutions.Event2018
 
         private void MoveUnit(Unit unit)
         {
+            var nonWalkable = new HashSet<Point>(Occupied);
+
             ReportPosition(unit);
 
             var moveDirections = unit.Position.AdjacentInMainDirections().ToHashSet();
@@ -324,7 +328,7 @@ namespace Solutions.Event2018
             }
 
             var adjacent = unit.AliveTargets.SelectMany(t => t.Position.AdjacentInMainDirections()).ToHashSet();
-            adjacent.ExceptWith(Occupied);
+            adjacent.ExceptWith(nonWalkable);
 
             ReportPositions(adjacent, GameEvent.AdjacentToTarget);
 
@@ -332,8 +336,10 @@ namespace Solutions.Event2018
 
             bool IsWalkable(Point point)
             {
-                return !Occupied.Contains(point);
+                return !nonWalkable.Contains(point);
             }
+
+            var neighbors = allPositions.ToDictionary(p => p, p => p.AdjacentInMainDirections().Where(IsWalkable).ToList());
 
             foreach (var movePosition in moveDirections.Where(IsWalkable))
             {
@@ -341,7 +347,7 @@ namespace Solutions.Event2018
                 {
                     IEnumerable<Point> Neighbors(Point p)
                     {
-                        return p.AdjacentInMainDirections().Where(IsWalkable);
+                        return neighbors[p];
                     }
 
                     var targetNode = movePosition.ShortestPath(Neighbors, p => p == targetPosition);
@@ -363,10 +369,39 @@ namespace Solutions.Event2018
 
             var shortestPath = reachable.First();
 
-            ReportPositions(new HashSet<Point> { shortestPath.Start.Data }, GameEvent.AdjacentReachableForShortestPath);
+            ReportPositions(new HashSet<Point>(reachable.Select(r => r.Data)), GameEvent.AdjacentReachableForShortestPath);
             ReportPositions(new HashSet<Point> { shortestPath.Start.Data }, GameEvent.WalkToForShortestPath);
+            ReportPositions(new HashSet<Point> { shortestPath.Data }, GameEvent.WalkToForShortestPath);
 
             unit.Position = shortestPath.Start.Data;
+        }
+
+        private void Attack(Unit attackingUnit)
+        {
+            var adjacent = attackingUnit.Position.AdjacentInMainDirections().ToHashSet();
+
+            var attackedUnit = attackingUnit.AliveTargets
+                .Where(t => adjacent.Contains(t.Position))
+                .OrderBy(t => t.HitPoints)
+                .ThenBy(t => t.Position.Y)
+                .ThenBy(t => t.Position.X)
+                .FirstOrDefault();
+
+            if (attackedUnit == null) return;
+
+            ReportAttack(attackingUnit);
+
+            attackedUnit.Attack(attackingUnit);
+        }
+
+        private void ReportAttack(Unit unit) 
+        {
+            gameHandler.ReportEvent(new GameSituationEvent
+            {
+                Positions = new HashSet<Point> { unit.Position },
+                Description = unit.Class,
+                EventType = GameEvent.UnitAttacked
+            });
         }
 
         private void ReportPosition(Unit unit)
@@ -420,8 +455,9 @@ namespace Solutions.Event2018
 
                 s.Append(" ");
 
+                var currentY = y;
                 var units = aliveGoblins.Concat(aliveElves)
-                    .Where(unit => unit.Position.Y == y)
+                    .Where(unit => unit.Position.Y == currentY)
                     .OrderBy(unit => unit.Position.X);
 
                 foreach (var unit in units)
@@ -437,8 +473,6 @@ namespace Solutions.Event2018
 
     public class Unit
     {
-        private readonly IGameEventHandler game;
-
         public Point Position { get; set; }
         public char Class { get; }
         public List<Unit> Targets { get; }
@@ -448,9 +482,8 @@ namespace Solutions.Event2018
         public bool IsAlive => !IsDead;
         public bool IsDead => HitPoints <= 0;
 
-        public Unit(Point position, char @class, List<Unit> targets, int hitPoints, int attackPower, IGameEventHandler game)
+        public Unit(Point position, char @class, List<Unit> targets, int hitPoints, int attackPower)
         {
-            this.game = game;
             Position = position;
             Class = @class;
             Targets = targets;
@@ -458,114 +491,14 @@ namespace Solutions.Event2018
             AttackPower = attackPower;
         }
 
-        public void UpdateAttackPower(int newAttackPower)
+        public void Attack(Unit attackingUnit)
+        {
+            HitPoints -= attackingUnit.AttackPower;
+        }
+
+        public void PowerUp(int newAttackPower)
         {
             AttackPower = newAttackPower;
-        }
-
-        private void ReportPosition()
-        {
-            game.ReportEvent(new GameSituationEvent
-            {
-                Positions = new HashSet<Point>(new[] { Position }),
-                Description = Class,
-                EventType = GameEvent.UnitPosition
-            });
-        }
-
-        private void ReportPositions(HashSet<Point> positions, GameEvent gameEvent)
-        {
-            game.ReportEvent(new GameSituationEvent
-            {
-                Positions = positions,
-                Description = '+',
-                EventType = gameEvent
-            });
-        }
-
-        public void Move(HashSet<Point> occupied, HashSet<Point> walls)
-        {
-            ReportPosition();
-
-            var moveDirections = Position.AdjacentInMainDirections().ToHashSet();
-
-            var targetsInRange = AliveTargets
-                .Where(t => moveDirections.Contains(t.Position))
-                .ToList();
-
-            if (targetsInRange.Any(t => moveDirections.Contains(t.Position)))
-            {
-                return;
-            }
-
-            var adjacent = AliveTargets.SelectMany(t => t.Position.AdjacentInMainDirections()).ToHashSet();
-            adjacent.ExceptWith(occupied);
-
-            ReportPositions(adjacent, GameEvent.AdjacentToTarget);
-
-            var reachable = new List<Node<Point>>();
-
-            bool IsWalkable(Point point)
-            {
-                return !occupied.Contains(point);
-            }
-
-            foreach (var movePosition in moveDirections.Where(IsWalkable))
-            {
-                foreach (var targetPosition in adjacent)
-                {
-                    IEnumerable<Point> Neighbors(Point p)
-                    {
-                        return p.AdjacentInMainDirections().Where(IsWalkable);
-                    }
-
-                    var targetNode = movePosition.ShortestPath(Neighbors, p => p == targetPosition);
-
-                    if (targetNode != null)
-                    {
-                        reachable.Add(targetNode);
-                    }
-                }
-            }
-
-            if (!reachable.Any()) return;
-
-            reachable = reachable
-                .OrderBy(n => n.Depth)
-                .ThenBy(n => n.Start.Data.Y)
-                .ThenBy(n => n.Start.Data.X)
-                .ToList();
-
-            var shortestPath = reachable.First();
-
-            ReportPositions(new HashSet<Point>(reachable.Select(r => r.Data)), GameEvent.AdjacentReachableForShortestPath);
-            ReportPositions(new HashSet<Point> { shortestPath.Start.Data }, GameEvent.WalkToForShortestPath);
-            ReportPositions(new HashSet<Point> {shortestPath.Data}, GameEvent.WalkToForShortestPath);
-
-            Position = shortestPath.Start.Data;
-        }
-
-        public void Attack()
-        {
-            var adjacent = Position.AdjacentInMainDirections().ToHashSet();
-
-            var soldierToAttack = AliveTargets
-                .Where(t => adjacent.Contains(t.Position))
-                .OrderBy(t => t.HitPoints)
-                .ThenBy(t => t.Position.Y)
-                .ThenBy(t => t.Position.X)
-                .FirstOrDefault();
-
-            if (soldierToAttack == null) return;
-
-            game.ReportEvent(new GameSituationEvent
-            {
-                Positions = new HashSet<Point> { soldierToAttack.Position },
-                Description = soldierToAttack.Class,
-                EventType = GameEvent.UnitAttacked
-            });
-
-            soldierToAttack.HitPoints -= AttackPower;
         }
 
         public override string ToString()
@@ -669,9 +602,9 @@ namespace Solutions.Event2018
             Console.Write(game.ToString());
         }
 
-        public void SetGame(Game game)
+        public void SetGame(Game associatedGame)
         {
-            this.game = game;
+            game = associatedGame;
         }
     }
 
