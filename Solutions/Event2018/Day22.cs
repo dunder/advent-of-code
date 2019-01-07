@@ -15,9 +15,6 @@ namespace Solutions.Event2018
         public Day Day => Day.Day22;
         public string Name => "Mode Maze";
 
-        // depth: 7305
-        // target: 13,734
-
         private static readonly int Depth = 7305;
         private static readonly Point Target = new Point(13, 734);
         private static readonly Point Mouth = new Point(0, 0);
@@ -89,16 +86,21 @@ namespace Solutions.Event2018
             return risk;
         }
 
-        public static int FewestMinutesToTarget(int depth, Point target)
+        public static int FewestMinutesToTarget(int depth, Point targetLocation)
         {
-            var geographicalRegions = CalculateGeology(depth, target);
+            var geographicalRegions = CalculateGeology(depth, targetLocation);
 
-            var start = new RegionWithEquipment(geographicalRegions[new Point(0,0)], Equipment.Torch);
-            var stop = new RegionWithEquipment(geographicalRegions[target], Equipment.Torch);
+            var start = new RegionWithEquipment(geographicalRegions[new Point(0, 0)], Equipment.Torch);
+            var target = new RegionWithEquipment(geographicalRegions[targetLocation], Equipment.Torch);
 
-            var result = Djikstra(geographicalRegions, start, stop);
+            var nodeMap = CreateNodes(geographicalRegions, target);
 
-            return result;
+            var startNode = nodeMap[start];
+            var targetNode = nodeMap[target];
+
+            var terminationNode = AStar.Search(startNode, targetNode);
+
+            return terminationNode.MovementCost;
         }
 
         public enum GeologicalType
@@ -115,6 +117,36 @@ namespace Solutions.Event2018
             Climbing = 2
         }
 
+        public static Dictionary<RegionWithEquipment, AStar.Node> CreateNodes(Dictionary<Point, GeographicalRegion> geographicalRegions, RegionWithEquipment target)
+        {
+            var nodeId = 1;
+            var equipmentSet = Enum.GetValues(typeof(Equipment));
+
+            var nodeMap = new Dictionary<RegionWithEquipment, AStar.Node>();
+
+            foreach (var geographicalRegion in geographicalRegions)
+            {
+                foreach (Equipment equipment in equipmentSet)
+                {
+                    var regionWithEquipment = new RegionWithEquipment(geographicalRegion.Value, equipment);
+                    var node = new AStar.Node(nodeId++, regionWithEquipment.Location.ManhattanDistance(target.Location), regionWithEquipment.ToString());
+                    nodeMap.Add(regionWithEquipment, node);
+                }
+            }
+
+            foreach (var regionNode in nodeMap)
+            {
+                var regionWithEquipment = regionNode.Key;
+                var node = regionNode.Value;
+                var neighbors = regionWithEquipment.Neighbors(geographicalRegions);
+                node.Neighbors = neighbors
+                    .Select(n => new AStar.Neighbor(nodeMap[n], regionWithEquipment.DistanceTo(n)))
+                    .ToList();
+            }
+
+            return nodeMap;
+        }
+
         public class RegionWithEquipment
         {
             public RegionWithEquipment(GeographicalRegion region, Equipment equipment)
@@ -124,18 +156,18 @@ namespace Solutions.Event2018
             }
 
             public GeographicalRegion Region { get; set; }
-            
+            public Point Location => Region.Location;
             public Equipment Equipment { get; set; }
+
 
             public int DistanceTo(RegionWithEquipment other)
             {
                 return Equipment == other.Equipment ? 1 : 8;
             }
 
-            public IEnumerable<RegionWithEquipment> Neighbors(Dictionary<Point, GeographicalRegion> geographicalRegions)
+            public List<RegionWithEquipment> Neighbors(Dictionary<Point, GeographicalRegion> geographicalRegions)
             {
                 var adjacent = Region.Location.AdjacentInMainDirections();
-
                 var neighbors = new List<RegionWithEquipment>();
 
                 foreach (var neighborLocation in adjacent.Where(geographicalRegions.ContainsKey))
@@ -154,7 +186,7 @@ namespace Solutions.Event2018
                 return neighbors;
             }
 
-            private bool EquipmentValidFor(Equipment equipment, GeologicalType geologicalType)
+            public bool EquipmentValidFor(Equipment equipment, GeologicalType geologicalType)
             {
                 var rocky = new HashSet<Equipment> { Equipment.Climbing, Equipment.Torch };
                 var wet = new HashSet<Equipment> { Equipment.Climbing, Equipment.Neither };
@@ -196,70 +228,164 @@ namespace Solutions.Event2018
             }
         }
 
-        public static int Djikstra(Dictionary<Point, GeographicalRegion> geographicalRegions, RegionWithEquipment source, RegionWithEquipment target)
+        public class AStar
         {
-            var nodes = new HashSet<RegionWithEquipment>();
-
-            foreach (var geographicalRegion in geographicalRegions)
+            public class Neighbor
             {
-                foreach (Equipment equipment in Enum.GetValues(typeof(Equipment)))
+                public Neighbor(Node node, int distanceTo)
                 {
-                    nodes.Add(new RegionWithEquipment(geographicalRegion.Value, equipment));
+                    Node = node;
+                    DistanceTo = distanceTo;
+                }
+
+                public Node Node { get; set; }
+                public int DistanceTo { get; set; }
+
+                public override string ToString()
+                {
+                    return $"Node: {Node.Id} Distance: {DistanceTo}";
                 }
             }
 
-            var distances = new Dictionary<RegionWithEquipment, int>();
-            var previous = new Dictionary<RegionWithEquipment, RegionWithEquipment>();
-
-            foreach (var regionWithEquipment in nodes)
+            public class Node
             {
-                distances[regionWithEquipment] = int.MaxValue;
-                previous[regionWithEquipment] = null;
-            }
-
-            distances[source] = 0;
-
-            RegionWithEquipment current = null;
-
-            while (nodes.Any())
-            {
-                current = nodes.OrderBy(n => distances[n]).First();
-
-                nodes.Remove(current);
-
-                if (current.Equals(target))
+                public Node(int id, int distanceToTarget, string description = "")
                 {
-                    // shortest path found
-                    break;
+                    Id = id;
+                    DistanceToTarget = distanceToTarget;
+                    Description = description;
                 }
 
-                // create neighbors for each direction and combination of different equipment
-                var neighbors = current.Neighbors(geographicalRegions);
+                public int Id { get; }
+                public int DistanceToTarget { get; }
+                public int MovementCost { get; set; }
+                public int TotalCost => MovementCost + DistanceToTarget;
+                public List<Neighbor> Neighbors { get; set; }
+                public Node Parent { get; set; }
+                public string Description { get; set; }
 
-                foreach (var neighbor in neighbors)
+                public Node StartNode
                 {
-                    var alternativePath = distances[current] + current.DistanceTo(neighbor);
-
-                    if (alternativePath < distances[neighbor])
+                    get
                     {
-                        distances[neighbor] = alternativePath;
-                        previous[neighbor] = current;
+                        var startNode = this;
+
+                        while (startNode.Parent != null)
+                        {
+                            startNode = startNode.Parent;
+                        }
+
+                        return startNode;
+                    }
+
+                }
+
+                public List<Node> Path
+                {
+                    get
+                    {
+                        var path = new List<Node> {this};
+                        var startNode = this;
+
+                        while (startNode.Parent != null)
+                        {
+                            startNode = startNode.Parent;
+                            path.Add(startNode);
+                        }
+
+                        path.Reverse();
+                        return path;
                     }
                 }
+
+                public int Depth
+                {
+                    get
+                    {
+                        var depth = 0;
+                        var current = this;
+                        while (current.Parent != null)
+                        {
+                            depth++;
+                            current = current.Parent;
+                        }
+                        return depth;
+                    }
+                }
+
+                protected bool Equals(Node other)
+                {
+                    return Id.Equals(other.Id);
+                }
+
+                public override bool Equals(object obj)
+                {
+                    if (ReferenceEquals(null, obj)) return false;
+                    if (ReferenceEquals(this, obj)) return true;
+                    if (obj.GetType() != this.GetType()) return false;
+                    return Equals((Node)obj);
+                }
+
+                public override int GetHashCode()
+                {
+                    return Id.GetHashCode();
+                }
+
+                public override string ToString()
+                {
+                    return $"{Id} G: {MovementCost} H: {DistanceToTarget} F: {TotalCost} [{Description}]";
+                }
             }
 
-            var root = current;
-            var path = new List<RegionWithEquipment> { current };
-
-            while (previous[root] != null)
+            public static Node Search(Node startNode, Node targetNode)
             {
-                root = previous[root];
-                path.Add(root);
+                var open = new HashSet<Node> { startNode };
+                var closed = new HashSet<Node>();
+
+                Node currentNode;
+
+                while (true)
+                {
+                    currentNode = open.OrderBy(n => n.TotalCost).FirstOrDefault();
+
+                    if (currentNode == null || currentNode.Equals(targetNode))
+                    {
+                        break;
+                    }
+
+                    open.Remove(currentNode);
+                    closed.Add(currentNode);
+
+                    var neighbors = currentNode.Neighbors;
+
+                    if (!neighbors.Any() && !open.Any())
+                    {
+                        break;
+                    }
+
+                    var nonClosedNeighbors = neighbors.Where(n => !closed.Contains(n.Node)).ToList();
+
+                    foreach (var neighbor in nonClosedNeighbors)
+                    {
+                        var neighborNode = neighbor.Node;
+                        var distance = currentNode.MovementCost + neighbor.DistanceTo;
+
+                        if (!open.TryGetValue(neighborNode, out _))
+                        {
+                            open.Add(neighborNode);
+                        }
+                        else if (distance >= neighborNode.MovementCost)
+                        {
+                            continue;
+                        }
+
+                        neighborNode.Parent = currentNode;
+                        neighborNode.MovementCost = distance;
+                    }
+                }
+
+                return currentNode;
             }
-
-            path.Reverse();
-
-            return distances[current];
         }
 
         public static Dictionary<Point, GeographicalRegion> CalculateGeology(int depth, Point target)
@@ -473,7 +599,6 @@ namespace Solutions.Event2018
             Assert.Equal("10204", actual);
         }
 
-        [Trait("Category", "LongRunning")] // 38 min 28 s
         [Fact]
         public void SecondStarTest()
         {
