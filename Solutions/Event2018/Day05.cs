@@ -13,25 +13,25 @@ namespace Solutions.Event2018
         public string FirstStar()
         {
             var input = ReadInput();
-            var result = ReduceAll(input);
+            var result = LengthOfPolymerAfterFullReduction(input);
             return result.ToString();
         }
 
         public string SecondStar()
         {
             var input = ReadInput();
-            var result = ReduceEnhanced(input);
+            var result = LengthOfReducedPolymerAfterRemovalOfProblematicUnit(input);
             return result.ToString();
         }
 
-        public static int LinkedReduce(string polymer)
+        public static int LengthOfPolymerAfterFullReduction(string polymer)
         {
             var linkedPolymer = new LinkedList<char>(polymer);
             
             var left = linkedPolymer.First;
             var right = left.Next;
 
-            while (right.Next != null)
+            while (right != null)
             {
                 var leftUnit = left.Value;
                 var rightUnit = right.Value;
@@ -40,11 +40,11 @@ namespace Solutions.Event2018
                 {
                     var newLeft = left.Previous;
                     var newRight = right.Next;
-
+                    
                     if (newLeft == null)
                     {
-                        newLeft = right;
-                        newRight = right.Next;
+                        newLeft = newRight;
+                        newRight = newLeft?.Next;
                     }
 
                     linkedPolymer.Remove(left);
@@ -63,54 +63,7 @@ namespace Solutions.Event2018
             return linkedPolymer.Count;
         }
 
-        public static int ReduceAll(string polymer)
-        {
-            var closed = new HashSet<int>();
-            var reduction = 0;
-            for (int i1 = 0, i2 = 1; i2 < polymer.Length;)
-            {
-                char c1 = polymer[i1];
-                char c2 = polymer[i2];
-
-                if (c1 == c2)
-                {
-                    i1 = i2;
-                    i2++;
-                    continue;
-                }
-
-                if (char.ToUpper(c1) == char.ToUpper(c2))
-                {
-                    closed.Add(i1);
-                    closed.Add(i2);
-                    do
-                    {
-                        i1--;
-                    } while (closed.Contains(i1));
-
-                    if (i1 < 0)
-                    {
-                        i2++;
-                        i1 = i2;
-                        i2++;
-                    }
-                    else
-                    {
-                        i2++;
-                    }
-;
-                    reduction += 2;
-                    continue;
-                }
-
-                i1 = i2;
-                i2++;
-            }
-
-            return polymer.Length - reduction;
-        }
-
-        public static int ReduceEnhanced(string polymer)
+        public static int LengthOfReducedPolymerAfterRemovalOfProblematicUnit(string polymer)
         {
             var all = new HashSet<char>(polymer);
 
@@ -123,7 +76,7 @@ namespace Solutions.Event2018
                 polymerToReduce = polymerToReduce.Replace(cLower.ToString(), "");
                 polymerToReduce = polymerToReduce.Replace(cUpper.ToString(), "");
 
-                var reduced = ReduceAll(polymerToReduce);
+                var reduced = LengthOfPolymerAfterFullReduction(polymerToReduce);
 
                 if (reduced < min)
                 {
@@ -134,63 +87,20 @@ namespace Solutions.Event2018
             return min;
         }
 
-        public static string ReactReduce(string polymer)
-        {
-            int i = 0;
-            bool reduced = false;
-            for (; i < polymer.Length - 1; i++)
-            {
-                var p1 = polymer[i];
-                var p2 = polymer[i + 1];
-
-                if (p1 == p2)
-                {
-                    continue;
-                };
-
-                if (char.ToLower(p1) == char.ToLower(p2))
-                {
-                    reduced = true;
-                    break;
-                }
-            }
-
-            return reduced ? polymer.Remove(i, 2) : polymer;
-        }
-
-        [Theory]
-        [InlineData("dabAcCaCBAcCcaDA", "dabAaCBAcCcaDA")]
-        [InlineData("dabAaCBAcCcaDA", "dabCBAcCcaDA")]
-        public void ReactReduceTest(string polymer, string expected)
-        {
-            var reduced = ReactReduce(polymer);
-
-            Assert.Equal(expected, reduced);
-        }
-
         [Fact]
         public void FirstStarExample()
         {
             var polymer = "dabAcCaCBAcCcaDA";
-            var reduced = ReduceAll(polymer);
+            var reducedLength = LengthOfPolymerAfterFullReduction(polymer);
 
-            Assert.Equal(10, reduced);
+            Assert.Equal(10, reducedLength);
         }
-
-        [Fact]
-        public void LinkedReducedExample()
-        {
-            var polymer = "dabAcCaCBAcCcaDA";
-            var reduced = LinkedReduce(polymer);
-
-            Assert.Equal(10, reduced);
-        }
-
+        
         [Fact]
         public void SecondStarExample()
         {
             var polymer = "dabAcCaCBAcCcaDA";
-            var reduced = ReduceEnhanced(polymer);
+            var reduced = LengthOfReducedPolymerAfterRemovalOfProblematicUnit(polymer);
 
             Assert.Equal(4, reduced);
         }
