@@ -40,7 +40,7 @@ namespace Solutions.Event2018
 
         public static int UnitsInWinningArmyWithBoost(IList<string> input, int skip1, int take1, int skip2, int take2)
         {
-            var boost = 70;
+            var boost = 1;
 
             int units = 0;
             var immuneSystemWins = false;
@@ -53,9 +53,10 @@ namespace Solutions.Event2018
                 {
                     group.Attack.Damage = group.Attack.Damage + boost;
                 }
+
                 var fight = new Fight(immuneSystem, infection);
                 units = fight.Start();
-                immuneSystemWins = fight.ImmuneSystem.Any(g => !g.Removed);
+                immuneSystemWins = fight.ImmuneSystem.Any(g => !g.Removed) && fight.Infection.All(g => g.Removed);
                 boost++;
             }
 
@@ -71,11 +72,11 @@ namespace Solutions.Event2018
 
         public class Group
         {
-            private static int groupId = 0;
+            private static int _groupId;
 
             public Group(int units, int hitPoints, HashSet<string> weaknesses, HashSet<string> immuneTo, Attack attack)
             {
-                Id = groupId++;
+                Id = _groupId++;
                 Units = units;
                 HitPoints = hitPoints;
                 Weaknesses = weaknesses;
@@ -220,13 +221,10 @@ namespace Solutions.Event2018
 
         public class Fight
         {
-            private readonly List<Group> immuneSystem;
-            private readonly List<Group> infection;
-
             public Fight(List<Group> immuneSystem, List<Group> infection)
             {
-                this.immuneSystem = immuneSystem;
-                this.infection = infection;
+                ImmuneSystem = immuneSystem;
+                Infection = infection;
 
                 foreach (var group in immuneSystem)
                 {
@@ -239,33 +237,36 @@ namespace Solutions.Event2018
                 }
             }
 
-            public List<Group> ImmuneSystem => immuneSystem;
-            public List<Group> Infection => infection;
+            public List<Group> ImmuneSystem { get; }
+            public List<Group> Infection { get; }
 
-            public List<Group> GroupsInTargetSelectionOrder => immuneSystem
-                .Concat(infection)
+            public List<Group> GroupsInTargetSelectionOrder => ImmuneSystem
+                .Concat(Infection)
                 .Where(g => !g.Removed)
                 .OrderByDescending(g => g.EffectivePower)
                 .ThenByDescending(g => g.Attack.Initiative)
                 .ToList();
 
-            public List<Group> GroupsInAttackingOrder => immuneSystem
-                .Concat(infection)
+            public List<Group> GroupsInAttackingOrder => ImmuneSystem
+                .Concat(Infection)
                 .Where(g => !g.Removed)
                 .OrderByDescending(g => g.Attack.Initiative)
                 .ToList();
 
             public int Start()
             {
-                while (immuneSystem.Any(g => !g.Removed) && infection.Any(g => !g.Removed))
+                bool fightTied = false;
+                while (ImmuneSystem.Any(g => !g.Removed) && Infection.Any(g => !g.Removed) && !fightTied)
                 {
+                    var unitCountBeforeRound = GroupsInTargetSelectionOrder.Sum(g => g.Units);
+
                     var alreadySelected = new HashSet<int>();
                     foreach (var group in GroupsInTargetSelectionOrder)
                     {
                         var target = group.SelectTarget(alreadySelected);
                         if (target != null)
                         {
-                            alreadySelected.Add(target.Id);
+                            alreadySelected.Add(target.Id); 
                         }
                     }
 
@@ -273,10 +274,12 @@ namespace Solutions.Event2018
                     {
                         group.AttackTarget();
                     }
+
+                    fightTied = unitCountBeforeRound == GroupsInTargetSelectionOrder.Sum(g => g.Units);
                 }
 
-                var immuneSystemPoints = immuneSystem.Where(g => g.Units >= 0).Sum(g => g.Units);
-                var infectionPoints = infection.Where(g => g.Units >= 0).Sum(g => g.Units);
+                var immuneSystemPoints = ImmuneSystem.Where(g => g.Units >= 0).Sum(g => g.Units);
+                var infectionPoints = Infection.Where(g => g.Units >= 0).Sum(g => g.Units);
 
                 return Math.Max(immuneSystemPoints, infectionPoints);
             }
