@@ -10,7 +10,6 @@ namespace Solutions
         public virtual string FirstStar()
         {
             return "Not implemented yet";
-
         }
 
         public virtual string SecondStar()
