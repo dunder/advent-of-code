@@ -9,6 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2015
 {
+    // --- Day 3: Perfectly Spherical Houses in a Vacuum ---
     public class Day03
     {
         public static Direction Parse(char c)

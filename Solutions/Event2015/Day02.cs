@@ -7,9 +7,9 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2015
 {
+    // --- Day 2: I Was Told There Would Be No Math ---
     public class Day02
     {
-
         public class Present
         {
             public int L { get; set; }
@@ -47,9 +47,7 @@ namespace Solutions.Event2015
         public static int FirstStar()
         {
             var input = ReadLineInput();
-
             var presents = Parse(input);
-
 
             return presents.Sum(p => p.Wrapping);
         }
@@ -57,9 +55,7 @@ namespace Solutions.Event2015
         public static int SecondStar()
         {
             var input = ReadLineInput();
-
             var presents = Parse(input);
-
 
             return presents.Sum(p => p.Ribbon);
         }

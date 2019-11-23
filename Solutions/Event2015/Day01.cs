@@ -6,6 +6,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2015
 {
+    // --- Day 1: Not Quite Lisp ---
     public class Day01
     {
         public int FinalFloor(string input)
