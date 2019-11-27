@@ -385,6 +385,20 @@ namespace Solutions.Event2015
             circuit.Evaluate();
 
             return circuit;
+        }       
+        
+        public static Circuit Run2(IEnumerable<string> input)
+        {
+            var circuit = new Circuit();
+
+            input.ToList().ForEach(d => Connect(d, circuit));
+
+            // manually inserting override, refactor sometime maybe
+            circuit.SetSignal("b", 16076);
+
+            circuit.Evaluate();
+
+            return circuit;
         }
 
         public static int FirstStar()
@@ -400,7 +414,9 @@ namespace Solutions.Event2015
         {
             var input = ReadLineInput();
 
-            return 0;
+            var circuit = Run2(input);
+
+            return circuit.GetSignal("a").Value;
         }
 
         [Fact]
