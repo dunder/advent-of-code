@@ -7,14 +7,14 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2015
 {
-    // --- Day 6: Probably a Fire Hazard ---
+    // --- Day 7: Some Assembly Required ---
     public class Day07
     {
-
         public class Circuit
         {
             private readonly IDictionary<string, Wire> wires;
             private readonly List<IGate> gates;
+
 
             public Circuit()
             {
@@ -22,9 +22,32 @@ namespace Solutions.Event2015
                 gates = new List<IGate>();
             }
 
-            public void AddGate(IGate gate)
+
+            public void Evaluate()
             {
-                gates.Add(gate);
+                while (gates.Any(g => !g.Out.Signal.HasValue))
+                {
+                    foreach (var gate in gates)
+                    {
+                        gate.Evaluate();
+                    }
+                }
+            }
+
+            public ushort GetSignal(string wireId)
+            {
+                if (!wires.ContainsKey(wireId))
+                {
+                    throw new ArgumentOutOfRangeException($"This circuit has no such wire: {wireId}");
+                }
+                var signal = wires[wireId].Signal;
+
+                if (!signal.HasValue)
+                {
+                    throw new InvalidOperationException($"Wire {wireId} has no signal");
+                }
+
+                return signal.Value;
             }
 
             public void SetSignal(string wireId, ushort signal)
@@ -40,56 +63,40 @@ namespace Solutions.Event2015
 
             public void ConnectAndGate(string in1, string in2, string outputId)
             {
-                ISignalSource source1;
-                if (ushort.TryParse(in1, out ushort signal))
-                {
-                    source1 = new FixedSignal(signal);
-                }
-                else
-                {
-                    var wire = GetWire(in1);
-                    source1 = wire;
-                }
-                AddGate(new AndGate(source1, GetWire(in2), GetWire(outputId)));
+                
+                AddGate(new BinaryGate(CreateSignalSource(in1), GetWire(in2), GetWire(outputId), (i1, i2) => (ushort) (i1 & i2)));
             }
 
             public void ConnectOrGate(string in1, string in2, string outputId)
             {
-                ISignalSource source1;
-                if (ushort.TryParse(in1, out ushort signal))
-                {
-                    source1 = new FixedSignal(signal);
-                }
-                else
-                {
-                    var wire = GetWire(in1);
-                    source1 = wire;
-                }
-                AddGate(new OrGate(source1, GetWire(in2), GetWire(outputId)));
+                AddGate(new BinaryGate(CreateSignalSource(in1), GetWire(in2), GetWire(outputId), (i1, i2) => (ushort)(i1 | i2)));
             }
 
             public void ConnectRightShiftGate(string source1, ushort source2, string outputId)
             {
-                AddGate(new RightShiftGate(GetWire(source1), new FixedSignal(source2), GetWire(outputId)));
-
+                AddGate(new BinaryGate(GetWire(source1), new FixedSignal(source2), GetWire(outputId), (i1, i2) => (ushort)(i1 >> i2)));
             }
 
             public void ConnectLeftShiftGate(string source1, ushort source2, string outputId)
             {
-                AddGate(new LeftShiftGate(GetWire(source1), new FixedSignal(source2), GetWire(outputId)));
+                AddGate(new BinaryGate(GetWire(source1), new FixedSignal(source2), GetWire(outputId), (i1, i2) => (ushort)(i1 << i2)));
             }
 
             public void ConnectNotGate(string source, string outputId)
             {
-                AddGate(new NotGate(GetWire(source), GetWire(outputId)));
+                AddGate(new UnaryGate(GetWire(source), GetWire(outputId), i => (ushort)(~i)));
             }
 
             public void ConnectNopGate(string source, string outputId)
             {
-                AddGate(new NopGate(GetWire(source), GetWire(outputId)));
+                AddGate(new UnaryGate(GetWire(source), GetWire(outputId), i => i));
+            }
+            private void AddGate(IGate gate)
+            {
+                gates.Add(gate);
             }
 
-            public Wire GetWire(string wireId)
+            private Wire GetWire(string wireId)
             {
                 if (!wires.ContainsKey(wireId))
                 {
@@ -99,20 +106,20 @@ namespace Solutions.Event2015
                 return wires[wireId];
             }
 
-            public void Evaluate()
+            private ISignalSource CreateSignalSource(string sourceDescription)
             {
-                while (gates.Any(g => !g.Out.Signal.HasValue))
+                ISignalSource source;
+                if (ushort.TryParse(sourceDescription, out ushort signal))
                 {
-                    foreach (var gate in gates)
-                    {
-                        gate.Evaluate();
-                    }
+                    source = new FixedSignal(signal);
                 }
-            }
+                else
+                {
+                    var wire = GetWire(sourceDescription);
+                    source = wire;
+                }
 
-            public int? GetSignal(string wireId)
-            {
-                return wires[wireId].Signal;
+                return source;
             }
         }
 
@@ -120,6 +127,7 @@ namespace Solutions.Event2015
         {
             ushort? Signal { get; }
         }
+
         public class Wire : ISignalSource
         {
             public Wire(string id)
@@ -166,146 +174,55 @@ namespace Solutions.Event2015
                 Out = output;
             }
 
-            public void Evaluate()
-            {
-                if (CanEvaluate)
-                {
-                    Out.Signal = EvaluateInternal();
-                }
-            }
-            
-            protected abstract bool CanEvaluate { get; }
-            protected abstract ushort EvaluateInternal();
+            public abstract void Evaluate();
         }
 
-        public abstract class BinaryGate : Gate
+        public class BinaryGate : Gate
         {
             public ISignalSource In1 { get; }
             public ISignalSource In2 { get; }
+            private Func<ushort, ushort, ushort> Operation { get; }
 
 
-            protected BinaryGate(ISignalSource in1, ISignalSource in2, Wire output) : base(output)
+            public BinaryGate(ISignalSource in1, ISignalSource in2, Wire output, Func<ushort, ushort, ushort> operation) : base(output)
             {
                 In1 = in1;
                 In2 = in2;
+                Operation = operation;
             }
 
-            protected override bool CanEvaluate => In1.Signal.HasValue && In2.Signal.HasValue;
+
+            public override void Evaluate()
+            {
+                if (In1.Signal.HasValue && In2.Signal.HasValue)
+                {
+                    Out.Signal = Operation(In1.Signal.Value, In2.Signal.Value);
+                }
+            }
+
         }
 
-        public class AndGate : BinaryGate
-        {
-            public AndGate(ISignalSource in1, ISignalSource in2, Wire output) : base(in1, in2, output)
-            {
-            }
-
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) (In1.Signal.Value & In2.Signal.Value);
-            }
-
-            public override string ToString()
-            {
-                return $"{In1} AND {In2} -> {Out}";
-            }
-        }
-        
-        public class OrGate : BinaryGate
-        {
-            public OrGate(ISignalSource in1, ISignalSource in2, Wire output) : base(in1, in2, output)
-            {
-            }
-
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) (In1.Signal.Value | In2.Signal.Value);
-            }
-
-            public override string ToString()
-            {
-                return $"{In1} OR {In2} -> {Out}";
-            }
-        }        
-        
-        public class LeftShiftGate : BinaryGate
-        {
-            public LeftShiftGate(ISignalSource in1, ISignalSource in2, Wire output) : base(in1, in2, output)
-            {
-            }
-
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) (In1.Signal.Value << In2.Signal.Value);
-            }
-
-            public override string ToString()
-            {
-                return $"{In1} LSHIFT {In2} -> {Out}";
-            }
-        }
-
-        public class RightShiftGate : BinaryGate
-        {
-            public RightShiftGate(ISignalSource in1, ISignalSource in2, Wire output) : base(in1, in2, output)
-            {
-            }
-
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) (In1.Signal.Value >> In2.Signal.Value);
-            }
-
-            public override string ToString()
-            {
-                return $"{In1} RSHIFT {In2} -> {Out}";
-            }
-        }
-
-        public abstract class UnaryGate : Gate
+        public class UnaryGate : Gate
         {
             public ISignalSource In { get; }
+            private Func<ushort, ushort> Operation { get; }
 
 
-            protected UnaryGate(ISignalSource input, Wire output) : base(output)
+            public UnaryGate(ISignalSource input, Wire output, Func<ushort, ushort> operation) : base(output)
             {
                 In = input;
+                Operation = operation;
             }
 
-            protected override bool CanEvaluate => In.Signal.HasValue;
-        }
 
-        public class NotGate : UnaryGate
-        {
-            public NotGate(ISignalSource in1, Wire output) : base(in1, output)
+            public override void Evaluate()
             {
+                if (In.Signal.HasValue)
+                {
+                    Out.Signal = Operation(In.Signal.Value);
+                }
             }
 
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) ~In.Signal.Value;
-            }
-
-            public override string ToString()
-            {
-                return $"NOT {In} -> {Out}";
-            }
-        }
-
-        public class NopGate : UnaryGate
-        {
-            public NopGate(ISignalSource in1, Wire output) : base(in1, output)
-            {
-            }
-
-            protected override ushort EvaluateInternal()
-            {
-                return (ushort) In.Signal.Value;
-            }
-
-            public override string ToString()
-            {
-                return $"{In} -> {Out}";
-            }
         }
 
         public static void Connect(string descriptor, Circuit circuit)
@@ -389,16 +306,23 @@ namespace Solutions.Event2015
         
         public static Circuit Run2(IEnumerable<string> input)
         {
-            var circuit = new Circuit();
+            var circuit1 = new Circuit();
 
-            input.ToList().ForEach(d => Connect(d, circuit));
+            var inputList = input.ToList();
 
-            // manually inserting override, refactor sometime maybe
-            circuit.SetSignal("b", 16076);
+            inputList.ForEach(d => Connect(d, circuit1));
+            circuit1.Evaluate();
 
-            circuit.Evaluate();
+            var aSignal = circuit1.GetSignal("a");
 
-            return circuit;
+            var circuit2 = new Circuit();
+
+            inputList.ForEach(d => Connect(d, circuit2));
+            circuit2.SetSignal("b", aSignal);
+
+            circuit2.Evaluate();
+
+            return circuit2;
         }
 
         public static int FirstStar()
@@ -407,7 +331,7 @@ namespace Solutions.Event2015
 
             var circuit = Run(input);
 
-            return circuit.GetSignal("a").Value;
+            return circuit.GetSignal("a");
         }
 
         public static int SecondStar()
@@ -416,7 +340,7 @@ namespace Solutions.Event2015
 
             var circuit = Run2(input);
 
-            return circuit.GetSignal("a").Value;
+            return circuit.GetSignal("a");
         }
 
         [Fact]
@@ -452,14 +376,14 @@ namespace Solutions.Event2015
 
             var result = Run(input);
 
-            Assert.Equal(72, result.GetSignal("d").Value);
-            Assert.Equal(507, result.GetSignal("e").Value);
-            Assert.Equal(492, result.GetSignal("f").Value);
-            Assert.Equal(114, result.GetSignal("g").Value);
-            Assert.Equal(65412, result.GetSignal("h").Value);
-            Assert.Equal(65079, result.GetSignal("i").Value);
-            Assert.Equal(123, result.GetSignal("x").Value);
-            Assert.Equal(456, result.GetSignal("y").Value);
+            Assert.Equal(72, result.GetSignal("d"));
+            Assert.Equal(507, result.GetSignal("e"));
+            Assert.Equal(492, result.GetSignal("f"));
+            Assert.Equal(114, result.GetSignal("g"));
+            Assert.Equal(65412, result.GetSignal("h"));
+            Assert.Equal(65079, result.GetSignal("i"));
+            Assert.Equal(123, result.GetSignal("x"));
+            Assert.Equal(456, result.GetSignal("y"));
         }
     }
 }
