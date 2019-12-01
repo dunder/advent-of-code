@@ -4,7 +4,7 @@ using Xunit;
 using static Solutions.InputReader;
 
 
-namespace Solutions.Evenet2019
+namespace Solutions.Event2019
 {
     // --- Day 1: The Tyranny of the Rocket Equation ---
     public class Day01
