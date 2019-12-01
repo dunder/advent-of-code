@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using Xunit;
 using static Solutions.InputReader;
@@ -16,17 +17,13 @@ namespace Solutions.Event2019
 
         public static IEnumerable<int> FuelRequirements(int mass)
         {
+            int fuel = FuelRequirement(mass);
 
-            var fuelRequirement = FuelRequirement(mass);
-            yield return fuelRequirement;
-            while (fuelRequirement > 0)
+            do
             {
-                fuelRequirement = FuelRequirement(fuelRequirement);
-                if (fuelRequirement > 0)
-                {
-                    yield return fuelRequirement;
-                }
-            }
+                yield return fuel;
+                fuel = FuelRequirement(fuel);
+            } while (fuel > 0);
         }
 
         public int FirstStar()
