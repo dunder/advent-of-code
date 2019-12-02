@@ -34,11 +34,11 @@ namespace Solutions.Event2015
                 if (c == '}')
                 {
                     int startIndex = openingBraces.Pop();
-                    var currentObject = reduced.ToString().Substring(startIndex + 1, i - startIndex);
+                    var currentObject = reduced.ToString().Substring(startIndex + 1, i - startIndex - 1);
                     if (currentObject.Contains(@":""red"))
                     {
                         reduced = reduced.Remove(startIndex + 1, i - startIndex - 1);
-                        i = 0;
+                        i = -1;
                     }
                 }
             }
