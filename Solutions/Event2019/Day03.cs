@@ -41,7 +41,6 @@ namespace Solutions.Event2019
         }
         public static (List<StraightWire>, List<StraightWire>) Parse(IEnumerable<string> input)
         {
-            var lines = input.ToList();
             var wires = input.Select(line =>
             {
                 return line.Split(",").Select(x => new StraightWire
@@ -54,83 +53,57 @@ namespace Solutions.Event2019
             return (wires.First(), wires.Last());
         }
 
-        public static List<Point> Positions(List<StraightWire> wire)
+        public static List<Point> Positions(List<StraightWire> segments)
         {
-            var initialState = (new List<Point>(), new Point(0, 0));
+            var initialState = new List<Point> {new Point(0,0)};
 
-            var x = wire.Aggregate<StraightWire, (List<Point> Visited, Point Current)>(initialState, (a, w) =>
-            {
-                var p = a.Current;
-                for (var i = 0; i < w.Length; i++)
+            var finalState = segments.Aggregate(initialState, (state, segment) =>
                 {
-                    p = p.Move(w.Direction);
-                    a.Visited.Add(p);
-                }
+                    var newPoints = state.Last().Line(segment.Direction, segment.Length);
+                    state.AddRange(newPoints.Skip(1));
+                    return state;
+                });
 
-                return (a.Visited, p);
-            });
-
-            return x.Visited;
+            return finalState.Skip(1).ToList();
         }
 
-        public int DistanceWhenCrossed(List<StraightWire> line1, List<StraightWire> line2)
+        public int DistanceWhenCrossed(List<StraightWire> wire1, List<StraightWire> wire2)
         {
-            var passedPositions1 = new HashSet<Point>(Positions(line1));
-            var passedPositions2 = new HashSet<Point>(Positions(line2));
+            var wire1Points = Positions(wire1).ToHashSet();
+            var wire2Points = Positions(wire2).ToHashSet();
 
-            var intersections = new HashSet<Point>(passedPositions1);
-
-            intersections.IntersectWith(passedPositions2);
             var start = new Point(0,0);
-            return intersections.Min(x => x.ManhattanDistance(start));
+
+            return wire1Points.Intersect(wire2Points).Min(x => x.ManhattanDistance(start));
         }
 
-        public int FewestSteps(List<StraightWire> line1, List<StraightWire> line2)
+        public int FewestSteps(List<StraightWire> wire1Segments, List<StraightWire> wire2Segments)
         {
-            var position1 = new Point(0, 0);
-            var position2 = new Point(0, 0);
-
-            var passedPositions1 = new HashSet<Point>();
-            var passedPositions2 = new HashSet<Point>();
-
             int counter1 = 0;
             var steps1 = new Dictionary<Point, int>();
-            foreach (var x in line1)
+            var wire1Points = Positions(wire1Segments);
+            foreach (var p in wire1Points)
             {
-                for (var i = 0; i < x.Length; i++)
+                counter1++;
+                if (!steps1.ContainsKey(p))
                 {
-                    position1 = position1.Move(x.Direction);
-                    passedPositions1.Add(position1);
-                    counter1++;
-                    if (!steps1.ContainsKey(position1))
-                    {
-                        steps1.Add(position1, counter1);
-                    }
+                    steps1.Add(p, counter1);
                 }
             }
 
             int counter2 = 0;
             var steps2 = new Dictionary<Point, int>();
-            foreach (var x in line2)
+            var wire2Points = Positions(wire2Segments);
+            foreach (var p in wire2Points)
             {
-                for (var i = 0; i < x.Length; i++)
+                counter2++;
+                if (!steps2.ContainsKey(p))
                 {
-                    position2 = position2.Move(x.Direction);
-                    passedPositions2.Add(position2);
-
-                    counter2++;
-                    if (!steps2.ContainsKey(position2))
-                    {
-                        steps2.Add(position2, counter2);
-                    }
+                    steps2.Add(p, counter2);
                 }
             }
 
-            var intersections = new HashSet<Point>(passedPositions1);
-
-            intersections.IntersectWith(passedPositions2);
-            var start = new Point(0, 0);
-            return intersections.Min(x => steps1[x] + steps2[x]);
+            return wire1Points.Intersect(wire2Points).Min(x => steps1[x] + steps2[x]);
         }
 
 

@@ -44,6 +44,17 @@ namespace Shared.MapGeometry
             }
         }
 
+        public static IEnumerable<Point> Line(this Point point, Direction direction, int length)
+        {
+            var current = point;
+
+            for (int i = 0; i <= length; i++)
+            {
+                yield return current;
+                current = current.Move(direction);
+            }
+        }
+
         public static int ManhattanDistance(this Point point, Point toPoint)
         {
             return Math.Abs(point.X - toPoint.X) + Math.Abs(point.Y - toPoint.Y);
