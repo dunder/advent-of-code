@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Shared.Extensions;
 using Xunit;
 
 
 namespace Solutions.Event2019
 {
-    // 
+    // --- Day 4: Secure Container ---
     public class Day04
     {
         private const string Input = "108457-562041";
@@ -20,12 +20,12 @@ namespace Solutions.Event2019
 
         public static bool RuleSet1(int password)
         {
-            return HasDouble(password) && Increasing(password);
+            return HasDouble(password) && IsIncreasing(password);
         }
 
         public static bool RuleSet2(int password)
         {
-            return HasDoubleNonGroup(password) && Increasing(password);
+            return HasDoubleNonGroup(password) && IsIncreasing(password);
         }
 
         public static int CountMatchingPasswords(int from, int to, Func<int, bool> ruleSet)
@@ -41,33 +41,10 @@ namespace Solutions.Event2019
 
         public static bool HasDoubleNonGroup(int password)
         {
-            var sPassword = password.ToString();
-            char? cPrev = sPassword[0];
-
-            var counts = new HashSet<int>();
-            int counter = 1;
-            for (int i = 1; i < sPassword.Length; i++)
-            {
-                char c = sPassword[i];
-                if (c != cPrev)
-                {
-                    counts.Add(counter);
-                    counter = 0;
-                }
-
-                if (i == sPassword.Length - 1)
-                {
-                    counts.Add(counter + 1);
-                }
-
-                counter++;
-                cPrev = c;
-            }
-
-            return counts.Contains(2);
+            return password.ToString().Sequences().Any(sequence => sequence.Item2 == 2);
         }
 
-        public static bool Increasing(int password)
+        public static bool IsIncreasing(int password)
         {
             var sPassword = password.ToString();
             var cPrev = '0';
@@ -83,7 +60,7 @@ namespace Solutions.Event2019
 
             return true;
         }
-
+        
         public int FirstStar()
         {
             var (from, to) = ParseRange(Input);
