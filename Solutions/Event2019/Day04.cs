@@ -18,16 +18,6 @@ namespace Solutions.Event2019
             return (parts[0], parts[1]);
         }
 
-        public static bool RuleSet1(int password)
-        {
-            return HasDouble(password) && IsIncreasing(password);
-        }
-
-        public static bool RuleSet2(int password)
-        {
-            return HasDoubleNonGroup(password) && IsIncreasing(password);
-        }
-
         public static int CountMatchingPasswords(int from, int to, Func<int, bool> ruleSet)
         {
             return Enumerable.Range(from, to - from + 1).Where(ruleSet).Count();
@@ -42,38 +32,26 @@ namespace Solutions.Event2019
         public static bool HasDoubleNonGroup(int password)
         {
             return password.ToString()
-                .Segment((item1, item2, i) => !item1.Equals(item2))
+                .Segment((current, previous, i) => !current.Equals(previous))
                 .Any(g => g.Count() == 2);
         }
 
         public static bool IsIncreasing(int password)
         {
-            var sPassword = password.ToString();
-            var cPrev = '0';
-            foreach (var c in sPassword)
-            {
-                if (c < cPrev)
-                {
-                    return false;
-                }
-
-                cPrev = c;
-            }
-
-            return true;
+            return password.ToString().Segment((current, previous, i) => current < previous).Count() == 1;
         }
-        
+
         public int FirstStar()
         {
             var (from, to) = ParseRange(Input);
-            return CountMatchingPasswords(from, to, RuleSet1);
+            return CountMatchingPasswords(from, to, password => HasDouble(password) && IsIncreasing(password));
         }
 
         public int SecondStar()
         {
             var (from, to) = ParseRange(Input);
 
-            return CountMatchingPasswords(from, to, RuleSet2);
+            return CountMatchingPasswords(from, to, password => HasDoubleNonGroup(password) && IsIncreasing(password));
         }
 
         [Fact]
@@ -90,19 +68,37 @@ namespace Solutions.Event2019
 
         [Theory]
         [InlineData(123444)]
-        public void SecondStarExample1(int password)
+        public void HasDoubleNonGroupNegativeTest(int password)
         {
-            bool isDouble = HasDoubleNonGroup(password);
-            Assert.False(isDouble);
+            bool hasDoubleNonGroup = HasDoubleNonGroup(password);
+            Assert.False(hasDoubleNonGroup);
         }
 
         [Theory]
         [InlineData(112233)]
         [InlineData(111122)]
-        public void SecondStarExample2(int password)
+        public void HasDoubleNonGroupPositiveTest(int password)
         {
-            bool isDouble = HasDoubleNonGroup(password);
-            Assert.True(isDouble);
+            bool hasDoubleNonGroup = HasDoubleNonGroup(password);
+            Assert.True(hasDoubleNonGroup);
+        }
+
+        [Theory]
+        [InlineData(123456)]
+        [InlineData(111122)]
+        public void IsIncreasingPositiveTest(int password)
+        {
+            bool isIncreasing = IsIncreasing(password);
+            Assert.True(isIncreasing);
+        }        
+        
+        [Theory]
+        [InlineData(121234)]
+        [InlineData(345676)]
+        public void IsIncreasingNegativeTest(int password)
+        {
+            bool isIncreasing = IsIncreasing(password);
+            Assert.False(isIncreasing);
         }
     }
 }
