@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Shared.Extensions;
+using MoreLinq;
 using Xunit;
 
 
@@ -41,7 +41,9 @@ namespace Solutions.Event2019
 
         public static bool HasDoubleNonGroup(int password)
         {
-            return password.ToString().Sequences().Any(sequence => sequence.Item2 == 2);
+            return password.ToString()
+                .Segment((item1, item2, i) => !item1.Equals(item2))
+                .Any(g => g.Count() == 2);
         }
 
         public static bool IsIncreasing(int password)
