@@ -27,13 +27,10 @@ namespace Solutions.Event2019
 
             for (int i = 0; i < code.Count;)
             {
-                // 0 - position mode
-                // 1 - immediate mode
-
                 var instruction = code[i];
                 var op = instruction % 100;
-                var p1 = (instruction / 100) % 10;
-                var p2 = (instruction / 1000) % 10;
+                var parameter1Mode = (Mode)((instruction / 100) % 10);
+                var parameter2Mode = (Mode)((instruction / 1000) % 10);
 
                 switch (op)
                 {
@@ -42,40 +39,112 @@ namespace Solutions.Event2019
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
-                            arg1 = p1 == 0 ? code[arg1] : arg1;
-                            arg2 = p2 == 0 ? code[arg2] : arg2;
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             var result = arg1 + arg2;
                             code[writeTo] = result;
                             i = i + 4;
+                            break;
                         }
-                        break;
                     case 2:
                         {
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
-                            arg1 = p1 == 0 ? code[arg1] : arg1;
-                            arg2 = p2 == 0 ? code[arg2] : arg2;
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             var result = arg1 * arg2;
                             code[writeTo] = result;
                             i = i + 4;
+                            break;
                         }
-                        break;
                     case 3:
                         {
                             var arg1 = code[i + 1];
                             code[arg1] = input;
                             i = i + 2;
+                            break;
                         }
-                        break;
                     case 4:
                         {
                             var arg1 = code[i + 1];
-                            arg1 = p1 == 0 ? code[arg1] : arg1;
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
                             output.Add(arg1);
                             i = i + 2;
+                            break;
                         }
-                        break;
+                    case 5:
+                        {
+                            var arg1 = code[i + 1];
+                            var arg2 = code[i + 2];
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            if (arg1 != 0)
+                            {
+                                i = arg2;
+                            }
+                            else
+                            {
+                                i = i + 3;
+                            }
+                            break;
+                        }
+                    case 6:
+                        {
+                            var arg1 = code[i + 1];
+                            var arg2 = code[i + 2];
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            if (arg1 == 0)
+                            {
+                                i = arg2;
+                            }
+                            else
+                            {
+                                i = i + 3;
+                            }
+                            break;
+                        }
+                    case 7:
+                        {
+                            var arg1 = code[i + 1];
+                            var arg2 = code[i + 2];
+                            var writeTo = code[i + 3];
+
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            if (arg1 < arg2)
+                            {
+                                code[writeTo] = 1;
+                            }
+                            else
+                            {
+                                code[writeTo] = 0;
+                            }
+
+                            i = i + 4;
+                            break;
+                        }
+                    case 8:
+                        {
+                            var arg1 = code[i + 1];
+                            var arg2 = code[i + 2];
+                            var writeTo = code[i + 3];
+
+                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            if (arg1 == arg2)
+                            {
+                                code[writeTo] = 1;
+                            }
+                            else
+                            {
+                                code[writeTo] = 0;
+                            }
+
+                            i = i + 4;
+                            break;
+                        }
                     case 99:
                         {
                             return output.Last();
@@ -96,8 +165,9 @@ namespace Solutions.Event2019
 
         public int SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            var code = Parse(input);
+            return Execute(code, 5);
         }
 
         [Fact]
