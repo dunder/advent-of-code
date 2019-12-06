@@ -46,5 +46,10 @@ namespace Shared.Tree
             Depth = depth;
             Parent = parent;
         }
+
+        public override string ToString()
+        {
+            return Data.ToString();
+        }
     }
 }
