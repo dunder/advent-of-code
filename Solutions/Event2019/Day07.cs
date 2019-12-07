@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using MoreLinq;
 using Xunit;
 using static Solutions.InputReader;
@@ -35,8 +34,6 @@ namespace Solutions.Event2019
             public int OperationCode { get; }
             public Mode Parameter1Mode { get; }
             public Mode Parameter2Mode { get; }
-
-
         }
 
         public static int Execute(List<int> code, int[] inputs)
@@ -171,6 +168,163 @@ namespace Solutions.Event2019
             }
             throw new InvalidOperationException("Unexpected program exit");
         }
+        
+        // work in progress, perhaps try reactive extensions for input and output?
+        private class IntCodeComputer
+        {
+            private readonly List<int> code;
+            private readonly List<int> input;
+            private readonly List<int> output;
+            private readonly int phase;
+
+            private int i;
+            private int inputCounter;
+
+            private enum ExecutionState { WaitingForInput, Ready }
+
+            public IntCodeComputer(List<int> code, List<int> input, List<int> output, int phase)
+            {
+                this.code = code;
+                this.input = input;
+                this.output = output;
+                this.phase = phase;
+                this.i = 0;
+                this.inputCounter = 0;
+            }
+
+            private ExecutionState Execute()
+            {
+                while (true)
+                {
+                    var instruction = new Instruction(code[i]);
+
+                    switch (instruction.OperationCode)
+                    {
+                        case 1:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                var writeTo = code[i + 3];
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var result = arg1 + arg2;
+                                code[writeTo] = result;
+                                i = i + 4;
+                                break;
+                            }
+                        case 2:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                var writeTo = code[i + 3];
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var result = arg1 * arg2;
+                                code[writeTo] = result;
+                                i = i + 4;
+                                break;
+                            }
+                        case 3:
+                            {
+                                var arg1 = code[i + 1];
+                                code[arg1] = input[inputCounter++];
+                                i = i + 2;
+                                break;
+                            }
+                        case 4:
+                            {
+                                var arg1 = code[i + 1];
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                output.Add(arg1);
+                                i = i + 2;
+                                return ExecutionState.WaitingForInput;
+                            }
+                        case 5:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                if (arg1 != 0)
+                                {
+                                    i = arg2;
+                                }
+                                else
+                                {
+                                    i = i + 3;
+                                }
+
+                                break;
+                            }
+                        case 6:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                if (arg1 == 0)
+                                {
+                                    i = arg2;
+                                }
+                                else
+                                {
+                                    i = i + 3;
+                                }
+
+                                break;
+                            }
+                        case 7:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                var writeTo = code[i + 3];
+
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                if (arg1 < arg2)
+                                {
+                                    code[writeTo] = 1;
+                                }
+                                else
+                                {
+                                    code[writeTo] = 0;
+                                }
+
+                                i = i + 4;
+                                break;
+                            }
+                        case 8:
+                            {
+                                var arg1 = code[i + 1];
+                                var arg2 = code[i + 2];
+                                var writeTo = code[i + 3];
+
+                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                if (arg1 == arg2)
+                                {
+                                    code[writeTo] = 1;
+                                }
+                                else
+                                {
+                                    code[writeTo] = 0;
+                                }
+
+                                i = i + 4;
+                                break;
+                            }
+                        case 99:
+                            {
+                                return ExecutionState.Ready;
+                            }
+                        default:
+                            throw new InvalidOperationException(
+                                $"Unknown op '{instruction.OperationCode}' code at i = {i}");
+                    }
+                }
+
+            }
+        }
 
 
         private class Amplifier
@@ -225,10 +379,6 @@ namespace Solutions.Event2019
                         case 3:
                         {
                             var arg1 = code[i + 1];
-                            //if (inputCounter > input.Count - 1)
-                            //{
-                            //    return false;
-                            //}
                             code[arg1] = input[inputCounter++];
                             i = i + 2;
                             break;
@@ -410,7 +560,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(15432220, SecondStar());
         }
 
         [Theory]
