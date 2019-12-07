@@ -45,12 +45,6 @@ namespace Solutions.Event2019
             {
                 var instruction = new Instruction(code[i]);
 
-                //var arg1 = code[i + 1];
-                //var arg2 = code[i + 2];
-                //var writeTo = code[i + 3];
-                //arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                //arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-
                 switch (instruction.OperationCode)
                 {
                     case 1:
