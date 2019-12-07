@@ -28,38 +28,60 @@ namespace Solutions.Event2019
                     OperationCode = operation % 100;
                     Parameter1Mode = (Mode)((operation / 100) % 10);
                     Parameter2Mode = (Mode)((operation / 1000) % 10);
+                    ParameterModes = new[] {Parameter1Mode, Parameter2Mode};
                 }
 
                 public int OperationCode { get; }
                 public Mode Parameter1Mode { get; }
                 public Mode Parameter2Mode { get; }
+                public Mode[] ParameterModes { get; }
             }
 
-            private readonly List<int> code;
+            private class ReadParameter
+            {
+                private readonly int position;
+                private readonly IntCodeComputer computer;
+
+                public ReadParameter(int position, IntCodeComputer computer)
+                {
+                    this.position = position;
+                    this.computer = computer;
+                }
+
+                public int Get(Instruction instruction)
+                {
+                    var value = computer.memory[computer.address + position];
+                    return instruction.ParameterModes[position] == Mode.Position ? computer.memory[value] : value;
+                }
+            }
+
+
+
+            private readonly List<int> memory;
             private readonly List<int> input;
 
             private List<int> output;
-            private int i;
-            private int inputCounter;
+            private int address;
+            private int inputPosition;
 
 
-            public IntCodeComputer(List<int> code, int input, int phase)
+            public IntCodeComputer(List<int> program, int input, int phase)
             {
-                this.code = new List<int>(code);
+                this.memory = new List<int>(program);
                 this.input = new List<int> {phase, input};
                 this.output = new List<int>();
-                this.i = 0;
-                this.inputCounter = 0;
+                this.address = 0;
+                this.inputPosition = 0;
             }
 
             public IntCodeComputer(IntCodeComputer inputProvider, int phase)
             {
-                this.code = new List<int>(inputProvider.code);
+                this.memory = new List<int>(inputProvider.memory);
                 this.input = inputProvider.output;
                 this.input.Add(phase);
                 this.output = new List<int>();
-                this.i = 0;
-                this.inputCounter = 0;
+                this.address = 0;
+                this.inputPosition = 0;
             }
 
 
@@ -70,125 +92,128 @@ namespace Solutions.Event2019
                 this.output = other.input;
             }
 
+            private int GetReadParameter(int position, Mode mode)
+            {
+                var value = memory[address + position];
+                return mode == Mode.Position ? memory[value] : value;
+            }
+
+            private int GetWriteParameter(int position)
+            {
+                return GetReadParameter(position, Mode.Immediate);
+            }
+
             public ExecutionState Execute()
             {
                 while (true)
                 {
-                    var instruction = new Instruction(code[i]);
+                    var instruction = new Instruction(memory[address]);
 
                     switch (instruction.OperationCode)
                     {
                         case 1:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                var writeTo = code[i + 3];
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var writeTo = GetWriteParameter(3);
+
                                 var result = arg1 + arg2;
-                                code[writeTo] = result;
-                                i = i + 4;
+                                memory[writeTo] = result;
+                                address = address + 4;
                                 break;
                             }
                         case 2:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                var writeTo = code[i + 3];
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var writeTo = GetWriteParameter(3);
+
                                 var result = arg1 * arg2;
-                                code[writeTo] = result;
-                                i = i + 4;
+                                memory[writeTo] = result;
+                                address = address + 4;
                                 break;
                             }
                         case 3:
                             {
-                                var arg1 = code[i + 1];
-                                code[arg1] = input[inputCounter++];
-                                i = i + 2;
+                                var arg1 = GetWriteParameter(1);
+                                memory[arg1] = input[inputPosition++];
+                                address = address + 2;
                                 break;
                             }
                         case 4:
                             {
-                                var arg1 = code[i + 1];
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+
                                 output.Add(arg1);
-                                i = i + 2;
+                                address = address + 2;
                                 return ExecutionState.WaitingForInput;
                             }
                         case 5:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+
                                 if (arg1 != 0)
                                 {
-                                    i = arg2;
+                                    address = arg2;
                                 }
                                 else
                                 {
-                                    i = i + 3;
+                                    address = address + 3;
                                 }
 
                                 break;
                             }
                         case 6:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+
                                 if (arg1 == 0)
                                 {
-                                    i = arg2;
+                                    address = arg2;
                                 }
                                 else
                                 {
-                                    i = i + 3;
+                                    address = address + 3;
                                 }
 
                                 break;
                             }
                         case 7:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                var writeTo = code[i + 3];
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var writeTo = GetWriteParameter(3);
 
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                                 if (arg1 < arg2)
                                 {
-                                    code[writeTo] = 1;
+                                    memory[writeTo] = 1;
                                 }
                                 else
                                 {
-                                    code[writeTo] = 0;
+                                    memory[writeTo] = 0;
                                 }
 
-                                i = i + 4;
+                                address = address + 4;
                                 break;
                             }
                         case 8:
                             {
-                                var arg1 = code[i + 1];
-                                var arg2 = code[i + 2];
-                                var writeTo = code[i + 3];
+                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var writeTo = GetWriteParameter(3);
 
-                                arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                                arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                                 if (arg1 == arg2)
                                 {
-                                    code[writeTo] = 1;
+                                    memory[writeTo] = 1;
                                 }
                                 else
                                 {
-                                    code[writeTo] = 0;
+                                    memory[writeTo] = 0;
                                 }
 
-                                i = i + 4;
+                                address = address + 4;
                                 break;
                             }
                         case 99:
@@ -197,7 +222,7 @@ namespace Solutions.Event2019
                             }
                         default:
                             throw new InvalidOperationException(
-                                $"Unknown op '{instruction.OperationCode}' code at i = {i}");
+                                $"Unknown op '{instruction.OperationCode}' code at address = {address}");
                     }
                 }
             }
