@@ -21,26 +21,45 @@ namespace Solutions.Event2019
             Immediate
         }
 
+        private class Instruction
+        {
+            public Instruction(int operation)
+            {
+                OperationCode = operation % 100;
+                Parameter1Mode = (Mode)((operation / 100) % 10);
+                Parameter2Mode = (Mode)((operation / 1000) % 10);
+            }
+
+            public int OperationCode { get; }
+            public Mode Parameter1Mode { get; }
+            public Mode Parameter2Mode { get; }
+
+
+        }
+
         public static int Execute(List<int> code, int input)
         {
             var output = new List<int>();
 
             for (int i = 0; i < code.Count;)
             {
-                var instruction = code[i];
-                var op = instruction % 100;
-                var parameter1Mode = (Mode)((instruction / 100) % 10);
-                var parameter2Mode = (Mode)((instruction / 1000) % 10);
+                var instruction = new Instruction(code[i]);
 
-                switch (op)
+                //var arg1 = code[i + 1];
+                //var arg2 = code[i + 2];
+                //var writeTo = code[i + 3];
+                //arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                //arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
+
+                switch (instruction.OperationCode)
                 {
                     case 1:
                         {
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             var result = arg1 + arg2;
                             code[writeTo] = result;
                             i = i + 4;
@@ -51,8 +70,8 @@ namespace Solutions.Event2019
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             var result = arg1 * arg2;
                             code[writeTo] = result;
                             i = i + 4;
@@ -68,7 +87,7 @@ namespace Solutions.Event2019
                     case 4:
                         {
                             var arg1 = code[i + 1];
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
                             output.Add(arg1);
                             i = i + 2;
                             break;
@@ -77,8 +96,8 @@ namespace Solutions.Event2019
                         {
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             if (arg1 != 0)
                             {
                                 i = arg2;
@@ -93,8 +112,8 @@ namespace Solutions.Event2019
                         {
                             var arg1 = code[i + 1];
                             var arg2 = code[i + 2];
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             if (arg1 == 0)
                             {
                                 i = arg2;
@@ -111,8 +130,8 @@ namespace Solutions.Event2019
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
 
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             if (arg1 < arg2)
                             {
                                 code[writeTo] = 1;
@@ -131,8 +150,8 @@ namespace Solutions.Event2019
                             var arg2 = code[i + 2];
                             var writeTo = code[i + 3];
 
-                            arg1 = parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = parameter2Mode == Mode.Position ? code[arg2] : arg2;
+                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
+                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
                             if (arg1 == arg2)
                             {
                                 code[writeTo] = 1;
@@ -150,7 +169,7 @@ namespace Solutions.Event2019
                             return output.Last();
                         }
                     default:
-                        throw new InvalidOperationException($"Unknown op '{op}' code at i = {i}");
+                        throw new InvalidOperationException($"Unknown op '{instruction.OperationCode}' code at i = {i}");
                 }
             }
             throw new InvalidOperationException("Unexpected program exit");
