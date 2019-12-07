@@ -16,183 +16,61 @@ namespace Solutions.Event2019
             return input.Split(',').Select(int.Parse).ToList();
         }
 
-        private enum Mode
+        public class IntCodeComputer
         {
-            Position = 0,
-            Immediate
-        }
+            private enum Mode { Position = 0, Immediate }
+            public enum ExecutionState { WaitingForInput, Ready }
 
-        private class Instruction
-        {
-            public Instruction(int operation)
+            private class Instruction
             {
-                OperationCode = operation % 100;
-                Parameter1Mode = (Mode)((operation / 100) % 10);
-                Parameter2Mode = (Mode)((operation / 1000) % 10);
-            }
-
-            public int OperationCode { get; }
-            public Mode Parameter1Mode { get; }
-            public Mode Parameter2Mode { get; }
-        }
-
-        public static int Execute(List<int> code, int[] inputs)
-        {
-            var output = new List<int>();
-            var inputCounter = 0;
-
-            for (int i = 0; i < code.Count;)
-            {
-                var instruction = new Instruction(code[i]);
-
-                switch (instruction.OperationCode)
+                public Instruction(int operation)
                 {
-                    case 1:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            var result = arg1 + arg2;
-                            code[writeTo] = result;
-                            i = i + 4;
-                            break;
-                        }
-                    case 2:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            var result = arg1 * arg2;
-                            code[writeTo] = result;
-                            i = i + 4;
-                            break;
-                        }
-                    case 3:
-                        {
-                            var arg1 = code[i + 1];
-                            code[arg1] = inputs[inputCounter++];
-                            i = i + 2;
-                            break;
-                        }
-                    case 4:
-                        {
-                            var arg1 = code[i + 1];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            output.Add(arg1);
-                            i = i + 2;
-                            break;
-                        }
-                    case 5:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 != 0)
-                            {
-                                i = arg2;
-                            }
-                            else
-                            {
-                                i = i + 3;
-                            }
-                            break;
-                        }
-                    case 6:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 == 0)
-                            {
-                                i = arg2;
-                            }
-                            else
-                            {
-                                i = i + 3;
-                            }
-                            break;
-                        }
-                    case 7:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 < arg2)
-                            {
-                                code[writeTo] = 1;
-                            }
-                            else
-                            {
-                                code[writeTo] = 0;
-                            }
-
-                            i = i + 4;
-                            break;
-                        }
-                    case 8:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 == arg2)
-                            {
-                                code[writeTo] = 1;
-                            }
-                            else
-                            {
-                                code[writeTo] = 0;
-                            }
-
-                            i = i + 4;
-                            break;
-                        }
-                    case 99:
-                        {
-                            return output.Last();
-                        }
-                    default:
-                        throw new InvalidOperationException($"Unknown op '{instruction.OperationCode}' code at i = {i}");
+                    OperationCode = operation % 100;
+                    Parameter1Mode = (Mode)((operation / 100) % 10);
+                    Parameter2Mode = (Mode)((operation / 1000) % 10);
                 }
+
+                public int OperationCode { get; }
+                public Mode Parameter1Mode { get; }
+                public Mode Parameter2Mode { get; }
             }
-            throw new InvalidOperationException("Unexpected program exit");
-        }
-        
-        // work in progress, perhaps try reactive extensions for input and output?
-        private class IntCodeComputer
-        {
+
             private readonly List<int> code;
             private readonly List<int> input;
-            private readonly List<int> output;
-            private readonly int phase;
 
+            private List<int> output;
             private int i;
             private int inputCounter;
 
-            private enum ExecutionState { WaitingForInput, Ready }
 
-            public IntCodeComputer(List<int> code, List<int> input, List<int> output, int phase)
+            public IntCodeComputer(List<int> code, int input, int phase)
             {
-                this.code = code;
-                this.input = input;
-                this.output = output;
-                this.phase = phase;
+                this.code = new List<int>(code);
+                this.input = new List<int> {phase, input};
+                this.output = new List<int>();
                 this.i = 0;
                 this.inputCounter = 0;
             }
 
-            private ExecutionState Execute()
+            public IntCodeComputer(IntCodeComputer inputProvider, int phase)
+            {
+                this.code = new List<int>(inputProvider.code);
+                this.input = inputProvider.output;
+                this.input.Add(phase);
+                this.output = new List<int>();
+                this.i = 0;
+                this.inputCounter = 0;
+            }
+
+
+            public int Output => this.output.Last();
+
+            public void ConnectOutputTo(IntCodeComputer other)
+            {
+                this.output = other.input;
+            }
+
+            public ExecutionState Execute()
             {
                 while (true)
                 {
@@ -322,233 +200,74 @@ namespace Solutions.Event2019
                                 $"Unknown op '{instruction.OperationCode}' code at i = {i}");
                     }
                 }
-
             }
         }
 
-
-        private class Amplifier
+        public int SignalToThrusters(List<int> code, IList<int> phaseSetting)
         {
-            private readonly List<int> code;
-            private readonly List<int> input;
-            private readonly List<int> output;
-            private int inputCounter;
-            private int i;
+            var computer1 = new IntCodeComputer(code, 0, phaseSetting[0]);
+            var computer2 = new IntCodeComputer(computer1, phaseSetting[1]);
+            var computer3 = new IntCodeComputer(computer2, phaseSetting[2]);
+            var computer4 = new IntCodeComputer(computer3, phaseSetting[3]);
+            var computer5 = new IntCodeComputer(computer4, phaseSetting[4]);
 
-            public Amplifier(List<int> code, List<int> input, List<int> output)
-            {
-                this.code = code;
-                this.input = input;
-                this.output = output;
-                this.inputCounter = 0;
-                this.i = 0;
-            }
+            computer1.Execute();
+            computer2.Execute();
+            computer3.Execute();
+            computer4.Execute();
+            computer5.Execute();
 
-            public bool Execute()
-            {
-                while (true)
-                {
-                    var instruction = new Instruction(code[i]);
-
-                    switch (instruction.OperationCode)
-                    {
-                        case 1:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            var result = arg1 + arg2;
-                            code[writeTo] = result;
-                            i = i + 4;
-                            break;
-                        }
-                        case 2:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            var result = arg1 * arg2;
-                            code[writeTo] = result;
-                            i = i + 4;
-                            break;
-                        }
-                        case 3:
-                        {
-                            var arg1 = code[i + 1];
-                            code[arg1] = input[inputCounter++];
-                            i = i + 2;
-                            break;
-                        }
-                        case 4:
-                        {
-                            var arg1 = code[i + 1];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            output.Add(arg1);
-                            i = i + 2;
-                            return false;
-                        }
-                        case 5:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 != 0)
-                            {
-                                i = arg2;
-                            }
-                            else
-                            {
-                                i = i + 3;
-                            }
-
-                            break;
-                        }
-                        case 6:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 == 0)
-                            {
-                                i = arg2;
-                            }
-                            else
-                            {
-                                i = i + 3;
-                            }
-
-                            break;
-                        }
-                        case 7:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 < arg2)
-                            {
-                                code[writeTo] = 1;
-                            }
-                            else
-                            {
-                                code[writeTo] = 0;
-                            }
-
-                            i = i + 4;
-                            break;
-                        }
-                        case 8:
-                        {
-                            var arg1 = code[i + 1];
-                            var arg2 = code[i + 2];
-                            var writeTo = code[i + 3];
-
-                            arg1 = instruction.Parameter1Mode == Mode.Position ? code[arg1] : arg1;
-                            arg2 = instruction.Parameter2Mode == Mode.Position ? code[arg2] : arg2;
-                            if (arg1 == arg2)
-                            {
-                                code[writeTo] = 1;
-                            }
-                            else
-                            {
-                                code[writeTo] = 0;
-                            }
-
-                            i = i + 4;
-                            break;
-                        }
-                        case 99:
-                        {
-                            return true;
-                        }
-                        default:
-                            throw new InvalidOperationException(
-                                $"Unknown op '{instruction.OperationCode}' code at i = {i}");
-                    }
-                }
-
-                throw new InvalidOperationException("Unexpected program exit");
-            }
+            return computer5.Output;
         }
 
-        public int SignalToThrust(List<int> code, IList<int> phaseSetting)
-        {
-            int input2 = Execute(code, new [] {phaseSetting[0],0});
-            int input3 = Execute(code, new [] {phaseSetting[1],input2});
-            int input4 = Execute(code, new [] {phaseSetting[2],input3});
-            int input5 = Execute(code, new [] {phaseSetting[3],input4});
-            int thrustInput = Execute(code, new [] {phaseSetting[4],input5});
-
-            return thrustInput;
-        }
-
-        public int CalculateMaxSignalToThrusters(List<int> code)
+        public int MaxSignalToThrusters(List<int> code)
         {
             var phases = new List<int> {0, 1, 2, 3, 4};
             var allPossiblePhaseSettings = phases.Permutations();
-            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrust(code, phaseSetting)).Max();
+            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrusters(code, phaseSetting)).Max();
         }
 
-        public int SignalToThrust2(List<int> code, IList<int> phaseSetting)
+        public int SignalToThrustersWithFeedbackLoop(List<int> code, IList<int> phaseSetting)
         {
-            var code1 = new List<int>(code);
-            var code2 = new List<int>(code);
-            var code3 = new List<int>(code);
-            var code4 = new List<int>(code);
-            var code5 = new List<int>(code);
+            var computer1 = new IntCodeComputer(code, 0, phaseSetting[0]);
+            var computer2 = new IntCodeComputer(computer1, phaseSetting[1]);
+            var computer3 = new IntCodeComputer(computer2, phaseSetting[2]);
+            var computer4 = new IntCodeComputer(computer3, phaseSetting[3]);
+            var computer5 = new IntCodeComputer(computer4, phaseSetting[4]);
+            computer5.ConnectOutputTo(computer1);
 
-            var amplifier1Input = new List<int> {phaseSetting[0], 0};
-            var amplifier1Output = new List<int> {phaseSetting[1]};
-            var amplifier2Output = new List<int> {phaseSetting[2]};
-            var amplifier3Output = new List<int> {phaseSetting[3]};
-            var amplifier4Output = new List<int> {phaseSetting[4]};
-
-            var amplifier1 = new Amplifier(code1, amplifier1Input, amplifier1Output);
-            var amplifier2 = new Amplifier(code2, amplifier1Output, amplifier2Output);
-            var amplifier3 = new Amplifier(code3, amplifier2Output, amplifier3Output);
-            var amplifier4 = new Amplifier(code4, amplifier3Output, amplifier4Output);
-            var amplifier5 = new Amplifier(code5, amplifier4Output, amplifier1Input);
-
-            bool ready;
+            IntCodeComputer.ExecutionState computer5State;
             do
             {
-                amplifier1.Execute();
-                amplifier2.Execute();
-                amplifier3.Execute();
-                amplifier4.Execute();
-                ready = amplifier5.Execute();
-            } while (!ready);
+                computer1.Execute();
+                computer2.Execute();
+                computer3.Execute();
+                computer4.Execute();
+                computer5State = computer5.Execute();
+            } while (computer5State != IntCodeComputer.ExecutionState.Ready);
 
-            return amplifier1Input.Last();
+            return computer5.Output;
         }
 
-        public int CalculateMaxSignalToThrusters2(List<int> code)
+        public int MaxSignalToThrustersWithFeedbackLoop(List<int> code)
         {
             var phases = new List<int> { 5, 6, 7, 8, 9 };
             var allPossiblePhaseSettings = phases.Permutations();
-            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrust2(code, phaseSetting)).Max();
+            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrustersWithFeedbackLoop(code, phaseSetting)).Max();
         }
 
         public int FirstStar()
         {
             var input = ReadInput();
             var code = Parse(input);
-            return CalculateMaxSignalToThrusters(code);
+            return MaxSignalToThrusters(code);
         }
 
         public int SecondStar()
         {
             var input = ReadInput();
             var code = Parse(input);
-            return CalculateMaxSignalToThrusters2(code);
+            return MaxSignalToThrustersWithFeedbackLoop(code);
         }
 
         [Fact]
@@ -570,7 +289,7 @@ namespace Solutions.Event2019
         public void FirstStarExamples(string input, string phaseSetting, int expectedMax)
         {
             var code = Parse(input);
-            var signal = SignalToThrust(code, phaseSetting.Split(',').Select(int.Parse).ToList());
+            var signal = SignalToThrusters(code, phaseSetting.Split(',').Select(int.Parse).ToList());
             Assert.Equal(expectedMax, signal);
         }        
         
@@ -580,7 +299,7 @@ namespace Solutions.Event2019
         public void SecondStarExamples(string input, string phaseSetting, int expectedMax)
         {
             var code = Parse(input);
-            var signal = SignalToThrust2(code, phaseSetting.Split(',').Select(int.Parse).ToList());
+            var signal = SignalToThrustersWithFeedbackLoop(code, phaseSetting.Split(',').Select(int.Parse).ToList());
             Assert.Equal(expectedMax, signal);
         }
     }
