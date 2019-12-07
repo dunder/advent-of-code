@@ -26,36 +26,12 @@ namespace Solutions.Event2019
                 public Instruction(int operation)
                 {
                     OperationCode = operation % 100;
-                    Parameter1Mode = (Mode)((operation / 100) % 10);
-                    Parameter2Mode = (Mode)((operation / 1000) % 10);
-                    ParameterModes = new[] {Parameter1Mode, Parameter2Mode};
+                    ParameterModes = new[] { (Mode)((operation / 100) % 10), (Mode)((operation / 1000) % 10) };
                 }
 
                 public int OperationCode { get; }
-                public Mode Parameter1Mode { get; }
-                public Mode Parameter2Mode { get; }
                 public Mode[] ParameterModes { get; }
             }
-
-            private class ReadParameter
-            {
-                private readonly int position;
-                private readonly IntCodeComputer computer;
-
-                public ReadParameter(int position, IntCodeComputer computer)
-                {
-                    this.position = position;
-                    this.computer = computer;
-                }
-
-                public int Get(Instruction instruction)
-                {
-                    var value = computer.memory[computer.address + position];
-                    return instruction.ParameterModes[position] == Mode.Position ? computer.memory[value] : value;
-                }
-            }
-
-
 
             private readonly List<int> memory;
             private readonly List<int> input;
@@ -92,15 +68,10 @@ namespace Solutions.Event2019
                 this.output = other.input;
             }
 
-            private int GetReadParameter(int position, Mode mode)
+            private int ReadParameterValue(int position, Mode mode)
             {
                 var value = memory[address + position];
                 return mode == Mode.Position ? memory[value] : value;
-            }
-
-            private int GetWriteParameter(int position)
-            {
-                return GetReadParameter(position, Mode.Immediate);
             }
 
             public ExecutionState Execute()
@@ -113,9 +84,9 @@ namespace Solutions.Event2019
                     {
                         case 1:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
-                                var writeTo = GetWriteParameter(3);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
+                                var writeTo = ReadParameterValue(3, Mode.Immediate);
 
                                 var result = arg1 + arg2;
                                 memory[writeTo] = result;
@@ -124,9 +95,9 @@ namespace Solutions.Event2019
                             }
                         case 2:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
-                                var writeTo = GetWriteParameter(3);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
+                                var writeTo = ReadParameterValue(3, Mode.Immediate);
 
                                 var result = arg1 * arg2;
                                 memory[writeTo] = result;
@@ -135,14 +106,14 @@ namespace Solutions.Event2019
                             }
                         case 3:
                             {
-                                var arg1 = GetWriteParameter(1);
+                                var arg1 = ReadParameterValue(1, Mode.Immediate);
                                 memory[arg1] = input[inputPosition++];
                                 address = address + 2;
                                 break;
                             }
                         case 4:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
 
                                 output.Add(arg1);
                                 address = address + 2;
@@ -150,8 +121,8 @@ namespace Solutions.Event2019
                             }
                         case 5:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
 
                                 if (arg1 != 0)
                                 {
@@ -166,8 +137,8 @@ namespace Solutions.Event2019
                             }
                         case 6:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
 
                                 if (arg1 == 0)
                                 {
@@ -182,9 +153,9 @@ namespace Solutions.Event2019
                             }
                         case 7:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
-                                var writeTo = GetWriteParameter(3);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
+                                var writeTo = ReadParameterValue(3, Mode.Immediate);
 
                                 if (arg1 < arg2)
                                 {
@@ -200,9 +171,9 @@ namespace Solutions.Event2019
                             }
                         case 8:
                             {
-                                var arg1 = GetReadParameter(1, instruction.ParameterModes[0]);
-                                var arg2 = GetReadParameter(2, instruction.ParameterModes[1]);
-                                var writeTo = GetWriteParameter(3);
+                                var arg1 = ReadParameterValue(1, instruction.ParameterModes[0]);
+                                var arg2 = ReadParameterValue(2, instruction.ParameterModes[1]);
+                                var writeTo = ReadParameterValue(3, Mode.Immediate);
 
                                 if (arg1 == arg2)
                                 {
@@ -245,11 +216,10 @@ namespace Solutions.Event2019
             return computer5.Output;
         }
 
-        public int MaxSignalToThrusters(List<int> code)
+        public int MaxSignalToThrusters(List<int> code, List<int> phases, Func<List<int>, IList<int>, int> amplification)
         {
-            var phases = new List<int> {0, 1, 2, 3, 4};
             var allPossiblePhaseSettings = phases.Permutations();
-            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrusters(code, phaseSetting)).Max();
+            return allPossiblePhaseSettings.Select(phaseSetting => amplification(code, phaseSetting)).Max();
         }
 
         public int SignalToThrustersWithFeedbackLoop(List<int> code, IList<int> phaseSetting)
@@ -274,25 +244,18 @@ namespace Solutions.Event2019
             return computer5.Output;
         }
 
-        public int MaxSignalToThrustersWithFeedbackLoop(List<int> code)
-        {
-            var phases = new List<int> { 5, 6, 7, 8, 9 };
-            var allPossiblePhaseSettings = phases.Permutations();
-            return allPossiblePhaseSettings.Select(phaseSetting => SignalToThrustersWithFeedbackLoop(code, phaseSetting)).Max();
-        }
-
         public int FirstStar()
         {
             var input = ReadInput();
             var code = Parse(input);
-            return MaxSignalToThrusters(code);
+            return MaxSignalToThrusters(code, new List<int> { 0, 1, 2, 3, 4 }, SignalToThrusters);
         }
 
         public int SecondStar()
         {
             var input = ReadInput();
             var code = Parse(input);
-            return MaxSignalToThrustersWithFeedbackLoop(code);
+            return MaxSignalToThrusters(code, new List<int> { 5, 6, 7, 8, 9 }, SignalToThrustersWithFeedbackLoop); ;
         }
 
         [Fact]
