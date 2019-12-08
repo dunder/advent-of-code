@@ -19,14 +19,14 @@ namespace Solutions.Event2019
             this.output = output;
         }
 
+        private const int Width = 25;
+        private const int Height = 6;
+
         public enum Color { Black = 0, White, Transparent }
 
         public static int CountZeroes(string input)
         {
-            int width = 25;
-            int height = 6;
-
-            var fewestZeroes = input.Batch(width * height).OrderBy(layer => layer.Count(c => c == '0')).First().ToList();
+            var fewestZeroes = input.Batch(Width * Height).OrderBy(layer => layer.Count(c => c == '0')).First().ToList();
             return fewestZeroes.Count(c => c == '1') * fewestZeroes.Count(c => c == '2');
         }
 
@@ -64,8 +64,11 @@ namespace Solutions.Event2019
             return display;
         }
 
-        public void Print(Color[,] visiblePixels, int width, int height)
+        public void Print(Color[,] visiblePixels)
         {
+            int width = visiblePixels.GetLength(0);
+            int height = visiblePixels.GetLength(1);
+
             for (int y = 0; y < height; y++)
             {
                 var line = new StringBuilder();
@@ -90,7 +93,7 @@ namespace Solutions.Event2019
             var input = ReadInput();
             int width = 25;
             int height = 6;
-            Print(VisiblePixels(ReadLayers(input, width, height), 25, 6), width, height);
+            Print(VisiblePixels(ReadLayers(input, width, height), 25, 6));
             return 0;
         }
 
@@ -106,14 +109,13 @@ namespace Solutions.Event2019
             SecondStar();
         }
 
-
         [Fact]
         public void SecondStarExample()
         {
             string input = "0222112222120000";
             int width = 2;
             int height = 2;
-            Print(VisiblePixels(ReadLayers(input, width, height), width, height), width, height);
+            Print(VisiblePixels(ReadLayers(input, width, height), width, height));
         }
     }
 }
