@@ -30,15 +30,20 @@ namespace Solutions.Event2019
                 }
 
                 public int OperationCode { get; }
+                /// <summary>
+                /// Mode at index 0 is the mode for parameter 1, mode at index 1 is the mode for parameter 2
+                /// </summary>
                 public Mode[] ParameterModes { get; }
             }
 
             private readonly List<int> memory;
+            
             private readonly List<int> input;
-
             private List<int> output;
+            
             private int instructionPointer;
             private int inputPosition;
+            private Instruction instruction;
 
 
             public IntCodeComputer(List<int> program, int input, int phase)
@@ -74,19 +79,40 @@ namespace Solutions.Event2019
                 return mode == Mode.Position ? memory[value] : value;
             }
 
+            private enum ParameterType { Read, Write }
+
+            private (int, int, int) LoadParameters(params ParameterType[] parameterTypes)
+            {
+                if (parameterTypes.Length > 3)
+                {
+                    throw new ArgumentOutOfRangeException($"Maximum 3 parameters supported (got {parameterTypes.Length}");
+                }
+
+                var result = new int[3];
+
+                for (int i = 0; i < parameterTypes.Length; i++)
+                {
+                    var mode = parameterTypes[i] == ParameterType.Read
+                        ? instruction.ParameterModes[i]
+                        : Mode.Immediate;
+
+                    result[i] = Parameter(i + 1, mode);
+                }
+
+                return (result[0], result[1], result[2]);
+            }
+
             public ExecutionState Execute()
             {
                 while (true)
                 {
-                    var instruction = new Instruction(memory[instructionPointer]);
+                    instruction = new Instruction(memory[instructionPointer]);
 
                     switch (instruction.OperationCode)
                     {
                         case 1:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
-                                var writeTo = Parameter(3, Mode.Immediate);
+                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
                                 memory[writeTo] = arg1 + arg2;
                                 instructionPointer = instructionPointer + 4;
@@ -94,9 +120,7 @@ namespace Solutions.Event2019
                             }
                         case 2:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
-                                var writeTo = Parameter(3, Mode.Immediate);
+                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
                                 memory[writeTo] = arg1 * arg2;
                                 instructionPointer = instructionPointer + 4;
@@ -104,7 +128,7 @@ namespace Solutions.Event2019
                             }
                         case 3:
                             {
-                                var arg1 = Parameter(1, Mode.Immediate);
+                                var (arg1, _, _) = LoadParameters(ParameterType.Write);
 
                                 memory[arg1] = input[inputPosition++];
                                 instructionPointer = instructionPointer + 2;
@@ -112,7 +136,7 @@ namespace Solutions.Event2019
                             }
                         case 4:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
+                                var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
                                 output.Add(arg1);
                                 instructionPointer = instructionPointer + 2;
@@ -120,25 +144,21 @@ namespace Solutions.Event2019
                             }
                         case 5:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
+                                var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
 
                                 instructionPointer = arg1 != 0 ? arg2 : instructionPointer + 3;
                                 break;
                             }
                         case 6:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
+                                var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
 
                                 instructionPointer = arg1 == 0 ? arg2 : instructionPointer + 3;
                                 break;
                             }
                         case 7:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
-                                var writeTo = Parameter(3, Mode.Immediate);
+                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
                                 memory[writeTo] = arg1 < arg2 ? 1 : 0;
 
@@ -147,9 +167,7 @@ namespace Solutions.Event2019
                             }
                         case 8:
                             {
-                                var arg1 = Parameter(1, instruction.ParameterModes[0]);
-                                var arg2 = Parameter(2, instruction.ParameterModes[1]);
-                                var writeTo = Parameter(3, Mode.Immediate);
+                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
                                 memory[writeTo] = arg1 == arg2 ? 1 : 0;
 
@@ -162,7 +180,7 @@ namespace Solutions.Event2019
                             }
                         default:
                             throw new InvalidOperationException(
-                                $"Unknown op '{instruction.OperationCode}' code at address = {instructionPointer}");
+                                $"Unknown op code '{instruction.OperationCode}' at address = {instructionPointer}");
                     }
                 }
             }
