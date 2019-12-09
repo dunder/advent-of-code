@@ -7,7 +7,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2019
 {
-    // 
+    // --- Day 9: Sensor Boost ---
     public class Day09
     {
         public static List<long> Parse(string input)
@@ -15,30 +15,36 @@ namespace Solutions.Event2019
             return input.Split(',').Select(long.Parse).ToList();
         }
 
-        public class IntCodeComputer
+        private class IntCodeComputer
         {
-            private enum Mode { Position = 0, Immediate, Relative }
             public enum ExecutionState { WaitingForInput, Ready }
+            private enum Mode { Position = 0, Immediate, Relative }
+            private enum ParameterType { Read, Write }
 
             private class Instruction
             {
                 public Instruction(long operation)
                 {
                     OperationCode = operation % 100;
-                    ParameterModes = new[] { (Mode)((operation / 100) % 10), (Mode)((operation / 1000) % 10) };
+                    ParameterModes = new[]
+                    {
+                        (Mode)((operation / 100) % 10), 
+                        (Mode)((operation / 1000) % 10),
+                        (Mode)((operation / 10000) % 10),
+                    };
                 }
 
                 public long OperationCode { get; }
-                /// <summary>
-                /// Mode at index 0 is the mode for parameter 1, mode at index 1 is the mode for parameter 2
-                /// </summary>
+            
+                // mode for parameter 1 at index 0
+                // mode for parameter 2 at index 1 
+                // mode for parameter 3 at index 2
                 public Mode[] ParameterModes { get; }
             }
 
             private readonly Dictionary<long, long> memory;
 
             private readonly List<long> input;
-            private List<long> output;
 
             private long instructionPointer;
             private int inputPosition;
@@ -59,46 +65,24 @@ namespace Solutions.Event2019
             {
                 this.memory = Load(program);
                 this.input = new List<long>();
-                this.output = new List<long>();
                 this.instructionPointer = 0;
                 this.inputPosition = 0;
+
+                this.Output = new List<long>();
+
             }
 
             public IntCodeComputer(List<long> program, long input)
             {
                 this.memory = Load(program);
                 this.input = new List<long> { input };
-                this.output = new List<long>();
-                this.instructionPointer = 0;
-                this.inputPosition = 0;
-            }
-
-            public IntCodeComputer(List<long> program, long input, long phase)
-            {
-                this.memory = Load(program);
-                this.input = new List<long> { phase, input };
-                this.output = new List<long>();
-                this.instructionPointer = 0;
-                this.inputPosition = 0;
-            }
-
-            public IntCodeComputer(IntCodeComputer inputProvider, long phase)
-            {
-                this.memory = new Dictionary<long, long>(inputProvider.memory);
-                this.input = inputProvider.output;
-                this.input.Add(phase);
-                this.output = new List<long>();
+                this.Output = new List<long>();
                 this.instructionPointer = 0;
                 this.inputPosition = 0;
             }
 
 
-            public List<long> Output => this.output;
-
-            public void ConnectOutputTo(IntCodeComputer other)
-            {
-                this.output = other.input;
-            }
+            public List<long> Output { get; }
 
             private long Read(long address)
             {
@@ -113,25 +97,28 @@ namespace Solutions.Event2019
 
                 return memory[address];
             }
-            private long Parameter(long position, Mode mode)
+            private long Parameter(long position, Mode mode, ParameterType type)
             {
                 var value = Read(instructionPointer + position);
 
-                if (mode == Mode.Position)
+                switch (mode)
                 {
-                    return Read(value);
-                }
-                else if (mode == Mode.Immediate)
-                {
-                    return value;
-                }
-                else
-                {
-                    return Read(value + relativeBase);
+                    case Mode.Position:
+                    {
+                        return type == ParameterType.Read ? Read(value) : value;
+                    }
+                    case Mode.Immediate:
+                    {
+                        return value;
+                    }
+                    case Mode.Relative:
+                    {
+                        return type == ParameterType.Read ? Read(value + relativeBase) : value + relativeBase;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
                 }
             }
-
-            private enum ParameterType { Read, Write }
 
             private (long, long, long) LoadParameters(params ParameterType[] parameterTypes)
             {
@@ -144,26 +131,15 @@ namespace Solutions.Event2019
 
                 for (long i = 0; i < parameterTypes.Length; i++)
                 {
-                    
-                    var mode = parameterTypes[i] == ParameterType.Read
-                        ? instruction.ParameterModes[i]
-                        : Mode.Immediate;
+                    var mode = instruction.ParameterModes[i];
+                    var type = parameterTypes[i];
 
-                    result[i] = Parameter(i + 1, mode);
+                    result[i] = Parameter(i + 1, mode, type);
                 }
 
                 return (result[0], result[1], result[2]);
             }
-            public List<long> ExecuteAll()
-            {
-                var state = ExecutionState.WaitingForInput;
-                while (state != ExecutionState.Ready)
-                {
-                    state = Execute();
-                }
 
-                return output;
-            }
             public ExecutionState Execute()
             {
                 while (true)
@@ -190,8 +166,7 @@ namespace Solutions.Event2019
                             }
                         case 3:
                             {
-                                // Read or write?
-                                var (arg1, _, _) = LoadParameters(ParameterType.Read);
+                                var (arg1, _, _) = LoadParameters(ParameterType.Write);
 
                                 memory[arg1] = input[inputPosition++];
                                 instructionPointer = instructionPointer + 2;
@@ -201,7 +176,7 @@ namespace Solutions.Event2019
                             {
                                 var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
-                                output.Add(arg1);
+                                Output.Add(arg1);
                                 instructionPointer = instructionPointer + 2;
                                 return ExecutionState.WaitingForInput;
                             }
@@ -239,7 +214,6 @@ namespace Solutions.Event2019
                             }
                         case 9:
                             {
-                                // read or write?
                                 var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
                                 relativeBase += arg1;
@@ -257,6 +231,17 @@ namespace Solutions.Event2019
                     }
                 }
             }
+
+            public List<long> ExecuteAll()
+            {
+                var state = ExecutionState.WaitingForInput;
+                while (state != ExecutionState.Ready)
+                {
+                    state = Execute();
+                }
+
+                return Output;
+            }
         }
 
         public long FirstStar()
@@ -268,23 +253,25 @@ namespace Solutions.Event2019
             return computer.Output.Last();
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            var program = Parse(input);
+            var computer = new IntCodeComputer(program, 2);
+            computer.ExecuteAll();
+            return computer.Output.Last();
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            // Assert.Equal(203, FirstStar()); wrong too low
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(3280416268, FirstStar());
         }
 
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(80210, SecondStar());
         }
 
         [Fact]
