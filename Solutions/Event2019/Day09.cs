@@ -84,7 +84,7 @@ namespace Solutions.Event2019
 
             public List<long> Output { get; }
 
-            private long Read(long address)
+            private long ReadMemory(long address)
             {
                 if (address < 0)
                 {
@@ -97,15 +97,17 @@ namespace Solutions.Event2019
 
                 return memory[address];
             }
-            private long Parameter(long position, Mode mode, ParameterType type)
-            {
-                var value = Read(instructionPointer + position);
 
+            private long ReadParameter(int position)
+            {
+                var value = ReadMemory(instructionPointer + position);
+
+                var mode = instruction.ParameterModes[position - 1];
                 switch (mode)
                 {
                     case Mode.Position:
                     {
-                        return type == ParameterType.Read ? Read(value) : value;
+                        return ReadMemory(value);
                     }
                     case Mode.Immediate:
                     {
@@ -113,7 +115,53 @@ namespace Solutions.Event2019
                     }
                     case Mode.Relative:
                     {
-                        return type == ParameterType.Read ? Read(value + relativeBase) : value + relativeBase;
+                        return ReadMemory(value + relativeBase);
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
+                }
+            }
+            private long WriteParameter(int position)
+            {
+                var value = ReadMemory(instructionPointer + position);
+
+                var mode = instruction.ParameterModes[position - 1];
+                switch (mode)
+                {
+                    case Mode.Position:
+                    {
+                        return value;
+                    }
+                    case Mode.Immediate:
+                    {
+                        throw new InvalidOperationException("Write parameters cannot use immediate mode");
+                    }
+                    case Mode.Relative:
+                    {
+                        return value + relativeBase;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
+                }
+            }
+
+            private long Parameter(long position, Mode mode, ParameterType type)
+            {
+                var value = ReadMemory(instructionPointer + position);
+
+                switch (mode)
+                {
+                    case Mode.Position:
+                    {
+                        return type == ParameterType.Read ? ReadMemory(value) : value;
+                    }
+                    case Mode.Immediate:
+                    {
+                        return value;
+                    }
+                    case Mode.Relative:
+                    {
+                        return type == ParameterType.Read ? ReadMemory(value + relativeBase) : value + relativeBase;
                     }
                     default:
                         throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
@@ -144,16 +192,24 @@ namespace Solutions.Event2019
             {
                 while (true)
                 {
-                    instruction = new Instruction(Read(instructionPointer));
+                    instruction = new Instruction(ReadMemory(instructionPointer));
 
                     switch (instruction.OperationCode)
                     {
                         case 1:
                             {
+                                // 3 parametrar
                                 var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
+                                // beräkna parameter 1 + parameter 2
+
+                                // skriv till parameter 3
                                 memory[writeTo] = arg1 + arg2;
+
+                                // hoppa till nästa instruktion (op + antal parametrar)
                                 instructionPointer = instructionPointer + 4;
+
+                                // vad är tillståndet efter denna (fortsätta eller avbryta)
                                 break;
                             }
                         case 2:
