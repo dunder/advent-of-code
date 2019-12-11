@@ -13,7 +13,7 @@ using static Solutions.InputReader;
 namespace Solutions.Event2019
 {
 
-    // 
+    // --- Day 11: Space Police ---
     public class Day11
     {
         private readonly ITestOutputHelper output;
@@ -429,7 +429,7 @@ namespace Solutions.Event2019
         }
 
         [Fact]
-        public void FirstStarTest()
+        public void FirstStarTest() 
         {
             Assert.Equal(2184, FirstStar());
         }

@@ -36,9 +36,9 @@ namespace Solutions.Event2019
         private static HashSet<Point> Asteroids(bool[,] map)
         {
             var asteroids = new HashSet<Point>();
-            for (int y = 0; y < map.GetLength(0); y++)
+            for (int y = 0; y < map.GetLength(1); y++)
             {
-                for (int x = 0; x < map.GetLength(1); x++)
+                for (int x = 0; x < map.GetLength(0); x++)
                 {
                     if (map[x, y])
                     {
@@ -149,8 +149,8 @@ namespace Solutions.Event2019
 
             var xy = relativeX > relativeY ? relativeX == relativeY ? 0 : -1 : 1;
 
-            var relativeX2 = other.X - point.X;
-            var relativeY2 = other.Y - point.Y;
+            var relativeX2 = other.X - me.X;
+            var relativeY2 = other.Y - me.Y;
 
             var xy2 = relativeX2 > relativeY2 ? relativeX2 == relativeY2 ? 0 : -1 : 1;
 
@@ -187,10 +187,16 @@ namespace Solutions.Event2019
 
                 foreach (var other in others)
                 {
+                    if (visited.Contains(other))
+                    {
+                        continue;
+                        
+                    }
                     //var relativeX2 = other.X - baseAt.X;
                     //var relativeY2 = other.Y - baseAt.Y;
                     //var xy2 = relativeX2 > relativeY2 ? relativeX2 == relativeY2 ? 0 : -1 : 1;
 
+                    // test this method
                     if (IsSameLineOfSight(baseAt, asteroid, other))
                     {
                         group.Add(other);
@@ -394,7 +400,7 @@ namespace Solutions.Event2019
             var inSight2 = new Point(5, 6);
 
             Assert.True(IsBlockedLineOfSight(me, block, outOfSight1));
-            Assert.True(IsBlockedLineOfSight(me, block, outOfSight2));
+            Assert.True(IsBlockedLineOfSight(me, block, outOfSight2));  
             Assert.False(IsBlockedLineOfSight(me, block, inSight1));
             Assert.False(IsBlockedLineOfSight(me, block, inSight2));
         }
@@ -461,19 +467,39 @@ namespace Solutions.Event2019
         {
             var input = new[]
             {
-                ".#....#####...#..",
-                "##...##.#####..##",
-                "##...#...#.#####.",
-                "..#.....#...###..",
-                "..#.#.....#....##"
+               //01234567890123456
+                ".#....#####...#..", //0
+                "##...##.#####..##", //1
+                "##...#...#.#####.", //2
+                "..#.....#...###..", //3
+                "..#.#.....#....##"  //4
             };
 
             var map = ParseMap(input);
             var asteroids = Asteroids(map);
-            var groups = Group(new Point(9, 3), asteroids);
+            var groups = Group(new Point(8, 3), asteroids);
             var totalAsteroids = groups.Sum(g => g.Count);
+            var all = groups.SelectMany(g => g).ToList();
+            var set = new HashSet<Point>();
+            var notAdded = new List<Point>();
+            foreach (var x in all)
+            {
+                if (!set.Add(x))
+                {
+                    notAdded.Add(x);
+                }
+            }
             Assert.Equal(9, groups.Count);
             Assert.Equal(36, totalAsteroids);
+        }
+
+        [Theory]
+        [InlineData(8,0,8,1)]
+        [InlineData(8,0,8,1)]
+        public void IsSameLineOfSightTest1(int x1, int y1, int x2, int y2)
+        {
+            var me = new Point(8, 3);
+            Assert.True(IsSameLineOfSight(me, new Point(x1, y1), new Point(x2, y2)));
         }
 
         [Fact]
@@ -512,6 +538,16 @@ namespace Solutions.Event2019
             Assert.Equal(802, x.X * 100 + x.Y);
         }
 
+        [Theory]
+        [InlineData(12,14,135)]
+        public void AngleTest(int x, int y, int expectedAngle)
+        {
+            // based on large example
+            var baseAt = new Point(11,13);
+            var angle = Angle(baseAt, new Point(x, y));
+
+            Assert.Equal(expectedAngle, angle);
+        }
         private class ClockwiseComparer : IComparer<Point>
         {
             private readonly Point baseAt;
@@ -523,8 +559,8 @@ namespace Solutions.Event2019
 
             public int Compare(Point p1, Point p2)
             {
-                var p1Angle = Angle(p1);
-                var p2Angle = Angle(p2);
+                var p1Angle = Angle(baseAt, p1);
+                var p2Angle = Angle(baseAt, p2);
 
                 if (p1Angle < p2Angle)
                 {
@@ -533,68 +569,64 @@ namespace Solutions.Event2019
 
                 return 1;
             }
-
-
-            private double Angle(Point p)
-            {
-                int q = GetQuadrant(p);
-
-                if (q == 1)
-                {
-                    var yDiff = baseAt.Y - p.Y;
-                    if (yDiff == 0)
-                    {
-                        return 90;
-                    }
-                    return Math.Atan((p.X - baseAt.X)/yDiff);
-                }
-
-                if (q == 2)
-                {
-                    var xdiff = p.X - baseAt.X;
-                    if (xdiff == 0)
-                    {
-                        return 180;
-                    }
-                    return 90 + Math.Atan((p.Y - baseAt.Y) / xdiff);
-                }
-
-                if (q == 3)
-                {
-                    var yDiff = (p.Y - baseAt.Y);
-                    if (yDiff == 0)
-                    {
-                        return 270;
-                    }
-                    return 180 + Math.Atan((baseAt.X - p.X) / yDiff); ;
-                }
-
-                return 270 + (baseAt.Y - p.Y) / (baseAt.X - p.X);
-            }
-
-            private int GetQuadrant(Point other)
-            {
-                if (other.X >= baseAt.X && other.Y >= baseAt.Y) 
-                {
-                    return 1;
-                }
-
-                if (other.X <= baseAt.X && other.Y >= baseAt.Y)
-                {
-                    return 2;
-                }
-
-                if (other.X <= baseAt.X && other.Y <= baseAt.Y)
-                {
-                    return 3;
-                }
-
-                return 4;
-            }
-
-           
-
-            
         }
+
+        private static double Angle(Point me, Point p)
+        {
+            int q = GetQuadrant(me, p);
+
+            if (q == 1)
+            {
+                var yDiff = me.Y - p.Y;
+                if (yDiff == 0)
+                {
+                    return 90;
+                }
+                return (180 / Math.PI)*Math.Atan(Math.Abs(p.X - me.X) / Math.Abs(yDiff));
+            }
+
+            if (q == 2)
+            {
+                var xdiff = p.X - me.X;
+                if (xdiff == 0)
+                {
+                    return 180;
+                }
+                return 90 + (180 / Math.PI)*Math.Atan(Math.Abs(p.Y - me.Y) / Math.Abs(xdiff));
+            }
+
+            if (q == 3)
+            {
+                var yDiff = (p.Y - me.Y);
+                if (yDiff == 0)
+                {
+                    return 270;
+                }
+                return 180 + (180 / Math.PI)*Math.Atan(Math.Abs(me.X - p.X) / Math.Abs(yDiff)); 
+            }
+
+            return 270 + (180 / Math.PI)*Math.Atan(Math.Abs(me.Y - p.Y) / Math.Abs(me.X - p.X));
+        }
+
+        private static int GetQuadrant(Point me, Point other)
+        {
+            if (other.X >= me.X && other.Y <= me.Y)
+            {
+                return 1;
+            }
+
+            if (other.X >= me.X && other.Y >= me.Y)
+            {
+                return 2;
+            }
+
+            if (other.X <= me.X && other.Y <= me.Y)
+            {
+                return 3;
+            }
+
+            return 4;
+        }
+
     }
 }
