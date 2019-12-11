@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Net.NetworkInformation;
+using Shared.MapGeometry;
+using Solutions.Event2016.Day01;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -81,6 +85,10 @@ namespace Solutions.Event2019
                 this.inputPosition = 0;
             }
 
+            public void SetInput(long input)
+            {
+                this.input.Add(input);
+            }
 
             public List<long> Output { get; }
 
@@ -300,23 +308,99 @@ namespace Solutions.Event2019
             }
         }
 
+        private Direction MakeTurn(int code, Direction currentDirection)
+        {
+            if (code > 1 || code < 0)
+            {
+                throw new ArgumentOutOfRangeException($"Invalid turn: {code}");
+            }
+            return code == 0 ? currentDirection.Turn(Turn.Left) : currentDirection.Turn(Turn.Right);
+        }
+
+        private static int Read(Dictionary<Point, int> painted, Point p)
+        {
+            if (!painted.ContainsKey(p))
+            {
+                painted.Add(p, 0);
+            }
+
+            return painted[p];
+        }
+
+        private static void Paint(Dictionary<Point, int> painted, Point p, int color)
+        {
+            if (!painted.ContainsKey(p))
+            {
+                painted.Add(p, 0);
+            }
+
+            painted[p] = color;
+        }
+
+        public int Run(List<long> program)
+        {
+            // all initial black = 0 (1 = white)
+            // input from camera color below robot
+            // output 1 = color to paint the panel it is over
+            // output 2 = direction 0 is left, 1 is right
+            // after turn move forward one panel
+
+            var startingPoint = new Point(0, 0);
+            var painted = new Dictionary<Point, int>();
+            var currentDirection = Direction.North;
+            var currentLocation = startingPoint;
+
+            var computer = new IntCodeComputer(program);
+            var path = new List<Point> {startingPoint};
+
+            var exitCode = IntCodeComputer.ExecutionState.WaitingForInput;
+            while (exitCode != IntCodeComputer.ExecutionState.Ready)
+            {
+                computer.SetInput(Read(painted, currentLocation));
+
+                exitCode = computer.Execute();
+                if (exitCode == IntCodeComputer.ExecutionState.Ready)
+                {
+                    continue;
+                }
+                var color = computer.Output.Last();
+                exitCode = computer.Execute();
+                if (exitCode == IntCodeComputer.ExecutionState.Ready)
+                {
+                    continue;
+                }
+
+                int turnCode = (int) computer.Output.Last();
+                currentDirection = MakeTurn(turnCode, currentDirection);
+                Paint(painted, currentLocation, (int)color);
+                currentLocation = currentLocation.Move(currentDirection);
+                path.Add(currentLocation);
+            }
+
+
+            return painted.Keys.Count;
+        }
 
         public int FirstStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            var program = Parse(input);
+            var count = Run(program);
+            return count;
         }
 
         public int SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            var program = Parse(input);
+            var count = Run(program);
+            return count;
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(2184, FirstStar());
         }
 
         [Fact]
@@ -324,5 +408,6 @@ namespace Solutions.Event2019
         {
             Assert.Equal(-1, SecondStar());
         }
+
     }
 }
