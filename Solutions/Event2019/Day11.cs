@@ -2,18 +2,27 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using System.Net.NetworkInformation;
+using System.Text;
 using Shared.MapGeometry;
 using Solutions.Event2016.Day01;
 using Xunit;
+using Xunit.Abstractions;
 using static Solutions.InputReader;
 
 
 namespace Solutions.Event2019
 {
+
     // 
     public class Day11
     {
+        private readonly ITestOutputHelper output;
+
+        public Day11(ITestOutputHelper output)
+        {
+            this.output = output;
+        }
+
         public static List<long> Parse(string input)
         {
             return input.Split(',').Select(long.Parse).ToList();
@@ -337,7 +346,27 @@ namespace Solutions.Event2019
             painted[p] = color;
         }
 
-        public int Run(List<long> program)
+        private void Print(Dictionary<Point, int> path)
+        {
+            var maxX = path.Keys.Max(p => p.X);
+            var minX = path.Keys.Min(p => p.X);
+
+            var maxY = path.Keys.Max(p => p.Y);
+            var minY = path.Keys.Min(p => p.Y);
+
+            for (int y = minY; y <= maxY; y++)
+            {
+                var line = new StringBuilder();
+                for (int x = minX; x <= maxX; x++)
+                {
+                    line.Append(Read(path, new Point(x,y)) == 1 ? "#" : " ");
+                }
+                output.WriteLine(line.ToString());
+            }
+
+        }
+
+        public int Run(List<long> program, int startColor)
         {
             // all initial black = 0 (1 = white)
             // input from camera color below robot
@@ -347,6 +376,7 @@ namespace Solutions.Event2019
 
             var startingPoint = new Point(0, 0);
             var painted = new Dictionary<Point, int>();
+            painted.Add(startingPoint, startColor);
             var currentDirection = Direction.North;
             var currentLocation = startingPoint;
 
@@ -377,6 +407,7 @@ namespace Solutions.Event2019
                 path.Add(currentLocation);
             }
 
+            Print(painted);
 
             return painted.Keys.Count;
         }
@@ -385,7 +416,7 @@ namespace Solutions.Event2019
         {
             var input = ReadInput();
             var program = Parse(input);
-            var count = Run(program);
+            var count = Run(program, 0);
             return count;
         }
 
@@ -393,7 +424,7 @@ namespace Solutions.Event2019
         {
             var input = ReadInput();
             var program = Parse(input);
-            var count = Run(program);
+            var count = Run(program, 1);
             return count;
         }
 
@@ -406,8 +437,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(258, SecondStar()); // AHCHZEPK
         }
-
     }
 }
