@@ -194,6 +194,7 @@ namespace Solutions.Event2019
                     if (IsSameLineOfSight(baseAt, asteroid, other))
                     {
                         group.Add(other);
+                        visited.Add(other);
                     }
                 }
                 groups.Add(new List<Point>(group.OrderBy(g => baseAt.ManhattanDistance(g))));
@@ -430,6 +431,50 @@ namespace Solutions.Event2019
             Assert.False(IsBlockedLineOfSight(me, potentialBlock, notBlocked));
         }
 
+        [Fact]
+        public void SecondStarExampleGroup()
+        {
+            var input = new[]
+            {
+                "#.........",
+                "...#......",
+                "...#..#...",
+                ".####....#",
+                "..#.#.#...",
+                ".....#....",
+                "..###.#.##",
+                ".......#..",
+                "....#...#.",
+                "...#..#..#"
+            };
+
+            var map = ParseMap(input);
+            var asteroids = Asteroids(map);
+            var groups = Group(new Point(0, 0), asteroids);
+            var totalAsteroids = groups.Sum(g => g.Count);
+            Assert.Equal(7, groups.Count);
+            Assert.Equal(24, totalAsteroids);
+        }
+
+        [Fact]
+        public void SecondStarExample2()
+        {
+            var input = new[]
+            {
+                ".#....#####...#..",
+                "##...##.#####..##",
+                "##...#...#.#####.",
+                "..#.....#...###..",
+                "..#.#.....#....##"
+            };
+
+            var map = ParseMap(input);
+            var asteroids = Asteroids(map);
+            var groups = Group(new Point(9, 3), asteroids);
+            var totalAsteroids = groups.Sum(g => g.Count);
+            Assert.Equal(9, groups.Count);
+            Assert.Equal(36, totalAsteroids);
+        }
 
         [Fact]
         public void SecondStarExample()
