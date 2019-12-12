@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -70,6 +71,11 @@ namespace Solutions.Event2019
                 Velocity = new Point(0,0,0);
             }
 
+            public Moon Clone()
+            {
+                return new Moon(Name, Position) {Velocity = Velocity};
+            }
+
             public void ApplyGravity(Moon other)
             {
                 var x = Velocity.X;
@@ -125,6 +131,17 @@ namespace Solutions.Event2019
             }
         }
 
+        private static string State(List<Moon> moons)
+        {
+            var sb = new StringBuilder();
+            foreach (var moon in moons)
+            {
+                sb.Append($"{moon.Position.X}{moon.Position.Y}{moon.Position.Z}{moon.Velocity.X}{moon.Velocity.Y}{moon.Velocity.Z}");
+            }
+
+            return sb.ToString();
+        }
+
         private static void Step(List<Moon> moons)
         {
             foreach (var moon in moons)
@@ -141,12 +158,42 @@ namespace Solutions.Event2019
             }
         }
 
+        private static bool SameState(List<Moon> previous, List<Moon> current)
+        {
+            for (int i = 0; i < previous.Count; i++)
+            {
+                if (!previous[i].Position.Equals(current[i].Position) || !previous[i].Velocity.Equals(current[i].Velocity))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
         private static void Run(List<Moon> moons, int steps)
         {
             for (int i = 1; i <= steps; i++)
             {
                 Step(moons);
             }
+        }
+
+        private static int Run2(List<Moon> moons, int steps)
+        {
+            var states = new HashSet<string>();
+            for (int step = 0; step <= steps; step++)
+            {
+                Step(moons);
+                var state = State(moons);
+                if (states.Contains(state))
+                {
+                    return step;
+                }
+
+                states.Add(state);
+            }
+
+            return steps;
         }
 
         public int FirstStar()
@@ -164,8 +211,15 @@ namespace Solutions.Event2019
 
         public int SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var io = new Moon("Io", new Point(15, -2, -6));
+            var europa = new Moon("Europa", new Point(-5, -4, -11));
+            var ganymede = new Moon("Ganymede", new Point(0, -6, 0));
+            var callisto = new Moon("Callisto", new Point(5, 9, 6));
+            var moons = new List<Moon> { io, europa, ganymede, callisto };
+
+            int steps = Run2(moons, int.MaxValue);
+
+            return steps;
         }
 
         [Fact]
@@ -204,9 +258,9 @@ namespace Solutions.Event2019
             var callisto = new Moon("Callisto", new Point(3, 5, -1));
             var moons = new List<Moon> { io, europa, ganymede, callisto };
 
-            Run(moons, 10);
+            int steps = Run2(moons, 3000);
 
-            Assert.Equal(179, moons.Sum(m => m.TotalEnergy));
+            Assert.Equal(2772, steps);
         }
     }
 }

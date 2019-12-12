@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Drawing;
 using System.Linq;
 using Shared.MapGeometry;
@@ -178,10 +177,6 @@ namespace Solutions.Event2019
                 var group = new List<Point>();
                 group.Add(asteroid);
 
-                //var relativeX = asteroid.X - baseAt.X;
-                //var relativeY = asteroid.Y - baseAt.Y;
-                //var xy = relativeX > relativeY ? relativeX == relativeY ? 0 : -1 : 1;
-
                 var others = new HashSet<Point>(asteroids);
                 others.Remove(asteroid);
 
@@ -192,11 +187,7 @@ namespace Solutions.Event2019
                         continue;
                         
                     }
-                    //var relativeX2 = other.X - baseAt.X;
-                    //var relativeY2 = other.Y - baseAt.Y;
-                    //var xy2 = relativeX2 > relativeY2 ? relativeX2 == relativeY2 ? 0 : -1 : 1;
 
-                    // test this method
                     if (IsSameLineOfSight(baseAt, asteroid, other))
                     {
                         group.Add(other);
@@ -221,9 +212,15 @@ namespace Solutions.Event2019
             var input = ReadLineInput();
             var map = ParseMap(input);
             var asteroids = Asteroids(map);
-            // var asteroid = asteroids.Single(a => CountWithinSight(a, asteroids).Item2 == 276); // base at (17,22)
-            var groups = Group(new Point(17,22), asteroids);
-            return 0;
+
+            var baseAt = asteroids.Select(me => CountWithinSight(me, asteroids))
+                .Single(x => x.Item2 == 276).Item1;
+
+            var groups = Group(baseAt, asteroids);
+            var firsts = groups.Select(g => g.First()).ToList();
+            firsts.Sort(new ClockwiseComparer(baseAt));
+            var twoHundredth = firsts[199];
+            return twoHundredth.X * 100 + twoHundredth.Y;
         }
 
         [Fact]
@@ -235,9 +232,8 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(1321, SecondStar());
         }
-
 
         [Fact]
         public void FirstStarExample0()
@@ -467,35 +463,25 @@ namespace Solutions.Event2019
         {
             var input = new[]
             {
-               //01234567890123456
-                ".#....#####...#..", //0
-                "##...##.#####..##", //1
-                "##...#...#.#####.", //2
-                "..#.....#...###..", //3
-                "..#.#.....#....##"  //4
+                ".#....#####...#..",
+                "##...##.#####..##",
+                "##...#...#.#####.",
+                "..#.....#...###..",
+                "..#.#.....#....##" 
             };
 
             var map = ParseMap(input);
             var asteroids = Asteroids(map);
             var groups = Group(new Point(8, 3), asteroids);
-            var totalAsteroids = groups.Sum(g => g.Count);
-            var all = groups.SelectMany(g => g).ToList();
-            var set = new HashSet<Point>();
-            var notAdded = new List<Point>();
-            foreach (var x in all)
-            {
-                if (!set.Add(x))
-                {
-                    notAdded.Add(x);
-                }
-            }
-            Assert.Equal(9, groups.Count);
-            Assert.Equal(36, totalAsteroids);
+            var firsts = groups.Select(g => g.First()).ToList();
+            firsts.Sort(new ClockwiseComparer(new Point(8,3)));
+            
+            Assert.Equal(new Point(7,0), firsts.Last());
         }
 
         [Theory]
         [InlineData(8,0,8,1)]
-        [InlineData(8,0,8,1)]
+        [InlineData(9,2,10,1)]
         public void IsSameLineOfSightTest1(int x1, int y1, int x2, int y2)
         {
             var me = new Point(8, 3);
@@ -539,7 +525,13 @@ namespace Solutions.Event2019
         }
 
         [Theory]
+        [InlineData(11,12,0)]
+        [InlineData(12,13,90)]
         [InlineData(12,14,135)]
+        [InlineData(11,14,180)]
+        [InlineData(10,14,225)]
+        [InlineData(10,13,270)]
+        [InlineData(10,12,315)]
         public void AngleTest(int x, int y, int expectedAngle)
         {
             // based on large example
@@ -548,6 +540,31 @@ namespace Solutions.Event2019
 
             Assert.Equal(expectedAngle, angle);
         }
+
+        [Fact]
+        public void ClockwiseComparerTests()
+        {
+            var asteroids = new List<Point>
+            {
+                new Point(11,1),
+                new Point(9,2),
+                new Point(10,0),
+                new Point(9,1),
+                new Point(9,0),
+                new Point(8,1),
+            };
+            var clockwiseComparer = new ClockwiseComparer(new Point(8,3));
+            asteroids.Sort(clockwiseComparer);
+
+            Assert.Collection(asteroids, 
+                a => Assert.Equal(new Point(8, 1), a),
+                a => Assert.Equal(new Point(9, 0), a),
+                a => Assert.Equal(new Point(9, 1), a),
+                a => Assert.Equal(new Point(10, 0), a),
+                a => Assert.Equal(new Point(9, 2), a),
+                a => Assert.Equal(new Point(11, 1), a));
+        }
+
         private class ClockwiseComparer : IComparer<Point>
         {
             private readonly Point baseAt;
@@ -575,37 +592,37 @@ namespace Solutions.Event2019
         {
             int q = GetQuadrant(me, p);
 
+            var yDiff = me.Y - p.Y;
+            var xDiff = me.X - p.X;
+
             if (q == 1)
             {
-                var yDiff = me.Y - p.Y;
                 if (yDiff == 0)
                 {
                     return 90;
                 }
-                return (180 / Math.PI)*Math.Atan(Math.Abs(p.X - me.X) / Math.Abs(yDiff));
+                return (180 / Math.PI) * Math.Atan((float)Math.Abs(xDiff) / Math.Abs(yDiff));
             }
 
             if (q == 2)
             {
-                var xdiff = p.X - me.X;
-                if (xdiff == 0)
+                if (xDiff == 0)
                 {
                     return 180;
                 }
-                return 90 + (180 / Math.PI)*Math.Atan(Math.Abs(p.Y - me.Y) / Math.Abs(xdiff));
+                return 90 + (180 / Math.PI) * Math.Atan((float)Math.Abs(yDiff) / Math.Abs(xDiff));
             }
 
             if (q == 3)
             {
-                var yDiff = (p.Y - me.Y);
                 if (yDiff == 0)
                 {
                     return 270;
                 }
-                return 180 + (180 / Math.PI)*Math.Atan(Math.Abs(me.X - p.X) / Math.Abs(yDiff)); 
+                return 180 + (180 / Math.PI) * Math.Atan((float)Math.Abs(xDiff) / Math.Abs(yDiff)); 
             }
 
-            return 270 + (180 / Math.PI)*Math.Atan(Math.Abs(me.Y - p.Y) / Math.Abs(me.X - p.X));
+            return 270 + (180 / Math.PI) * Math.Atan((float)Math.Abs(yDiff) / Math.Abs(xDiff));
         }
 
         private static int GetQuadrant(Point me, Point other)
@@ -620,7 +637,7 @@ namespace Solutions.Event2019
                 return 2;
             }
 
-            if (other.X <= me.X && other.Y <= me.Y)
+            if (other.X <= me.X && other.Y >= me.Y)
             {
                 return 3;
             }
