@@ -1,30 +1,16 @@
 ﻿using System;
-using Solutions.Event2018;
+using Solutions.Event2019;
 
 namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day10();
+            var day = new Day13();
             day.SecondStar();
 
             Console.ReadKey();
         }
 
-        private static void Run2018Day10Example()
-        {
-            new Day10().FirstStarExample();
-        }
-
-        private static void Run2018Day10()
-        {
-            new Day10().SecondStar();
-        }
-
-        private static void PrintDay22MemorySetup()
-        {
-            Event2016.Day22.Problem.PrintInitialMemoryGrid();
-        }
 
         private static void PrintProblemSolution(ProblemBase problem)
         {
