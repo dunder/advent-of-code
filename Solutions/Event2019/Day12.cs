@@ -196,6 +196,45 @@ namespace Solutions.Event2019
             return steps;
         }
 
+        private static void Print(List<Moon> moons, List<Moon> previousMoons)
+        {
+            var displayShift = 200;
+            foreach (var moon in moons)
+            {
+                Console.SetCursorPosition(moon.Position.X + displayShift, moon.Position.Y + displayShift);
+                Console.Write(moon.Name.First());
+            }
+
+            foreach (var moon in previousMoons)
+            {
+                Console.SetCursorPosition(moon.Position.X + displayShift, moon.Position.Y + displayShift);
+                Console.Write(' ');
+            }
+        }
+
+        private static int Run3(List<Moon> moons)
+        {
+            Console.SetBufferSize(1000,1000);
+            var states = new HashSet<string>();
+            var xs = new List<int>();
+            var ys = new List<int>();
+            var zs = new List<int>();
+
+            while (true)
+            {
+                Step(moons);
+                xs.Add(moons[0].Velocity.X);
+                ys.Add(moons[0].Velocity.Y);
+                zs.Add(moons[0].Velocity.Z);
+
+                //xs.Add((moons[0].Position.X, moons[1].Position.X, moons[2].Position.X, moons[3].Position.X));
+                //ys.Add((moons[0].Position.Y, moons[1].Position.Y, moons[2].Position.Y, moons[3].Position.Y));
+                //zs.Add((moons[0].Position.Z, moons[1].Position.Z, moons[2].Position.Z, moons[3].Position.Z));
+            }
+
+            return 0;
+        }
+
         public int FirstStar()
         {
             var io = new Moon("Io", new Point(15, -2, -6));
@@ -217,7 +256,7 @@ namespace Solutions.Event2019
             var callisto = new Moon("Callisto", new Point(5, 9, 6));
             var moons = new List<Moon> { io, europa, ganymede, callisto };
 
-            int steps = Run2(moons, int.MaxValue);
+            int steps = Run3(moons);
 
             return steps;
         }
