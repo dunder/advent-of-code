@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using static Solutions.InputReader;
@@ -10,8 +9,6 @@ namespace Solutions.Event2019
     // --- Day 14: Space Stoichiometry ---
     public class Day014
     {
-        // You just need to know how much ORE you'll need to collect before you can produce one unit of FUEL.
-
         private class Reaction
         {
             public List<Amount> Input { get; set; }
@@ -95,8 +92,8 @@ namespace Solutions.Event2019
                 }
                 else
                 {
-                    leftToProduce = 0;
                     surplus[amount.Chemical] -= leftToProduce;
+                    leftToProduce = 0;
                 }
             }
 
@@ -121,6 +118,46 @@ namespace Solutions.Event2019
                 {
                     CalculateAmountOre(reactionMap, reactionAmount.Times(times), produce, surplus);
                 }
+            }
+        }
+
+        private static void CalculateAmountOre2(Dictionary<string, Reaction> reactionMap, Amount amount, List<Amount> produce, Dictionary<string, int> surplus)
+        {
+            var reaction = reactionMap[amount.Chemical];
+            if (reaction.IsOre)
+            {
+                produce.Add(amount);
+
+                return;
+            }
+            
+            var times = amount.Units / reaction.Output.Units;
+            var rest = amount.Units % reaction.Output.Units;
+
+            if (rest > 0 && surplus.ContainsKey(amount.Chemical))
+            {
+                var availableSurplus = surplus[amount.Chemical];
+                if (availableSurplus >= rest)
+                {
+                    surplus[amount.Chemical] -= rest;
+                }
+                else
+                {
+                    times += 1;
+                }
+            }
+
+            var unitsSurplus = reaction.Output.Units * times - amount.Units;
+            if (!surplus.ContainsKey(amount.Chemical))
+            {
+                surplus.Add(amount.Chemical, 0);
+            }
+
+            surplus[amount.Chemical] += unitsSurplus;
+
+            foreach (var reactionAmount in reaction.Input)
+            {
+                CalculateAmountOre2(reactionMap, reactionAmount.Times(times), produce, surplus);
             }
         }
 
@@ -179,10 +216,7 @@ namespace Solutions.Event2019
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
-            // Assert.Equal(138750, FirstStar()); // too low
-            // Assert.Equal(197026, FirstStar()); // too high
-            // Assert.Equal(138375, FirstStar()); // too low
+            Assert.Equal(143173, FirstStar());
         }
 
         [Fact]
