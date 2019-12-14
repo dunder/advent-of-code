@@ -85,13 +85,13 @@ namespace Solutions.Event2019
 
             var leftToProduce = amount.Units;
 
-            if (surplus.ContainsKey(amount.Chemical))
+            if (surplus.ContainsKey(amount.Chemical) && surplus[amount.Chemical] > 0)
             {
                 var foundSurplus = surplus[amount.Chemical];
                 if (leftToProduce >= foundSurplus)
                 {
                     leftToProduce -= foundSurplus;
-                    surplus[amount.Chemical] -= foundSurplus;
+                    surplus[amount.Chemical] = 0;
                 }
                 else
                 {
@@ -103,7 +103,7 @@ namespace Solutions.Event2019
             if (leftToProduce > 0)
             {
                 var times = leftToProduce / reaction.Output.Units;
-                if (amount.Units % reaction.Output.Units > 0)
+                if (leftToProduce % reaction.Output.Units > 0)
                 {
                     times += 1;
                 }
@@ -127,7 +127,6 @@ namespace Solutions.Event2019
         private static int MinimumAmountOreForOneUnitOfFuel(List<Reaction> reactions)
         {
             var fuelReaction = reactions.Single(r => r.IsFuel);
-            var oreReactions = reactions.Where(r => r.IsOre).ToList();
 
             var reactionMap = reactions.ToDictionary(r => r.Output.Chemical);
             var requiredAmounts = new List<Amount>();
@@ -181,6 +180,7 @@ namespace Solutions.Event2019
         public void FirstStarTest()
         {
             Assert.Equal(-1, FirstStar());
+            // Assert.Equal(138750, FirstStar()); // too low
             // Assert.Equal(197026, FirstStar()); // too high
             // Assert.Equal(138375, FirstStar()); // too low
         }
