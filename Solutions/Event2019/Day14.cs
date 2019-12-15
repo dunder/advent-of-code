@@ -70,6 +70,43 @@ namespace Solutions.Event2019
             return reactions;
         }
 
+
+        private static Amount UseSurplus(Amount amount, Dictionary<string, int> surplus)
+        {
+            if (!surplus.ContainsKey(amount.Chemical))
+            {
+                surplus.Add(amount.Chemical, 0);
+            }
+
+            var units = amount.Units;
+            var unitsSurplus = surplus[amount.Chemical];
+            if (units >= unitsSurplus)
+            {
+                units -= unitsSurplus;
+                surplus[amount.Chemical] = 0;
+            }
+            else
+            {
+                surplus[amount.Chemical] -= units;
+                units = 0;
+            }
+            return new Amount
+            {
+                Chemical = amount.Chemical,
+                Units = units
+            };
+        }
+
+        private static void NewSurplus(Amount amount, Dictionary<string, int> surplus)
+        {
+            if (!surplus.ContainsKey(amount.Chemical))
+            {
+                surplus.Add(amount.Chemical, 0);
+            }
+
+            surplus[amount.Chemical] += amount.Units;
+        }
+
         private static void CalculateAmountOre(Dictionary<string, Reaction> reactionMap, Amount amount, List<Amount> produce, Dictionary<string, int> surplus)
         {
             var reaction = reactionMap[amount.Chemical];
@@ -80,22 +117,25 @@ namespace Solutions.Event2019
                 return;
             }
 
-            var leftToProduce = amount.Units;
+            var newAmount = UseSurplus(amount, surplus);
 
-            if (surplus.ContainsKey(amount.Chemical) && surplus[amount.Chemical] > 0)
-            {
-                var foundSurplus = surplus[amount.Chemical];
-                if (leftToProduce >= foundSurplus)
-                {
-                    leftToProduce -= foundSurplus;
-                    surplus[amount.Chemical] = 0;
-                }
-                else
-                {
-                    surplus[amount.Chemical] -= leftToProduce;
-                    leftToProduce = 0;
-                }
-            }
+            var leftToProduce = newAmount.Units;
+            //var leftToProduce = amount.Units;
+
+            //if (surplus.ContainsKey(amount.Chemical) && surplus[amount.Chemical] > 0)
+            //{
+            //    var foundSurplus = surplus[amount.Chemical];
+            //    if (leftToProduce >= foundSurplus)
+            //    {
+            //        leftToProduce -= foundSurplus;
+            //        surplus[amount.Chemical] = 0;
+            //    }
+            //    else
+            //    {
+            //        surplus[amount.Chemical] -= leftToProduce;
+            //        leftToProduce = 0;
+            //    }
+            //}
 
             if (leftToProduce > 0)
             {
@@ -106,58 +146,18 @@ namespace Solutions.Event2019
                 }
 
                 var unitsSurplus = reaction.Output.Units * times - leftToProduce;
-                if (!surplus.ContainsKey(amount.Chemical))
-                {
-                    surplus.Add(amount.Chemical, 0);
-                }
+                //if (!surplus.ContainsKey(amount.Chemical))
+                //{
+                //    surplus.Add(amount.Chemical, 0);
+                //}
 
-                surplus[amount.Chemical] += unitsSurplus;
-
+                //surplus[amount.Chemical] += unitsSurplus;
+                NewSurplus(new Amount { Chemical = amount.Chemical, Units = unitsSurplus}, surplus);
 
                 foreach (var reactionAmount in reaction.Input)
                 {
                     CalculateAmountOre(reactionMap, reactionAmount.Times(times), produce, surplus);
                 }
-            }
-        }
-
-        private static void CalculateAmountOre2(Dictionary<string, Reaction> reactionMap, Amount amount, List<Amount> produce, Dictionary<string, int> surplus)
-        {
-            var reaction = reactionMap[amount.Chemical];
-            if (reaction.IsOre)
-            {
-                produce.Add(amount);
-
-                return;
-            }
-            
-            var times = amount.Units / reaction.Output.Units;
-            var rest = amount.Units % reaction.Output.Units;
-
-            if (rest > 0 && surplus.ContainsKey(amount.Chemical))
-            {
-                var availableSurplus = surplus[amount.Chemical];
-                if (availableSurplus >= rest)
-                {
-                    surplus[amount.Chemical] -= rest;
-                }
-                else
-                {
-                    times += 1;
-                }
-            }
-
-            var unitsSurplus = reaction.Output.Units * times - amount.Units;
-            if (!surplus.ContainsKey(amount.Chemical))
-            {
-                surplus.Add(amount.Chemical, 0);
-            }
-
-            surplus[amount.Chemical] += unitsSurplus;
-
-            foreach (var reactionAmount in reaction.Input)
-            {
-                CalculateAmountOre2(reactionMap, reactionAmount.Times(times), produce, surplus);
             }
         }
 
@@ -197,6 +197,65 @@ namespace Solutions.Event2019
             return ore;
         }
 
+
+        private static int FuelForOre(List<Reaction> reactions, long oreAvailable)
+        {
+            var fuelReaction = reactions.Single(r => r.IsFuel);
+
+            var reactionMap = reactions.ToDictionary(r => r.Output.Chemical);
+            var surplus = new Dictionary<string, int>();
+            var fuel = 0;
+            while (oreAvailable > 0)
+            {
+                var requiredAmounts = new List<Amount>();
+
+                foreach (var amount in fuelReaction.Input)
+                {
+                    CalculateAmountOre(reactionMap, amount, requiredAmounts, surplus);
+                }
+
+                var sumOfRequiredAmounts = requiredAmounts
+                    .GroupBy(requiredAmount => requiredAmount.Chemical)
+                    .Select(g => new Amount
+                    {
+                        Chemical = g.Key,
+                        Units = g.Sum(a => a.Units)
+                    });
+                var ore = 0;
+
+                foreach (var requiredAmount in sumOfRequiredAmounts)
+                {
+                    var oreReaction = reactionMap[requiredAmount.Chemical];
+                    var batchesOfOre = requiredAmount.Units / oreReaction.Output.Units;
+                    var actualRequiredAmount = UseSurplus(requiredAmount, surplus);
+                    if (actualRequiredAmount.Units % oreReaction.Output.Units > 0)
+                    {
+                        batchesOfOre += 1;
+                    }
+
+                    var oreDemand = oreReaction.Input.Single().Units * batchesOfOre;
+                    ore += oreDemand;
+                    var newSurplus = batchesOfOre * oreReaction.Output.Units - actualRequiredAmount.Units;
+                    NewSurplus(new Amount {Chemical = requiredAmount.Chemical, Units = newSurplus}, surplus);
+                }
+
+                oreAvailable -= ore;
+
+                if (surplus.All(p => p.Value == 0))
+                {
+                    fuel++;
+                    fuel--;
+                }
+
+                if (oreAvailable > 0)
+                {
+                    fuel++;
+                }
+            }
+
+            return fuel;
+        }
+
         public int FirstStar()
         {
             var input = ReadLineInput();
@@ -210,7 +269,7 @@ namespace Solutions.Event2019
             var input = ReadLineInput();
 
             var reactions = Parse(input);
-            return 0;
+            return FuelForOre(reactions, 1_000_000_000_000);
         }
 
         [Fact]
@@ -222,7 +281,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(8845261, SecondStar());
         }
 
         [Fact]
@@ -344,6 +403,87 @@ namespace Solutions.Event2019
             var min = MinimumAmountOreForOneUnitOfFuel(reactions);
 
             Assert.Equal(2210736, min);
+        }
+
+        [Fact]
+        public void SecondStarExample1()
+        {
+            var input = new[]
+            {
+                "157 ORE => 5 NZVS",
+                "165 ORE => 6 DCFZ",
+                "44 XJWVT, 5 KHKGT, 1 QDVJ, 29 NZVS, 9 GPVTF, 48 HKGWZ => 1 FUEL",
+                "12 HKGWZ, 1 GPVTF, 8 PSHF => 9 QDVJ",
+                "179 ORE => 7 PSHF",
+                "177 ORE => 5 HKGWZ",
+                "7 DCFZ, 7 PSHF => 2 XJWVT",
+                "165 ORE => 2 GPVTF",
+                "3 DCFZ, 7 NZVS, 5 HKGWZ, 10 PSHF => 8 KHKGT"
+            };
+
+            var reactions = Parse(input);
+
+            var fuel = FuelForOre(reactions, 1_000_000_000_000);
+
+            Assert.Equal(82892753, fuel);
+        }
+
+
+        [Fact]
+        public void SecondStarExample2()
+        {
+            var input = new[]
+            {
+                "2 VPVL, 7 FWMGM, 2 CXFTF, 11 MNCFX => 1 STKFG",
+                "17 NVRVD, 3 JNWZP => 8 VPVL",
+                "53 STKFG, 6 MNCFX, 46 VJHF, 81 HVMC, 68 CXFTF, 25 GNMV => 1 FUEL",
+                "22 VJHF, 37 MNCFX => 5 FWMGM",
+                "139 ORE => 4 NVRVD",
+                "144 ORE => 7 JNWZP",
+                "5 MNCFX, 7 RFSQX, 2 FWMGM, 2 VPVL, 19 CXFTF => 3 HVMC",
+                "5 VJHF, 7 MNCFX, 9 VPVL, 37 CXFTF => 6 GNMV",
+                "145 ORE => 6 MNCFX",
+                "1 NVRVD => 8 CXFTF",
+                "1 VJHF, 6 MNCFX => 4 RFSQX",
+                "176 ORE => 6 VJHF"
+            };
+
+            var reactions = Parse(input);
+
+            var fuel = FuelForOre(reactions, 1_000_000_000_000);
+
+            Assert.Equal(5586022, fuel);
+        }
+
+        [Fact]
+        public void SecondStarExample3()
+        {
+            var input = new[]
+            {
+                "171 ORE => 8 CNZTR",
+                "7 ZLQW, 3 BMBT, 9 XCVML, 26 XMNCP, 1 WPTQ, 2 MZWV, 1 RJRHP => 4 PLWSL",
+                "114 ORE => 4 BHXH",
+                "14 VRPVC => 6 BMBT",
+                "6 BHXH, 18 KTJDG, 12 WPTQ, 7 PLWSL, 31 FHTLT, 37 ZDVW => 1 FUEL",
+                "6 WPTQ, 2 BMBT, 8 ZLQW, 18 KTJDG, 1 XMNCP, 6 MZWV, 1 RJRHP => 6 FHTLT",
+                "15 XDBXC, 2 LTCX, 1 VRPVC => 6 ZLQW",
+                "13 WPTQ, 10 LTCX, 3 RJRHP, 14 XMNCP, 2 MZWV, 1 ZLQW => 1 ZDVW",
+                "5 BMBT => 4 WPTQ",
+                "189 ORE => 9 KTJDG",
+                "1 MZWV, 17 XDBXC, 3 XCVML => 2 XMNCP",
+                "12 VRPVC, 27 CNZTR => 2 XDBXC",
+                "15 KTJDG, 12 BHXH => 5 XCVML",
+                "3 BHXH, 2 VRPVC => 7 MZWV",
+                "121 ORE => 7 VRPVC",
+                "7 XCVML => 6 RJRHP",
+                "5 BHXH, 4 VRPVC => 5 LTCX"
+            };
+
+            var reactions = Parse(input);
+
+            var fuel = FuelForOre(reactions, 1_000_000_000_000);
+
+            Assert.Equal(460664, fuel);
         }
     }
 }
