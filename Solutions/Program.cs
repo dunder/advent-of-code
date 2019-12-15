@@ -5,8 +5,8 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day12();
-            day.SecondStar();
+            var day = new Day15(null);
+            day.FirstStar();
 
             Console.ReadKey();
         }
