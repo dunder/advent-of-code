@@ -320,21 +320,20 @@ namespace Solutions.Event2019
             throw new ArgumentOutOfRangeException($"Impossible to get from {from} to {to} in one step");
         }
 
-        private List<Node<Point>> Explore(Point start, IntCodeComputer computer)
+        private List<Node<Point>> Explore(Point start, IntCodeComputer computer, Dictionary<Point, long> known, bool stopWhenOxygenFound = true)
         {
             var visited = new HashSet<Point>();
             var depthFirst = new List<Node<Point>>();
             var stack = new Stack<Node<Point>>();
-            var known = new Dictionary<Point, long>();
+            //var known = new Dictionary<Point, long>();
             stack.Push(new Node<Point>(start, 0));
-            var printed = new HashSet<Point>();
+
             while (stack.Count != 0)
             {
                 var current = stack.Pop();
 
                 if (!visited.Add(current.Data))
                 {
-                    // continue if already visited
                     continue;
                 }
 
@@ -345,7 +344,7 @@ namespace Solutions.Event2019
                     computer.Execute(movement);
                 }
 
-                if (computer.Output.Any() && computer.Output.Last() == 2)
+                if (stopWhenOxygenFound && computer.Output.Any() && computer.Output.Last() == 2)
                 {
                     break;
                 }
@@ -353,7 +352,7 @@ namespace Solutions.Event2019
                 List<int> possibleMoves = PossibleMoves(computer, current.Data, known);
                 IEnumerable<Point> neighbors = possibleMoves.Select(m => current.Data.Move(ToDirection(m)))
                     .Where(n => !visited.Contains(n));
-                if (!neighbors.Any())
+                if (!neighbors.Any() && stack.Any())
                 {
                     // must backtrack computer here
                     var backTo = stack.Peek();
@@ -367,13 +366,11 @@ namespace Solutions.Event2019
                         next = next.Parent;
                     }
                 }
-                // left-to-right order
+
                 foreach (var neighbor in neighbors.Reverse())
                 {
                     stack.Push(new Node<Point>(neighbor, current.Depth + 1, current));
                 }
-                //PrintWindow(known, current, printed);
-                //Console.ReadKey(true);
             }
 
             return depthFirst;
@@ -396,10 +393,7 @@ namespace Solutions.Event2019
                     var executionState = computer.Execute(d);
                     var output = computer.Output.Last();
                     knowns.Add(next, output);
-                    //if (output == 2)
-                    //{
-                    //    throw new Exception("Found oxygen");
-                    //}
+
                     if (output > 0)
                     {
                         computer.Execute(OppositeDirection(d));
@@ -490,9 +484,31 @@ namespace Solutions.Event2019
         {
             var computer = new IntCodeComputer(program);
 
-            var depthFirstPath = Explore(new Point(0,0), computer);
+            var depthFirstPath = Explore(new Point(0,0), computer, new Dictionary<Point, long>());
 
-            return depthFirstPath.Count;
+            return depthFirstPath.Last().Depth;
+        }
+
+        private int TimeToFillWithOxygen(List<long> program)
+        {
+            var computer = new IntCodeComputer(program);
+
+            var map = new Dictionary<Point, long>();
+            var depthFirstPath = Explore(new Point(0, 0), computer, map, false);
+
+            // try to use solution 1 to create the map then depth first from location of oxygen source
+            // and take max depth from there
+
+            var start = depthFirstPath.Last().Data;
+
+            List<Point> Neighbors(Point p)
+            {
+                return p.AdjacentInMainDirections().Where(a => map[a] == 1).ToList();
+            }
+
+            var (depthFirst, _) = start.DepthFirst(Neighbors);
+
+            return depthFirst.Max(p => p.Depth);
         }
 
         public static void ExplorerMode()
@@ -583,14 +599,15 @@ namespace Solutions.Event2019
 
         public int SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            var program = Parse(input);
+            return TimeToFillWithOxygen(program);
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(244, FirstStar());
             // Assert.Equal(88, FirstStar()); // not correct
             // Assert.Equal(373, FirstStar()); // too high
         }
@@ -599,6 +616,8 @@ namespace Solutions.Event2019
         public void SecondStarTest()
         {
             Assert.Equal(-1, SecondStar());
+            //Assert.Equal(442, SecondStar()); // too high
+            // Assert.Equal(514, SecondStar()); // too high
         }
     }
 }
