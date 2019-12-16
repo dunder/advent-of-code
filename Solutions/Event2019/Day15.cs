@@ -494,7 +494,7 @@ namespace Solutions.Event2019
             var computer = new IntCodeComputer(program);
 
             var map = new Dictionary<Point, long>();
-            var depthFirstPath = Explore(new Point(0, 0), computer, map, false);
+            var depthFirstPath = Explore(new Point(0, 0), computer, map);
 
             // try to use solution 1 to create the map then depth first from location of oxygen source
             // and take max depth from there
@@ -503,7 +503,7 @@ namespace Solutions.Event2019
 
             List<Point> Neighbors(Point p)
             {
-                return p.AdjacentInMainDirections().Where(a => map[a] == 1).ToList();
+                return p.AdjacentInMainDirections().Where(a => map.ContainsKey(a) && map[a] == 1).ToList();
             }
 
             var (depthFirst, _) = start.DepthFirst(Neighbors);
@@ -608,16 +608,12 @@ namespace Solutions.Event2019
         public void FirstStarTest()
         {
             Assert.Equal(244, FirstStar());
-            // Assert.Equal(88, FirstStar()); // not correct
-            // Assert.Equal(373, FirstStar()); // too high
         }
 
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
-            //Assert.Equal(442, SecondStar()); // too high
-            // Assert.Equal(514, SecondStar()); // too high
+            Assert.Equal(278, SecondStar());
         }
     }
 }
