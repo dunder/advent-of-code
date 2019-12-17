@@ -385,6 +385,7 @@ namespace Solutions.Event2019
             program[0] = 2;
 
             // ',' = 44
+            return 0;
         }
 
         public int FirstStar()
