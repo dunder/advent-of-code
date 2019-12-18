@@ -18,6 +18,17 @@ namespace Solutions.Event2019
             return input.Select(x => int.Parse(x.ToString())).ToList();
         }
 
+        private static List<int> Repeat(List<int> input, int times)
+        {
+            var output = input;
+            foreach (var _ in Enumerable.Range(1,times))
+            {
+                output.Concat(input);
+            }
+
+            return output;
+        }
+
         private static string Run(List<int> input, int phases)
         {
             for (int phase = 1; phase <= phases; phase++)
@@ -61,8 +72,11 @@ namespace Solutions.Event2019
             return s.ToString();
         }
 
-        private static string Run2(List<int> input, int phases)
+        private static string Run2(string inputText, int phases, int repeat)
         {
+            //var multipliedInput = string.Join("", Enumerable.Repeat(inputText, 10_000));
+            var input = Parse(inputText);
+
             var offset = int.Parse(string.Join("", input.Take(7).Select(c => int.Parse(c.ToString()))));
             
             for (int phase = 1; phase <= phases; phase++)
@@ -110,15 +124,13 @@ namespace Solutions.Event2019
         public string SecondStar()
         {
             var input = ReadInput();
-            var multipliedInput = string.Join("", Enumerable.Repeat(input, 10_000));
-            var digits = Parse(multipliedInput);
-            return Run2(digits, 100);
+            return Run2(input, 100, 10_000);
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal("", FirstStar());
+            Assert.Equal("78009100", FirstStar());
         }
 
         [Fact]
@@ -146,24 +158,32 @@ namespace Solutions.Event2019
 
             Assert.Equal("34040438", first8);
         }
-
-        private static int GetPatternValue(int outputPosition, int inputPosition)
-        {
-            
-            return 0;
-        }
-
         
-
         [Fact]
         public void SecondStarExample1()
         {
             var input = "03036732577212944063491565474664";
-            var multipliedInput = string.Join("", Enumerable.Repeat(input, 10_000));
-            var digits = Parse(multipliedInput);
-            var first8 = Run2(digits, 100);
+            var first8 = Run2(input, 100, 10_000);
 
-            Assert.Equal("34040438", first8);
+            Assert.Equal("84462026", first8);
+        }
+        
+        [Fact]
+        public void SecondStarExample2()
+        {
+            var input = "03036732577212944063491565474664";
+            var first8 = Run2(input, 100, 10_000);
+
+            Assert.Equal("78725270", first8);
+        }
+        
+        [Fact]
+        public void SecondStarExample3()
+        {
+            var input = "03036732577212944063491565474664";
+            var first8 = Run2(input, 100, 10_000);
+
+            Assert.Equal("53553731", first8);
         }
     }
 }
