@@ -36,18 +36,11 @@ namespace Solutions.Event2019
                 var output = new List<int>();
                 for (int outputPosition = 1; outputPosition <= input.Count; outputPosition++)
                 {
-                    var positionPattern = pattern
-                        .SelectMany(d => Enumerable.Repeat(d, outputPosition))
-                        .ToList();
-                    var first = positionPattern[0];
-                    positionPattern = positionPattern.Skip(1).ToList();
-                    positionPattern.Add(first);
-
                     var positionOutput = new List<int>();
                     for (int digit = 0; digit < input.Count; digit++)
                     {
-                        var patternIndex = digit > positionPattern.Count - 1 ? digit % positionPattern.Count : digit;
-                        var patternValue = positionPattern[patternIndex];
+                        var patternIndex = ((digit + 1) / (outputPosition)) % 4;
+                        var patternValue = pattern[patternIndex];
                         var outputValue = input[digit];
                         var positionValue = outputValue * patternValue;
                         if (positionValue > 9)
@@ -77,18 +70,18 @@ namespace Solutions.Event2019
             //var multipliedInput = string.Join("", Enumerable.Repeat(inputText, 10_000));
             var input = Parse(inputText);
 
-            var offset = int.Parse(string.Join("", input.Take(7).Select(c => int.Parse(c.ToString()))));
-            
+            //var offset = int.Parse(string.Join("", input.Take(7).Select(c => int.Parse(c.ToString()))));
+            //input = input.Skip(offset).Take(8).ToList();
+
             for (int phase = 1; phase <= phases; phase++)
             {
                 var output = new List<int>();
-                for (int outputPosition = 1; outputPosition <= input.Count; outputPosition++)
+                for (int outputPosition = 1; outputPosition <= 1; outputPosition++)
                 {
-                    // mönstret måste upprepa sig med multipel mellan längd för input och output position * 4
                     var positionOutput = new List<int>();
                     for (int digit = 0; digit < input.Count; digit++)
                     {
-                        var patternIndex = ((digit + 1) / outputPosition) % 4;
+                        var patternIndex = ((digit + 1) / (outputPosition)) % 4;
                         var patternValue = pattern[patternIndex];
                         var outputValue = input[digit];
                         var positionValue = outputValue * patternValue;
@@ -107,7 +100,7 @@ namespace Solutions.Event2019
             }
 
             var s = new StringBuilder();
-            foreach (var x in input.Skip(offset).Take(8))
+            foreach (var x in input/*.Skip(offset).Take(8)*/)
             {
                 s.Append(x);
             }
@@ -158,7 +151,16 @@ namespace Solutions.Event2019
 
             Assert.Equal("34040438", first8);
         }
-        
+
+        [Fact]
+        public void OffsetTest()
+        {
+            var input = "98765432109876543210";
+            var offset = 7;
+            var result = string.Join("", input.Skip(offset).Take(8).ToList());
+            Assert.Equal("21098765", result);
+        }
+
         [Fact]
         public void SecondStarExample1()
         {
