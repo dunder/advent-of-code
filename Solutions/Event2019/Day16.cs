@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using MoreLinq;
 using Xunit;
 using static Solutions.InputReader;
@@ -43,12 +42,8 @@ namespace Solutions.Event2019
                 input = output;
             }
 
-            var s = new StringBuilder();
-            foreach (var x in input.Take(8))
-            {
-                s.Append(x);
-            }
-            return s.ToString();
+            return string.Join("", input.Take(8).Select(x => x.ToString()));
+
         }
 
         private static List<int> Transform(List<int> input)
@@ -60,11 +55,10 @@ namespace Solutions.Event2019
 
         private static string Run2(string inputText, int phases, int repeat)
         {
-            var multipliedInput = string.Join("", Enumerable.Repeat(inputText, repeat));
-            var inputOriginal = Parse(multipliedInput);
+            var repeatedInput = string.Join("", Enumerable.Repeat(inputText, repeat));
+            var inputOriginal = Parse(repeatedInput);
 
-            var offsetInput = string.Join("", inputOriginal.Take(7).Select(c => int.Parse(c.ToString())));
-            var offset = int.Parse(offsetInput);
+            var offset = int.Parse(string.Join("", repeatedInput.Take(7)));
             var input = inputOriginal.Skip(offset).ToList();
 
             for (int phase = 1; phase <= phases; phase++)
@@ -72,12 +66,7 @@ namespace Solutions.Event2019
                 input = Transform(input);
             }
 
-            var s = new StringBuilder();
-            foreach (var x in input.Take(8))
-            {
-                s.Append(x);
-            }
-            return s.ToString();
+            return string.Join("", input.Take(8).Select(x => x.ToString()));
         }
 
         public string FirstStar()
