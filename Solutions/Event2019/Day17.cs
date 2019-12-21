@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -83,16 +82,6 @@ namespace Solutions.Event2019
 
             }
 
-            public IntCodeComputer(List<long> program, long input)
-            {
-                this.memory = Load(program);
-                this.input = new List<long> { input };
-                this.Output = new List<long>();
-                this.instructionPointer = 0;
-                this.inputPosition = 0;
-            }
-
-
             public List<long> Output { get; }
 
             private long ReadMemory(long address)
@@ -107,53 +96,6 @@ namespace Solutions.Event2019
                 }
 
                 return memory[address];
-            }
-
-            private long ReadParameter(int position)
-            {
-                var value = ReadMemory(instructionPointer + position);
-
-                var mode = instruction.ParameterModes[position - 1];
-                switch (mode)
-                {
-                    case Mode.Position:
-                        {
-                            return ReadMemory(value);
-                        }
-                    case Mode.Immediate:
-                        {
-                            return value;
-                        }
-                    case Mode.Relative:
-                        {
-                            return ReadMemory(value + relativeBase);
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
-                }
-            }
-            private long WriteParameter(int position)
-            {
-                var value = ReadMemory(instructionPointer + position);
-
-                var mode = instruction.ParameterModes[position - 1];
-                switch (mode)
-                {
-                    case Mode.Position:
-                        {
-                            return value;
-                        }
-                    case Mode.Immediate:
-                        {
-                            throw new InvalidOperationException("Write parameters cannot use immediate mode");
-                        }
-                    case Mode.Relative:
-                        {
-                            return value + relativeBase;
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
-                }
             }
 
             private long Parameter(long position, Mode mode, ParameterType type)
@@ -313,6 +255,14 @@ namespace Solutions.Event2019
                     return "#";
                 case 46:
                     return ".";
+                case 60:
+                    return "<";
+                case 62:
+                    return ">";
+                case 94:
+                    return "^";
+                case 118:
+                    return "v";
                 case 10:
                     return Environment.NewLine;
                 default:
@@ -334,16 +284,9 @@ namespace Solutions.Event2019
                 for (int x = 0; x < width; x++)
                 {
                     if (map.ContainsKey(new Point(x, y)))
-                    {
-                        var mapPoint = map[new Point(x, y)];
-                        if (mapPoint == 35)
-                        {
-                            line.Append("#");
-                        }
-                        else
-                        {
-                            line.Append(".");
-                        }
+                    { 
+                        int mapPoint = (int)map[new Point(x, y)];
+                        line.Append(ToChar(mapPoint));
                     }
                     
                 }
@@ -357,12 +300,10 @@ namespace Solutions.Event2019
             computer.ExecuteAll();
             var mapData = computer.Output;
             var map = new Dictionary<Point, long>();
-            // 35 means #, 46 means ., 10 starts a new line
             var width = mapData.IndexOf(10);
             var y = 0;
             for (int i = 0; i < mapData.Count; i++)
             {
-
                 var mapPoint = mapData[i];
                 if (mapPoint == 10)
                 {
