@@ -84,6 +84,11 @@ namespace Solutions.Event2019
 
             public List<long> Output { get; }
 
+            public void SetInput(List<long> newInput)
+            {
+                this.input.AddRange(newInput);
+            }
+
             private long ReadMemory(long address)
             {
                 if (address < 0)
@@ -247,35 +252,12 @@ namespace Solutions.Event2019
             }
         }
 
-        private static string ToChar(int i)
+        private static bool IsIntersection(Point aPoint, Dictionary<Point, int> map)
         {
-            switch (i)
-            {
-                case 35:
-                    return "#";
-                case 46:
-                    return ".";
-                case 60:
-                    return "<";
-                case 62:
-                    return ">";
-                case 94:
-                    return "^";
-                case 118:
-                    return "v";
-                case 10:
-                    return Environment.NewLine;
-                default:
-                    throw new ArgumentOutOfRangeException($"No character defined for {i}");
-            }
+            return map[aPoint] == '#' && aPoint.AdjacentInMainDirections().All(p => map.ContainsKey(p) && map[p] == '#');
         }
 
-        private static bool IsConjunction(Point aPoint, Dictionary<Point, long> map)
-        {
-            return map[aPoint] == 35 && aPoint.AdjacentInMainDirections().All(p => map.ContainsKey(p) && map[p] == 35);
-        }
-
-        private void Print(Dictionary<Point, long> map, int width)
+        private void Print(Dictionary<Point, int> map, int width)
         {
             var height = map.Count / width;
             for (int y = 0; y < height; y++)
@@ -285,8 +267,8 @@ namespace Solutions.Event2019
                 {
                     if (map.ContainsKey(new Point(x, y)))
                     { 
-                        int mapPoint = (int)map[new Point(x, y)];
-                        line.Append(ToChar(mapPoint));
+                        int mapPoint = map[new Point(x, y)];
+                        line.Append((char)mapPoint);
                     }
                     
                 }
@@ -294,54 +276,188 @@ namespace Solutions.Event2019
             }
         }
 
-        private int Run(List<long> program)
+        private List<long> RunMapProgram(List<long> program)
         {
             var computer = new IntCodeComputer(program);
             computer.ExecuteAll();
-            var mapData = computer.Output;
-            var map = new Dictionary<Point, long>();
-            var width = mapData.IndexOf(10);
+            return computer.Output;
+        }
+
+        private static Dictionary<Point, int> CreateMap(List<long> mapData, int width)
+        {
+            var map = new Dictionary<Point, int>();
             var y = 0;
             for (int i = 0; i < mapData.Count; i++)
             {
-                var mapPoint = mapData[i];
-                if (mapPoint == 10)
+                int mapPoint = (int) mapData[i];
+                if (mapPoint == '\n')
                 {
                     y++;
                 }
-                var x = i - y*width - y;
+
+                var x = i - y * width - y;
 
                 if (mapPoint != 10)
                 {
-                    map.Add(new Point(x,y), mapPoint);
+                    map.Add(new Point(x, y), mapPoint);
                 }
             }
-            Print(map, width);
-            var conjunctions = map.Keys.Where(p => IsConjunction(p, map)).ToList();
+
+            return map;
+        }
+
+        private static Dictionary<Point, int> ParseMap(IEnumerable<string> input)
+        {
+            var map = new Dictionary<Point, int>();
+            var lines = input.ToList();
+            for (int y = 0; y < lines.Count; y++)
+            {
+                var line = lines[y];
+                for (int x = 0; x < line.Length; x++)
+                {
+                    map.Add(new Point(x,y), line[x]);
+                }
+            }
+
+            return map;
+        }
+
+        private int SumOfAlignmentParameters(Dictionary<Point, int> map)
+        {
+            var conjunctions = map.Keys.Where(p => IsIntersection(p, map)).ToList();
             return conjunctions.Select(p => p.X * p.Y).Sum();
         }
 
-        private int Run2(List<long> program)
+        private (Dictionary<Point, int> map, int width) Run(string input)
         {
-            program[0] = 2;
+            var program = Parse(input);
+            var mapData = RunMapProgram(program);
+            var width = mapData.IndexOf('\n');
+            var map = CreateMap(mapData, width);
+            return (map,width);
+        }
 
-            // ',' = 44
-            return 0;
+        private long Run2(List<long> program, Dictionary<Point, int> map)
+        {
+            var directionChars = new List<int>{'^', '<', '>', 'v'};
+
+            var locationAndChar = map.Single(kvp => directionChars.Contains(kvp.Value));
+            var start = locationAndChar.Key;
+            var direction = ToDirection(locationAndChar.Value);
+
+            // analyze map 
+            var segments = new List<(Turn turn, int steps)>();
+            var visited = new HashSet<Point>();
+            while (true)
+            {
+                visited.Add(start);
+
+                var surroundings = start.AdjacentInMainDirections()
+                    .Where(a => !visited.Contains(a))
+                    .Where(s => map.TryGetValue(s, out int data) && data == '#')
+                    .ToList();
+                
+                if (!surroundings.Any(map.ContainsKey))
+                {
+                    break;
+                }
+                var open = surroundings.Single();
+                Turn turn = BestTurn(direction, start, open);
+                
+                direction = direction.Turn(turn);
+                var nextTurnPoint = NextTurnAt(direction, start, map);
+                var steps = 0;
+                while (start != nextTurnPoint)
+                {
+                    start = start.Move(direction);
+                    visited.Add(start);
+                    steps++;
+                }
+                segments.Add((turn, steps));
+                start = nextTurnPoint;
+            }
+
+            // use this variable for visual inspection, try to program a solution later
+            var readableSegments = string.Join(",", segments.Select(s => $"{s.turn.ToShortString()},{s.steps}"));
+
+            program[0] = 2;
+            var computer = new IntCodeComputer(program);
+
+            var mainRoutine = "A,B,A,C,B,C,B,C,A,C\n";
+            var routineA = "R,12,L,10,R,12\n";
+            var routineB = "L,8,R,10,R,6\n";
+            var routineC = "R,12,L,10,R,10,L,8\n";
+            var no = "n\n";
+
+            var input = mainRoutine + routineA + routineB + routineC + no;
+
+            computer.SetInput(input.Select(c => (long)c).ToList());
+            computer.ExecuteAll();
+            return computer.Output.Last();
+        }
+
+        private Direction ToDirection(int ascii)
+        {
+            switch (ascii)
+            {
+                case '^':
+                    return Direction.North;
+                case '>':
+                    return Direction.East;
+                case 'v':
+                    return Direction.South;
+                case '<':
+                    return Direction.West;
+                default:
+                    throw new ArgumentOutOfRangeException($"Unknown direction character");
+            }
+        }
+
+        private static Turn BestTurn(Direction currentDirection, Point currentLocation, Point nextLocation)
+        {
+            var turns = new[] { Turn.Right, Turn.Left };
+
+            foreach (var turn in turns)
+            {
+                var newDirection = currentDirection.Turn(turn);
+                var newPosition = currentLocation.Move(newDirection);
+                if (newPosition == nextLocation)
+                {
+                    return turn;
+                }
+            }
+
+            throw new InvalidOperationException($"Impossible turn at {currentLocation} facing {currentDirection}");
+        }
+
+        private Point NextTurnAt(Direction direction, Point start, Dictionary<Point, int> map)
+        {
+            do
+            {
+                start = start.Move(direction);
+            } while (map.TryGetValue(start.Move(direction), out int next) && next == '#');
+
+            return start;
         }
 
         public int FirstStar()
         {
             var input = ReadInput();
-            var program = Parse(input);
-            return Run(program);
+            var (map,width) = Run(input);
+
+            Print(map, width);
+
+            return SumOfAlignmentParameters(map);
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
             var input = ReadInput();
+            var (map, width) = Run(input);
+
             var program = Parse(input);
 
-            return 0;
+            return Run2(program, map);
         }
 
         [Fact]
@@ -353,7 +469,37 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(1409507, SecondStar());
+        }
+
+        [Fact]
+        public void SecondStarExample()
+        {
+            var mapData = new[]
+            {
+                "#######...#####",
+                "#.....#...#...#",
+                "#.....#...#...#",
+                "......#...#...#",
+                "......#...###.#",
+                "......#.....#.#",
+                "^########...#.#",
+                "......#.#...#.#",
+                "......#########",
+                "........#...#..",
+                "....#########..",
+                "....#...#......",
+                "....#...#......",
+                "....#...#......",
+                "....#####......"
+            };
+            var input = ReadInput();
+
+            var program = Parse(input);
+            var map = ParseMap(mapData);
+            var result = Run2(program, map);
+
+            Assert.Equal(1409507, result);
         }
     }
 }

@@ -4,7 +4,6 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using Shared.MapGeometry;
-using Solutions.Event2016.Day01;
 using Xunit;
 using Xunit.Abstractions;
 using static Solutions.InputReader;

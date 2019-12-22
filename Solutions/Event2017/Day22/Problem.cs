@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Shared.Grid;
 using Shared.MapGeometry;
-using Solutions.Event2016.Day01;
 
 namespace Solutions.Event2017.Day22
 {
