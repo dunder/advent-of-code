@@ -10,7 +10,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2019
 {
-    // 
+    // --- Day 18: Many-Worlds Interpretation ---
     public class Day18
     {
         public Dictionary<Point, char> Parse(List<string> input)
@@ -97,18 +97,33 @@ namespace Solutions.Event2019
         private class LocationWithKey
         {
             public Point Location { get; set; }
-            public HashSet<string> Keys { get; set; } = new HashSet<string>();
+            public HashSet<char> KeySet { get; private set; } = new HashSet<char>();
 
+            public LocationWithKey NewLocation(Point newLocation)
+            {
+                return new LocationWithKey {Location = newLocation, KeySet = new HashSet<char>(KeySet)};
+            }
+
+            public void AddKey(char c)
+            {
+                KeySet.Add(c);
+            }
+
+            public bool HasKey(char c)
+            {
+                return KeySet.Contains(c);
+            }
 
             public override string ToString()
             {
-                var key = Keys.Any() ? string.Join(",", Keys) : "(no keys)";
-                return $"{Location} {key}";
+                var keys = KeySet.Any() ? string.Join(",", KeySet.OrderBy(k => k)) : "(no keys)";
+                return $"{Location} {keys}";
             }
 
-            protected bool Equals(LocationWithKey other)
+            private bool Equals(LocationWithKey other)
             {
-                return Location.Equals(other.Location) && Keys.SetEquals(other.Keys);
+                return Location.Equals(other.Location) && KeySet.SetEquals(other.KeySet);
+
             }
 
             public override bool Equals(object obj)
@@ -123,19 +138,18 @@ namespace Solutions.Event2019
             {
                 unchecked
                 {
-                    // TODO: Possible performance problem
-                    return (Location.GetHashCode() * 397) ^ (Keys != null ? string.Join("", Keys.OrderBy(k => k)).GetHashCode() : 0);
+                    var hash = Location.GetHashCode() * 397;
+                    foreach (var key in KeySet)
+                    {
+                        hash ^= key.GetHashCode();
+                    }
+                    return hash;
                 }
             }
         }
 
-
         private List<LocationWithKey> Neighbors(Node<LocationWithKey> node, Dictionary<Point, char> map)
         {
-            if (node.Data.Location.X == 14 && node.Data.Location.Y == 1)
-            {
-                var stop = "stop";
-            }
             var neighbors = new List<LocationWithKey>();
             var potentialNeighbors = node.Data.Location.AdjacentInMainDirections();
             foreach (var potentialNeighbor in potentialNeighbors)
@@ -148,17 +162,18 @@ namespace Solutions.Event2019
                             continue;
                         case "@":
                         case ".":
-                            neighbors.Add(new LocationWithKey {Location = potentialNeighbor, Keys = new HashSet<string>(node.Data.Keys)});
+                            neighbors.Add(node.Data.NewLocation(potentialNeighbor));
+
                             break;
-                        case var _ when keyPattern.IsMatch(mapItem.ToString()):
-                            var neighbor = new LocationWithKey {Location = potentialNeighbor, Keys = new HashSet<string>(node.Data.Keys)};
-                            neighbor.Keys.Add(mapItem.ToString());
+                        case var _ when KeyPattern.IsMatch(mapItem.ToString()):
+                            var neighbor = node.Data.NewLocation(potentialNeighbor);
+                            neighbor.AddKey(mapItem);
                             neighbors.Add(neighbor);
                             break;
-                        case var x when doorPattern.IsMatch(mapItem.ToString()):
-                            if (node.Data.Keys.Contains(x.ToLowerInvariant()))
+                        case var x when DoorPattern.IsMatch(mapItem.ToString()):
+                            if (node.Data.HasKey(char.Parse(x.ToLowerInvariant())))
                             {
-                                neighbors.Add(new LocationWithKey {Location = potentialNeighbor, Keys = new HashSet<string>(node.Data.Keys)});
+                                neighbors.Add(node.Data.NewLocation(potentialNeighbor));
                             }
                             break;
                         default:
@@ -169,46 +184,47 @@ namespace Solutions.Event2019
             }
             return neighbors;
         }
-        private static Regex doorPattern = new Regex(@"[A-Z]");
-        private static Regex keyPattern = new Regex(@"[a-z]");
 
-        private static (IEnumerable<Node<LocationWithKey>> depthFirst, ISet<LocationWithKey> visited) DepthFirst(
-            LocationWithKey start,
+        private static readonly Regex DoorPattern = new Regex(@"[A-Z]");
+        private static readonly Regex KeyPattern = new Regex(@"[a-z]");
+
+        private static Node<LocationWithKey> BreadthFirst(
+            Node<LocationWithKey> start,
             Func<Node<LocationWithKey>, Dictionary<Point, char>, IEnumerable<LocationWithKey>> neighborFetcher,
-            Dictionary<Point, char> map, 
+            Dictionary<Point, char> map,
             int keyCount)
         {
             var visited = new HashSet<LocationWithKey>();
-            var depthFirst = new List<Node<LocationWithKey>>();
-            var stack = new Stack<Node<LocationWithKey>>();
 
-            stack.Push(new Node<LocationWithKey>(start, 0));
+            var queue = new Queue<Node<LocationWithKey>>();
+            Node<LocationWithKey> terminationNode = null;
+            queue.Enqueue(start);
 
-            while (stack.Count != 0)
+            while (queue.Count != 0)
             {
-                var current = stack.Pop();
+                var current = queue.Dequeue();
 
                 if (!visited.Add(current.Data))
                 {
                     continue;
                 }
 
-                if (current.Data.Keys.Count == 1 && current.Data.Keys.Contains("a"))
+                if (current.Data.KeySet.Count == keyCount)
                 {
-                    var test = "test";
+                    terminationNode = current;
+                    break;
                 }
 
-                depthFirst.Add(current);
 
-                var neighbors = neighborFetcher(current, map).Where(n => !visited.Contains(n));
+                var neighbors = neighborFetcher(current, map).Where(n => !visited.Contains(n)).ToList();
 
-                foreach (var neighbor in neighbors.Reverse())
+                foreach (var neighbor in neighbors)
                 {
-                    stack.Push(new Node<LocationWithKey>(neighbor, current.Depth + 1, current));
+                    queue.Enqueue(new Node<LocationWithKey>(neighbor, current.Depth + 1, current));
                 }
             }
 
-            return (depthFirst, visited);
+            return terminationNode;
         }
 
         private int StepsInShortestPath(Dictionary<Point, char> map)
@@ -217,13 +233,10 @@ namespace Solutions.Event2019
 
             var start = map.Single(p => p.Value == '@').Key;
             var keyCount = map.Values.Count(char.IsLower);
-            var (depthFirst, _) = DepthFirst(new LocationWithKey {Location = start}, Neighbors, map, keyCount);
-
-            var withAllKeys = depthFirst.Where(n => n.Data.Keys.Count == keyCount).OrderBy(n => n.Depth).ToList();
-            var depths = withAllKeys.Select(x =>
-                x.DepthKeyComplete((current, previous) => !current.Keys.SetEquals(previous.Keys))).OrderBy(x => x);
-
-            return withAllKeys.Min(n => n.Depth);
+            var startLocation = new LocationWithKey {Location = start};
+            var startNode = new Node<LocationWithKey>(startLocation, 0);
+            var terminationNode = BreadthFirst(startNode, Neighbors, map, keyCount);
+             return terminationNode.Depth;
         }
 
         public int FirstStar()
@@ -243,8 +256,7 @@ namespace Solutions.Event2019
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
-            //Assert.Equal(7980, FirstStar()); // too high
+            Assert.Equal(4270, FirstStar());
         }
 
         [Fact]
