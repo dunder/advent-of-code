@@ -32,12 +32,20 @@ namespace Shared.MapGeometry
             {
                 case Direction.North:
                     return new Point(point.X, point.Y - 1);
+                case Direction.NorthEast:
+                    return new Point(point.X + 1, point.Y - 1);
                 case Direction.East:
                     return new Point(point.X + 1, point.Y);
+                case Direction.SouthEast:
+                    return new Point(point.X + 1, point.Y + 1);
                 case Direction.South:
                     return new Point(point.X, point.Y + 1);
+                case Direction.SouthWest:
+                    return new Point(point.X - 1, point.Y + 1);
                 case Direction.West:
                     return new Point(point.X - 1, point.Y);
+                case Direction.NorthWest:
+                    return new Point(point.X - 1, point.Y - 1);
                 default:
                     throw new ArgumentOutOfRangeException(nameof(direction),
                         $"Cannot move in this direction: {direction}");

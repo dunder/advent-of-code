@@ -241,18 +241,168 @@ namespace Solutions.Event2019
              return terminationNode.Depth;
         }
 
+        private class LocationsWithKeys
+        {
+            public List<Point> Locations { get; set; } = new List<Point>();
+            public int Keys { get; private set; }
+
+            public LocationsWithKeys NewLocation(int id, Point newLocation)
+            {
+                var newLocations = new List<Point>(Locations) {[id] = newLocation};
+                return new LocationsWithKeys { Locations = newLocations, Keys = Keys };
+            }
+
+            public void AddKey(char c)
+            {
+                Keys |= 1 << c - 'a';
+            }
+
+            public bool HasKey(char c)
+            {
+                return (Keys & 1 << c - 'a') > 0;
+            }
+
+            public int KeyCount => Enumerable.Range('a', 'z' - 'a' + 1).Count(i => HasKey((char)i));
+
+            public override string ToString()
+            {
+                var keys = new List<char>();
+                for (int i = 'a'; i <= 'z'; i++)
+                {
+                    char c = (char)i;
+                    if (HasKey(c))
+                    {
+                        keys.Add(c);
+                    }
+                }
+                var keyString = keys.Any() ? string.Join(",", keys) : "(no keys)";
+                
+                return $"{string.Join(",", Locations)} {keyString}";
+            }
+
+            private bool Equals(LocationsWithKeys other)
+            {
+                return Locations.SequenceEqual(other.Locations) && Keys == other.Keys;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((LocationsWithKeys)obj);
+            }
+
+            public override int GetHashCode()
+            {
+                var hashCode = new HashCode();
+                foreach(var location in Locations)
+                {
+                    hashCode.Add(location);
+                }
+
+                hashCode.Add(Keys);
+
+                return hashCode.ToHashCode();
+            }
+        }
+
+
+        private List<LocationsWithKeys> Neighbors(Node<LocationsWithKeys> node, SplitMap maps)
+        {
+            var neighbors = new List<LocationsWithKeys>();
+
+            for (int i = 0; i < 4; i++)
+            {
+                var potentialNeighbors = node.Data.Locations[i].AdjacentInMainDirections();
+                foreach (var potentialNeighbor in potentialNeighbors)
+                {
+                    if (maps.GetMap(i).TryGetValue(potentialNeighbor, out char mapItem))
+                    {
+                        switch (mapItem.ToString())
+                        {
+                            case "#":
+                                continue;
+                            case "@":
+                            case ".":
+                                neighbors.Add(node.Data.NewLocation(i, potentialNeighbor));
+
+                                break;
+                            case var _ when KeyPattern.IsMatch(mapItem.ToString()):
+                                var neighbor = node.Data.NewLocation(i, potentialNeighbor);
+                                neighbor.AddKey(mapItem);
+                                neighbors.Add(neighbor);
+                                break;
+                            case var x when DoorPattern.IsMatch(mapItem.ToString()):
+                                if (node.Data.HasKey(char.Parse(x.ToLowerInvariant())))
+                                {
+                                    neighbors.Add(node.Data.NewLocation(i, potentialNeighbor));
+                                }
+                                break;
+                            default:
+                                throw new ArgumentOutOfRangeException("Unknown map item");
+
+                        }
+                    }
+                }
+            }
+            
+            return neighbors;
+        }
+
+        private static Node<LocationsWithKeys> BreadthFirst(
+            Node<LocationsWithKeys> start,
+            Func<Node<LocationsWithKeys>, SplitMap, IEnumerable<LocationsWithKeys>> neighborFetcher,
+            SplitMap maps,
+            int keyCount)
+        {
+            var visited = new HashSet<LocationsWithKeys>();
+
+            var queue = new Queue<Node<LocationsWithKeys>>();
+            Node<LocationsWithKeys> terminationNode = null;
+            queue.Enqueue(start);
+
+            while (queue.Count != 0)
+            {
+                var current = queue.Dequeue();
+
+                if (!visited.Add(current.Data))
+                {
+                    continue;
+                }
+
+                if (current.Data.KeyCount == keyCount)
+                {
+                    terminationNode = current;
+                    break;
+                }
+
+                var neighbors = neighborFetcher(current, maps).Where(n => !visited.Contains(n)).ToList();
+
+                foreach (var neighbor in neighbors)
+                {
+                    queue.Enqueue(new Node<LocationsWithKeys>(neighbor, current.Depth + 1, current));
+                }
+            }
+
+            return terminationNode;
+        }
+
 
         private int StepsInShortestPathSplitMap(Dictionary<Point, char> map)
         {
             var keyCount = map.Values.Count(char.IsLower);
             var splitMap = new SplitMap(map);
-
-            return 0;
+            
+            var startLocation = new LocationsWithKeys { Locations = splitMap.Entrances};
+            var startNode = new Node<LocationsWithKeys>(startLocation, 0);
+            var terminationNode = BreadthFirst(startNode, Neighbors, splitMap, keyCount);
+            return terminationNode.Depth;
         }
 
         private class SplitMap
         {
-            private readonly List<Point> Entrances = new List<Point>();
+            public readonly List<Point> Entrances = new List<Point>();
             private readonly List<Dictionary<Point, char>> maps = new List<Dictionary<Point, char>>();
 
             public SplitMap(Dictionary<Point, char> map)
@@ -264,7 +414,13 @@ namespace Solutions.Event2019
                     map[p] = '#';
                 }
 
-                var diagonals = start.AdjacentInAllDirections().Where(p => !adjacent.Contains(p));
+                Point[] diagonals = {
+                    start.Move(Direction.NorthWest), 
+                    start.Move(Direction.NorthEast), 
+                    start.Move(Direction.SouthEast),
+                    start.Move(Direction.SouthWest)
+                };
+
                 foreach (var p in diagonals)
                 {
                     map[p] = '@';
@@ -274,10 +430,10 @@ namespace Solutions.Event2019
                 var maxX = map.Keys.Max(p => p.X);
                 var maxY = map.Keys.Max(p => p.Y);
 
-                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X < maxX / 2 && kvp.Key.Y < maxY / 2)));
-                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X > maxX / 2 && kvp.Key.Y < maxY / 2)));
-                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X > maxX / 2 && kvp.Key.Y > maxY / 2)));
-                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X < maxX / 2 && kvp.Key.Y > maxY / 2)));
+                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X <= maxX / 2 && kvp.Key.Y <= maxY / 2)));
+                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X >= maxX / 2 && kvp.Key.Y <= maxY / 2)));
+                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X >= maxX / 2 && kvp.Key.Y >= maxY / 2)));
+                maps.Add(new Dictionary<Point, char>(map.Where(kvp => kvp.Key.X <= maxX / 2 && kvp.Key.Y >= maxY / 2)));
             }
 
             public Dictionary<Point, char> GetMap(int i)
@@ -302,7 +458,9 @@ namespace Solutions.Event2019
         public int SecondStar()
         {
             var input = ReadLineInput();
-            return 0;
+            var map = Parse(input.ToList());
+
+            return StepsInShortestPathSplitMap(map);
         }
 
         [Fact]
@@ -454,7 +612,27 @@ namespace Solutions.Event2019
             var map = Parse(input.ToList());
             var steps = StepsInShortestPathSplitMap(map);
 
-            Assert.Equal(8, steps);
+            Assert.Equal(24, steps);
+        }
+
+        [Fact]
+        public void SecondStarExample3()
+        {
+            var input = new[]
+            {
+                "#############",
+                "#DcBa.#.GhKl#",
+                "#.###...#I###",
+                "#e#d#.@.#j#k#",
+                "###C#...###J#",
+                "#fEbA.#.FgHi#",
+                "#############"
+            };
+
+            var map = Parse(input.ToList());
+            var steps = StepsInShortestPathSplitMap(map);
+
+            Assert.Equal(32, steps);
         }
     }
 }
