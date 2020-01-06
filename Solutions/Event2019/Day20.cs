@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
-using Shared.Extensions;
 using Shared.MapGeometry;
 using Shared.Tree;
 using Xunit;
@@ -142,9 +141,8 @@ namespace Solutions.Event2019
             var (portals, start, exit) = ParseLabels(mapData);
             var neighbors = CreateNeighborMap(mapData, portals);
 
-            var (depthFirst, _) = start.DepthFirst(p => neighbors[p], n => n.Data == exit, true);
-            var actualPaths = depthFirst.Where(n => n.Data == exit);
-            return actualPaths.OrderBy(n => n.Depth).First().Depth;
+            var (terminationNode, _) = start.BreadthFirst(p => neighbors[p], n => n == exit, -1);
+            return terminationNode.Depth;
         }
 
 
@@ -163,8 +161,7 @@ namespace Solutions.Event2019
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
-            //Assert.Equal(1187, FirstStar()); // too high
+            Assert.Equal(692, FirstStar());
         }
 
         [Fact]
