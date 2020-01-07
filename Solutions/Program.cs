@@ -5,8 +5,6 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day20();
-            day.RunInteractive();
 
             Console.ReadKey();
         }

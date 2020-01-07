@@ -135,6 +135,44 @@ namespace Solutions.Event2019
             return neighborMap;
         }
 
+        private class LevelPosition
+        {
+            public int Level { get; }
+            public Point Position { get; }
+
+            public LevelPosition(int level, Point position)
+            {
+                Level = level;
+                Position = position;
+            }
+
+            protected bool Equals(LevelPosition other)
+            {
+                return Level == other.Level && Position.Equals(other.Position);
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (ReferenceEquals(null, obj)) return false;
+                if (ReferenceEquals(this, obj)) return true;
+                if (obj.GetType() != this.GetType()) return false;
+                return Equals((LevelPosition) obj);
+            }
+
+            public override int GetHashCode()
+            {
+                unchecked
+                {
+                    return (Level * 397) ^ Position.GetHashCode();
+                }
+            }
+
+            public override string ToString()
+            {
+                return $"{Position} at level {Level}";
+            }
+        }
+
         private int ShortestPath(IEnumerable<string> input)
         {
             var mapData = ParseMap(input.ToList());
@@ -146,6 +184,55 @@ namespace Solutions.Event2019
         }
 
 
+
+        private int ShortestPathLevels(IEnumerable<string> input)
+        {
+            Dictionary<Point, char> mapData = ParseMap(input.ToList());
+            var (portals, start, exit) = ParseLabels(mapData);
+            Dictionary<Point, List<Point>> neighborMap = CreateNeighborMap(mapData, portals);
+
+            var startLevel = new LevelPosition(0, start);
+            var exitLevel = new LevelPosition(0, exit);
+
+            int width = mapData.Where(md => md.Value == '#').Max(md => md.Key.X);
+            int height = mapData.Where(md => md.Value == '#').Max(md => md.Key.Y);
+
+            List<LevelPosition> LevelNeighbors(LevelPosition levelPosition)
+            {
+                var levelNeighbors = new List<LevelPosition>();
+
+                var neighbors = neighborMap[levelPosition.Position];
+                foreach (var n in neighbors)
+                {
+                    if (portals.ContainsKey(levelPosition.Position) && portals.ContainsKey(n))
+                    {
+                        var p = levelPosition.Position;
+                        if (p.X == 0 || p.Y == 0 || p.X == width || p.Y == height)
+                        {
+                            if (levelPosition.Level == 0)
+                            {
+                                continue;
+                            }
+                            levelNeighbors.Add(new LevelPosition(levelPosition.Level - 1, new Point(n.X, n.Y)));
+                        }
+                        else
+                        {
+                            levelNeighbors.Add(new LevelPosition(levelPosition.Level + 1, new Point(n.X, n.Y)));
+                        }
+                    }
+                    else
+                    {
+                        levelNeighbors.Add(new LevelPosition(levelPosition.Level, new Point(n.X, n.Y)));
+                    }
+                }
+
+                return levelNeighbors;
+            }
+
+            var (terminationNode, _) = startLevel.BreadthFirst(LevelNeighbors, n => n.Equals(exitLevel), -1);
+            return terminationNode.Depth;
+        }
+
         public int FirstStar()
         {
             var input = ReadLineInput();
@@ -155,7 +242,7 @@ namespace Solutions.Event2019
         public int SecondStar()
         {
             var input = ReadLineInput();
-            return 0;
+            return ShortestPathLevels(input);
         }
 
         [Fact]
@@ -248,6 +335,55 @@ namespace Solutions.Event2019
             var shortest = ShortestPath(input);
 
             Assert.Equal(58, shortest);
+        }
+
+        [Fact]
+        public void SecondStarExample()
+        {
+            var input = new[]
+            {
+                "             Z L X W       C                 ",
+                "             Z P Q B       K                 ",
+                "  ###########.#.#.#.#######.###############  ",
+                "  #...#.......#.#.......#.#.......#.#.#...#  ",
+                "  ###.#.#.#.#.#.#.#.###.#.#.#######.#.#.###  ",
+                "  #.#...#.#.#...#.#.#...#...#...#.#.......#  ",
+                "  #.###.#######.###.###.#.###.###.#.#######  ",
+                "  #...#.......#.#...#...#.............#...#  ",
+                "  #.#########.#######.#.#######.#######.###  ",
+                "  #...#.#    F       R I       Z    #.#.#.#  ",
+                "  #.###.#    D       E C       H    #.#.#.#  ",
+                "  #.#...#                           #...#.#  ",
+                "  #.###.#                           #.###.#  ",
+                "  #.#....OA                       WB..#.#..ZH",
+                "  #.###.#                           #.#.#.#  ",
+                "CJ......#                           #.....#  ",
+                "  #######                           #######  ",
+                "  #.#....CK                         #......IC",
+                "  #.###.#                           #.###.#  ",
+                "  #.....#                           #...#.#  ",
+                "  ###.###                           #.#.#.#  ",
+                "XF....#.#                         RF..#.#.#  ",
+                "  #####.#                           #######  ",
+                "  #......CJ                       NM..#...#  ",
+                "  ###.#.#                           #.###.#  ",
+                "RE....#.#                           #......RF",
+                "  ###.###        X   X       L      #.#.#.#  ",
+                "  #.....#        F   Q       P      #.#.#.#  ",
+                "  ###.###########.###.#######.#########.###  ",
+                "  #.....#...#.....#.......#...#.....#.#...#  ",
+                "  #####.#.###.#######.#######.###.###.#.#.#  ",
+                "  #.......#.......#.#.#.#.#...#...#...#.#.#  ",
+                "  #####.###.#####.#.#.#.#.###.###.#.###.###  ",
+                "  #.......#.....#.#...#...............#...#  ",
+                "  #############.#.#.###.###################  ",
+                "               A O F   N                     ",
+                "               A A D   M                     "
+            };
+
+            var shortest = ShortestPathLevels(input);
+
+            Assert.Equal(396, shortest);
         }
     }
 }

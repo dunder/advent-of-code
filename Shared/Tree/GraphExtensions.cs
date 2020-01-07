@@ -81,7 +81,7 @@ namespace Shared.Tree
 
                 foreach (var neighbor in neighbors)
                 {
-                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1));
+                    queue.Enqueue(new Node<T>(neighbor, current.Depth + 1, current));
                 }
             }
 
