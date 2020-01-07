@@ -254,7 +254,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(8314, SecondStar());
         }
 
         [Fact]
