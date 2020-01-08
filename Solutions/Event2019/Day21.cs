@@ -299,6 +299,14 @@ namespace Solutions.Event2019
                 "NOT D T\n",
                 "NOT T T\n",
                 "AND T J\n",
+                // and H is not a hole (can not make second jump)
+                "NOT H T\n",
+                "NOT T T\n",
+                "AND T J\n",
+                // force jump if a is hole and d is not a hole
+                "NOT A T\n",
+                "AND D T\n",
+                "OR T J\n",
                 "RUN\n"
             };  
 
@@ -337,7 +345,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(1140470745, SecondStar());
         }
     }
 }
