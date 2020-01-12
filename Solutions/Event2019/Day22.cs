@@ -376,13 +376,13 @@ namespace Solutions.Event2019
             };
             var deck = Enumerable.Range(0, 10).ToList();
             var shuffledDeck = Shuffle(deck, input);
+            var shuffledDeck2 = new List<long>();
             for (int i = 0; i < shuffledDeck.Count; i++)
             {
-                var expected = shuffledDeck[i];
                 var fromIndex = ShuffleIndex(i, 10, input);
-
-                Assert.Equal(expected, fromIndex);
+                shuffledDeck2.Add(fromIndex);
             }
+            Assert.Equal(shuffledDeck.Select(x => (long)x).ToList(), shuffledDeck2);
         }
 
         [Theory]
