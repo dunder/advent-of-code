@@ -43,11 +43,9 @@ namespace Solutions.Event2019
             }
 
             private readonly Dictionary<long, long> memory;
-            private readonly List<long> input;
 
 
             private long instructionPointer;
-            private int inputPosition;
             private long relativeBase;
             private Instruction instruction;
 
@@ -64,31 +62,14 @@ namespace Solutions.Event2019
             public IntCodeComputer(List<long> program)
             {
                 this.memory = Load(program);
-                this.input = new List<long>();
+                this.Input = new Queue<long>();
                 this.instructionPointer = 0;
-                this.inputPosition = 0;
 
-                this.Output = new List<long>();
+                this.Output = new Queue<long>();
             }
 
-            public List<long> Output { get; }
-            public bool HasInput => input.Any();
-
-            public void Init(int address)
-            {
-                this.input.Add(address);
-            }
-
-            public void AddInput(long value)
-            {
-                this.input.Add(value);
-            }
-
-            public void ResetInput()
-            {
-                this.input.Clear();
-                this.inputPosition = 0;
-            }
+            public Queue<long> Output { get; }
+            public Queue<long> Input { get; }
 
             private long ReadMemory(long address)
             {
@@ -175,9 +156,15 @@ namespace Solutions.Event2019
                             }
                         case 3:
                             {
+                                if (!Input.Any())
+                                {
+                                    return ExecutionState.WaitingForInput;
+                                }
+
                                 var (arg1, _, _) = LoadParameters(ParameterType.Write);
 
-                                memory[arg1] = inputPosition < input.Count ? input[inputPosition++] : -1;
+                                memory[arg1] = Input.Dequeue();
+
                                 instructionPointer = instructionPointer + 2;
                                 break;
                             }
@@ -185,9 +172,9 @@ namespace Solutions.Event2019
                             {
                                 var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
-                                Output.Add(arg1);
+                                Output.Enqueue(arg1);
                                 instructionPointer = instructionPointer + 2;
-                                return ExecutionState.WaitingForInput;
+                                break;
                             }
                         case 5:
                             {
@@ -240,58 +227,48 @@ namespace Solutions.Event2019
                     }
                 }
             }
-
-            public List<long> ExecuteAll()
-            {
-                var state = ExecutionState.WaitingForInput;
-                while (state != ExecutionState.Ready)
-                {
-                    state = Execute();
-                }
-
-                return Output;
-            }
-
         }
 
         private long Run(string input)
         {
             var program = Parse(input);
-            var network = new List<IntCodeComputer>();
+            var computers = new List<IntCodeComputer>();
             
             foreach (var i in Enumerable.Range(0,50))
             {
                 var computer = new IntCodeComputer(new List<long>(program));
-                computer.Init(i);
-                network.Add(computer);
+                computer.Input.Enqueue(i);
+                computers.Add(computer);
             }
 
-            long result = -1;
-
-            var currentComputer = network[0];
-
-            // second computer gets stuck in a loop, should execute computers in parallel (or simulate that they run in parallel)
-            while (result == -1)
+            while (true)
             {
-                currentComputer.Execute();
-                var address = currentComputer.Output.Last();
-                currentComputer.Execute();
-                var x = currentComputer.Output.Last();
-                currentComputer.Execute();
-                var y = currentComputer.Output.Last();
-
-                if (address == 255)
+                foreach (var computer in computers)
                 {
-                    result = y;
-                    break;
+                    if (!computer.Input.Any())
+                    {
+                        computer.Input.Enqueue(-1);
+                    }
+               
+                    
+                    computer.Execute();
+
+                    while (computer.Output.Any())
+                    {
+                        int address = (int)computer.Output.Dequeue();
+                        var x = computer.Output.Dequeue();
+                        var y = computer.Output.Dequeue();
+
+                        if (address == 255)
+                        {
+                            return y;
+                        }
+
+                        computers[address].Input.Enqueue(x);
+                        computers[address].Input.Enqueue(y);
+                    }
                 }
-
-                currentComputer = network[(int) address];
-                currentComputer.AddInput(x);
-                currentComputer.AddInput(y);
             }
-
-            return result;
         }
 
         public long FirstStar()
@@ -309,7 +286,7 @@ namespace Solutions.Event2019
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(23886, FirstStar());
         }
 
         [Fact]
