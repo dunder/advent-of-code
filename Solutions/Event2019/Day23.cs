@@ -240,7 +240,6 @@ namespace Solutions.Event2019
                 computer.Input.Enqueue(i);
                 computers.Add(computer);
             }
-
             while (true)
             {
                 foreach (var computer in computers)
@@ -271,16 +270,77 @@ namespace Solutions.Event2019
             }
         }
 
+        private long Run2(string input)
+        {
+            var program = Parse(input);
+            var computers = new List<IntCodeComputer>();
+            
+            foreach (var i in Enumerable.Range(0,50))
+            {
+                var computer = new IntCodeComputer(new List<long>(program));
+                computer.Input.Enqueue(i);
+                computers.Add(computer);
+            }
+
+            long? natX = null;
+            long? natY = null;
+
+            Stack<long> lastDeliveredY = new Stack<long>();
+
+            while (true)
+            {
+                foreach (var computer in computers)
+                {
+                    if (!computer.Input.Any())
+                    {
+                        computer.Input.Enqueue(-1);
+                    }
+                    
+                    computer.Execute();
+
+                    while (computer.Output.Any())
+                    {
+                        int address = (int)computer.Output.Dequeue();
+                        var x = computer.Output.Dequeue();
+                        var y = computer.Output.Dequeue();
+
+                        if (address == 255)
+                        {
+                            natX = x;
+                            natY = y;
+                            continue;
+                        }
+
+                        computers[address].Input.Enqueue(x);
+                        computers[address].Input.Enqueue(y);
+                    }
+                }
+
+                var idle = computers.All(c => !c.Input.Any() && !c.Output.Any());
+                if (idle && natX.HasValue)
+                {
+                    computers[0].Input.Enqueue(natX.Value);
+                    computers[0].Input.Enqueue(natY.Value);
+                    if (lastDeliveredY.Any() && lastDeliveredY.Peek() == natY.Value)
+                    {
+                        return natY.Value;
+                    }
+
+                    lastDeliveredY.Push(natY.Value);
+                }
+            }
+        }
+
         public long FirstStar()
         {
             var input = ReadInput();
             return Run(input);
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
-            var input = ReadLineInput();
-            return 0;
+            var input = ReadInput();
+            return Run2(input);
         }
 
         [Fact]
@@ -292,7 +352,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(18333, SecondStar());
         }
     }
 }
