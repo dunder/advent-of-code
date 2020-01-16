@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MoreLinq;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -14,7 +15,7 @@ namespace Solutions.Event2019
     {
         private const int Size = 5;
 
-        private int Parse(List<string> input)
+        public int Parse(List<string> input)
         {
             var binaryParts = input.Select(x => string.Join("", x.Select(c => c == '#' ? "1" : "0")));
             var binaryString = string.Join("", binaryParts);
@@ -46,14 +47,47 @@ namespace Solutions.Event2019
             return newGeneration;
         }
 
-        private int GenerateRecursive(int current)
+        private TileLevels GenerateRecursive(TileLevels levels)
         {
-            var newGeneration = 0;
+            var level = 0;
+
+            int newGeneration = GenerateLevel(level, levels);
+            var newTileLevels = new TileLevels(newGeneration);
+
+            level = 1;
+            do
+            {
+                newGeneration = GenerateLevel(level, levels);
+                newTileLevels.AddTile(level, newGeneration);
+                level++;
+            } while (newGeneration != 0);
+
+            level = -1;
+            do
+            {
+                newGeneration = GenerateLevel(level, levels);
+                newTileLevels.AddTile(level, newGeneration);
+                level--;
+            } while (newGeneration != 0);
+
+            return newTileLevels;
+        }
+
+        private int GenerateLevel(int level, TileLevels levels)
+        {
+            var current = levels.TileAt(level);
+            int newGeneration = 0;
+
             for (int y = 0; y < Size; y++)
             {
                 for (int x = 0; x < Size; x++)
                 {
-                    var bugsAround = BugsAround(current, x, y).Sum();
+                    if (x == 2 && y == 2)
+                    {
+                        continue;
+                    }
+
+                    var bugsAround = BugsAroundRecursive(level, x, y, levels).Sum();
 
                     var isBug = IsBug(current, x, y);
                     var bugLives = isBug && bugsAround == 1;
@@ -130,96 +164,100 @@ namespace Solutions.Event2019
             {
                 neighbors.AddRange(new[] { topAtLevel, belowAtLevel, leftAtLevel });
                 // next level left side
-                neighbors.AddRange(new []
+                for (int yi = 0; yi < Size; yi++)
                 {
-                    IsBug(encodedTilesAtNextLevel, 0, 0) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 0, 1) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 0, 2) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 0, 3) ? 1 : 0
-                });
+                    neighbors.Add(IsBug(encodedTilesAtNextLevel, 0, yi) ? 1 : 0);
+                }
             }
             else if (x == 2 & y == 1)
             {
                 neighbors.AddRange(new[] { topAtLevel, rightAtLevel, leftAtLevel });
+                
                 // next level top side
-                neighbors.AddRange(new[]
+                for (int xi = 0; xi < Size; xi++)
                 {
-                    IsBug(encodedTilesAtNextLevel, 0, 0) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 1, 0) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 2, 0) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 3, 0) ? 1 : 0
-                });
+                    neighbors.Add(IsBug(encodedTilesAtNextLevel, xi, 0) ? 1 : 0);
+                }
             }
             else if (x == 3 && y == 2)
             {
                 neighbors.AddRange(new[] { topAtLevel, rightAtLevel, belowAtLevel });
 
                 // next level right side
-                neighbors.AddRange(new[]
+                for (int yi = 0; yi < Size; yi++)
                 {
-                    IsBug(encodedTilesAtNextLevel, 4, 0) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 4, 1) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 4, 2) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 4, 3) ? 1 : 0
-                });
+                    neighbors.Add(IsBug(encodedTilesAtNextLevel, Size - 1, yi) ? 1 : 0);
+                }
             }
             else if (x == 2 && y == 3)
             {
-                neighbors.AddRange(new[] { topAtLevel, rightAtLevel, belowAtLevel });
+                neighbors.AddRange(new[] { leftAtLevel, rightAtLevel, belowAtLevel });
 
                 // next level bottom side
-                neighbors.AddRange(new[]
+                for (int xi = 0; xi < Size; xi++)
                 {
-                    IsBug(encodedTilesAtNextLevel, 0, 4) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 1, 4) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 2, 4) ? 1 : 0,
-                    IsBug(encodedTilesAtNextLevel, 3, 4) ? 1 : 0
-                });
+                    neighbors.Add(IsBug(encodedTilesAtNextLevel, xi, Size - 1) ? 1 : 0);
+                }
             }
             else if (x == 0 || x == Size - 1 || y == 0 || y == Size - 1)
             {
-                if (x == 0)
+                if (x == 0 && y == 0)
                 {
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2, 1) ? 1 : 0);
                     neighbors.Add(rightAtLevel);
-
-                    // left is previous level
-                    for (int yi = 0; yi < Size; yi++)
-                    {
-                        neighbors.Add(IsBug(encodedTilesAtPreviousLevel, Size - 1, yi) ? 1 : 0);
-                    }
-                }
-
-                if (x == Size - 1)
-                {
-                    neighbors.Add(leftAtLevel);
-
-                    // right is previous level
-                    for (int yi = 0; yi < Size; yi++)
-                    {
-                        neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 0, yi) ? 1 : 0);
-                    }
-                }
-
-                if (y == 0)
-                {
                     neighbors.Add(belowAtLevel);
-
-                    // previous level bottom side
-                    for (int xi = 0; xi < Size; xi++)
-                    {
-                        neighbors.Add(IsBug(encodedTilesAtPreviousLevel, xi, Size - 1) ? 1 : 0);
-                    }
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 1, 2) ? 1 : 0);
+                } 
+                else if (x > 0 && x < Size - 1 && y == 0)
+                {
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2, 1) ? 1 : 0);
+                    neighbors.Add(rightAtLevel);
+                    neighbors.Add(belowAtLevel);
+                    neighbors.Add(leftAtLevel);
                 }
+                else if (x == Size - 1 && y == 0)
+                {
 
-                if (y == Size - 1)
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2, 1) ? 1 : 0);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 3, 2) ? 1 : 0);
+                    neighbors.Add(belowAtLevel);
+                    neighbors.Add(leftAtLevel);
+                }
+                else if (x == Size - 1 && y > 0 && y < Size - 1)
                 {
                     neighbors.Add(topAtLevel);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 3, 2) ? 1 : 0);
+                    neighbors.Add(belowAtLevel);
+                    neighbors.Add(leftAtLevel);
 
-                    // previous level top side
-                    for (int xi = 0; xi < Size; xi++)
-                    {
-                        neighbors.Add(IsBug(encodedTilesAtPreviousLevel, xi, 0) ? 1 : 0);
-                    }
+                }
+                else if (x == Size - 1 && y == Size - 1)
+                {
+                    neighbors.Add(topAtLevel);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 3, 2) ? 1 : 0);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2, 3) ? 1 : 0);
+                    neighbors.Add(leftAtLevel);
+                }
+                else if (x > 0 && x < Size - 1 && y == Size - 1)
+                {
+                    neighbors.Add(topAtLevel);
+                    neighbors.Add(rightAtLevel);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2,3) ? 1 : 0);
+                    neighbors.Add(leftAtLevel);
+                }
+                else if (x == 0 && y == Size - 1)
+                {
+                    neighbors.Add(topAtLevel);
+                    neighbors.Add(rightAtLevel);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 2, 3) ? 1 : 0);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 1, 2) ? 1 : 0);
+                }
+                else if (x == 0 && y > 0 && y < Size - 1)
+                {
+                    neighbors.Add(topAtLevel);
+                    neighbors.Add(rightAtLevel);
+                    neighbors.Add(belowAtLevel);
+                    neighbors.Add(IsBug(encodedTilesAtPreviousLevel, 1, 2) ? 1 : 0);
                 }
             }
             else
@@ -239,7 +277,6 @@ namespace Solutions.Event2019
             {
                 generations.Add(generation);
                 generation = Generate(generation);
-
             }
 
             return generation;
@@ -253,7 +290,7 @@ namespace Solutions.Event2019
 
         private class TileLevels
         {
-            private Dictionary<int, int> Levels { get; set; } = new Dictionary<int, int>();
+            public Dictionary<int, int> Levels { get; } = new Dictionary<int, int>();
 
             public TileLevels(int level0)
             {
@@ -272,7 +309,47 @@ namespace Solutions.Event2019
 
             public void AddTile(int level, int encodedTiles)
             {
-                Levels.Add(level, encodedTiles);
+                if (!Levels.ContainsKey(level))
+                {
+                    Levels.Add(level, encodedTiles);
+
+                }
+                else
+                {
+                    Levels[level] = encodedTiles;
+                }
+            }
+        }
+
+        public int BugsAfterMinutes(int encodedTilesAtBaseLevel, int minutes)
+        {
+            var tileLevels = new TileLevels(encodedTilesAtBaseLevel);
+            foreach (var _ in Enumerable.Range(1, minutes))
+            {
+                tileLevels = GenerateRecursive(tileLevels);
+            }
+
+            Print(tileLevels);
+
+            var bugs = 0;
+            foreach (var tile in tileLevels.Levels.Values)
+            {
+                bugs += Decode(tile, '1', '0').Count(c => c == '1');
+            }
+
+            return bugs;
+        }
+
+        private void Print(TileLevels tileLevels)
+        {
+            foreach (var tileLevel in tileLevels.Levels.OrderBy(x => x.Key))
+            {
+                Console.WriteLine();
+                Console.WriteLine($"Level: {tileLevel.Key}");
+                foreach (var line in Decode(tileLevel.Value, '#', '.').Batch(Size))
+                {
+                    Console.WriteLine(string.Join("", line));
+                }
             }
         }
 
@@ -286,7 +363,9 @@ namespace Solutions.Event2019
 
         public int SecondStar()
         {
-            return 0;
+            var input = ReadLineInput();
+            var encodedStartLayout = Parse(input.ToList());
+            return BugsAfterMinutes(encodedStartLayout, 200);
         }
 
         [Fact]
@@ -299,6 +378,7 @@ namespace Solutions.Event2019
         public void SecondStarTest()
         {
             Assert.Equal(-1, SecondStar());
+            //Assert.Equal(427, SecondStar());// your answer is too low
         }
 
         [Fact]
@@ -490,20 +570,9 @@ namespace Solutions.Event2019
 
             var encodedStartTiles = Parse(startState);
 
-            var expectedNextState = new List<string>
-            {
-                ".#...",
-                ".#.##",
-                ".#?..",
-                ".....",
-                "....."
-            };
+            var bugs = BugsAfterMinutes(encodedStartTiles, 10);
 
-            var encodedExpected = Parse(expectedNextState);
-
-            var firstTwice = Generate(encodedStartTiles);
-
-            Assert.Equal(encodedExpected, firstTwice);
+            Assert.Equal(99, bugs);
         }
     }
 }

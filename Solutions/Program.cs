@@ -1,12 +1,34 @@
 ﻿using System;
+using System.Collections.Generic;
 using Solutions.Event2019;
 
 namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day23();
-            day.FirstStar();
+            var day = new Day24();
+            //var startState = new List<string>
+            //{
+            //    "....#",
+            //    "#..#.",
+            //    "#..##",
+            //    "..#..",
+            //    "#...."
+            //};
+            
+            var startState = new List<string>
+            {
+                ".###.",
+                "..#.#",
+                "...##",
+                "#.###",
+                "..#.."
+            };
+
+
+
+            var encodedStartTiles = day.Parse(startState);
+            day.BugsAfterMinutes(encodedStartTiles, 200);
             Console.ReadKey();
         }
 
