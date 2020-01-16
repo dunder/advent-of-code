@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MoreLinq;
 using Xunit;
 using static Solutions.InputReader;
 
@@ -53,6 +52,8 @@ namespace Solutions.Event2019
 
             int newGeneration = GenerateLevel(level, levels);
             var newTileLevels = new TileLevels(newGeneration);
+            int max = levels.Levels.Keys.Max();
+            int min = levels.Levels.Keys.Min();
 
             level = 1;
             do
@@ -60,7 +61,7 @@ namespace Solutions.Event2019
                 newGeneration = GenerateLevel(level, levels);
                 newTileLevels.AddTile(level, newGeneration);
                 level++;
-            } while (newGeneration != 0);
+            } while (newGeneration != 0 || level < max);
 
             level = -1;
             do
@@ -68,7 +69,7 @@ namespace Solutions.Event2019
                 newGeneration = GenerateLevel(level, levels);
                 newTileLevels.AddTile(level, newGeneration);
                 level--;
-            } while (newGeneration != 0);
+            } while (newGeneration != 0 || level > min);
 
             return newTileLevels;
         }
@@ -159,20 +160,10 @@ namespace Solutions.Event2019
             var rightAtLevel = IsBug(encodedTilesAtLevel, x + 1, y) ? 1 : 0;  
             var belowAtLevel = IsBug(encodedTilesAtLevel, x, y + 1) ? 1 : 0;
             var leftAtLevel = IsBug(encodedTilesAtLevel, x - 1, y) ? 1 : 0;
-
-            if (x == 1 && y == 2)
-            {
-                neighbors.AddRange(new[] { topAtLevel, belowAtLevel, leftAtLevel });
-                // next level left side
-                for (int yi = 0; yi < Size; yi++)
-                {
-                    neighbors.Add(IsBug(encodedTilesAtNextLevel, 0, yi) ? 1 : 0);
-                }
-            }
-            else if (x == 2 & y == 1)
+            if (x == 2 & y == 1)
             {
                 neighbors.AddRange(new[] { topAtLevel, rightAtLevel, leftAtLevel });
-                
+
                 // next level top side
                 for (int xi = 0; xi < Size; xi++)
                 {
@@ -191,12 +182,21 @@ namespace Solutions.Event2019
             }
             else if (x == 2 && y == 3)
             {
-                neighbors.AddRange(new[] { leftAtLevel, rightAtLevel, belowAtLevel });
+                neighbors.AddRange(new[] { rightAtLevel, belowAtLevel, leftAtLevel });
 
                 // next level bottom side
                 for (int xi = 0; xi < Size; xi++)
                 {
                     neighbors.Add(IsBug(encodedTilesAtNextLevel, xi, Size - 1) ? 1 : 0);
+                }
+            }
+            else if (x == 1 && y == 2)
+            {
+                neighbors.AddRange(new[] { topAtLevel, belowAtLevel, leftAtLevel });
+                // next level left side
+                for (int yi = 0; yi < Size; yi++)
+                {
+                    neighbors.Add(IsBug(encodedTilesAtNextLevel, 0, yi) ? 1 : 0);
                 }
             }
             else if (x == 0 || x == Size - 1 || y == 0 || y == Size - 1)
@@ -329,28 +329,7 @@ namespace Solutions.Event2019
                 tileLevels = GenerateRecursive(tileLevels);
             }
 
-            Print(tileLevels);
-
-            var bugs = 0;
-            foreach (var tile in tileLevels.Levels.Values)
-            {
-                bugs += Decode(tile, '1', '0').Count(c => c == '1');
-            }
-
-            return bugs;
-        }
-
-        private void Print(TileLevels tileLevels)
-        {
-            foreach (var tileLevel in tileLevels.Levels.OrderBy(x => x.Key))
-            {
-                Console.WriteLine();
-                Console.WriteLine($"Level: {tileLevel.Key}");
-                foreach (var line in Decode(tileLevel.Value, '#', '.').Batch(Size))
-                {
-                    Console.WriteLine(string.Join("", line));
-                }
-            }
+            return tileLevels.Levels.Values.Sum(tile => Decode(tile, '1', '0').Count(c => c == '1'));
         }
 
         public int FirstStar()
@@ -377,8 +356,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
-            //Assert.Equal(427, SecondStar());// your answer is too low
+            Assert.Equal(1893, SecondStar());
         }
 
         [Fact]

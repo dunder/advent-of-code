@@ -7,14 +7,6 @@ namespace Solutions {
         static void Main(string[] args)
         {
             var day = new Day24();
-            //var startState = new List<string>
-            //{
-            //    "....#",
-            //    "#..#.",
-            //    "#..##",
-            //    "..#..",
-            //    "#...."
-            //};
             
             var startState = new List<string>
             {
