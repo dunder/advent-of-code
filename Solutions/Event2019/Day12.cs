@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
-using static Solutions.InputReader;
 
+using static Shared.Maths;
 
 
 namespace Solutions.Event2019
@@ -178,62 +178,50 @@ namespace Solutions.Event2019
             }
         }
 
-        private static int Run2(List<Moon> moons, int steps)
+
+        private static long Run2(List<Moon> moons)
         {
-            var states = new HashSet<string>();
-            for (int step = 0; step <= steps; step++)
+            int steps = 1;
+            var xs = string.Join("|", moons.Select(m => $"{m.Position.X}:{m.Velocity.X}"));
+            var ys = string.Join("|", moons.Select(m => $"{m.Position.Y}:{m.Velocity.Y}"));
+            var zs = string.Join("|", moons.Select(m => $"{m.Position.Z}:{m.Velocity.Z}"));
+
+            HashSet<string> visitedX = new HashSet<string> { xs };
+            HashSet<string> visitedY = new HashSet<string> { ys };
+            HashSet<string> visitedZ = new HashSet<string> { zs };
+            var xSteps = 0;
+            var ySteps = 0;
+            var zSteps = 0;
+            while (xSteps == 0 || ySteps == 0 || zSteps == 0)
             {
                 Step(moons);
-                var state = State(moons);
-                if (states.Contains(state))
+                xs = string.Join("|", moons.Select(m => $"{m.Position.X}:{m.Velocity.X}"));
+                ys = string.Join("|", moons.Select(m => $"{m.Position.Y}:{m.Velocity.Y}"));
+                zs = string.Join("|", moons.Select(m => $"{m.Position.Z}:{m.Velocity.Z}"));
+
+                if (xSteps == 0 && visitedX.Contains(xs))
                 {
-                    return step;
+                    xSteps = steps;
+                }
+                if (ySteps == 0 && visitedY.Contains(ys))
+                {
+                    ySteps = steps;
+                }
+                if (zSteps == 0 && visitedZ.Contains(zs))
+                {
+                    zSteps = steps;
                 }
 
-                states.Add(state);
+                visitedX.Add(xs);
+                visitedY.Add(ys);
+                visitedZ.Add(zs);
+                steps++;
             }
 
-            return steps;
+            return Lcm(Lcm(xSteps, ySteps), zSteps);
         }
 
-        private static void Print(List<Moon> moons, List<Moon> previousMoons)
-        {
-            var displayShift = 200;
-            foreach (var moon in moons)
-            {
-                Console.SetCursorPosition(moon.Position.X + displayShift, moon.Position.Y + displayShift);
-                Console.Write(moon.Name.First());
-            }
-
-            foreach (var moon in previousMoons)
-            {
-                Console.SetCursorPosition(moon.Position.X + displayShift, moon.Position.Y + displayShift);
-                Console.Write(' ');
-            }
-        }
-
-        private static int Run3(List<Moon> moons)
-        {
-            Console.SetBufferSize(1000,1000);
-            var states = new HashSet<string>();
-            var xs = new List<int>();
-            var ys = new List<int>();
-            var zs = new List<int>();
-
-            while (true)
-            {
-                Step(moons);
-                xs.Add(moons[0].Velocity.X);
-                ys.Add(moons[0].Velocity.Y);
-                zs.Add(moons[0].Velocity.Z);
-
-                //xs.Add((moons[0].Position.X, moons[1].Position.X, moons[2].Position.X, moons[3].Position.X));
-                //ys.Add((moons[0].Position.Y, moons[1].Position.Y, moons[2].Position.Y, moons[3].Position.Y));
-                //zs.Add((moons[0].Position.Z, moons[1].Position.Z, moons[2].Position.Z, moons[3].Position.Z));
-            }
-
-            return 0;
-        }
+        
 
         public int FirstStar()
         {
@@ -248,7 +236,7 @@ namespace Solutions.Event2019
             return moons.Sum(moon => moon.TotalEnergy);
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
             var io = new Moon("Io", new Point(15, -2, -6));
             var europa = new Moon("Europa", new Point(-5, -4, -11));
@@ -256,7 +244,7 @@ namespace Solutions.Event2019
             var callisto = new Moon("Callisto", new Point(5, 9, 6));
             var moons = new List<Moon> { io, europa, ganymede, callisto };
 
-            int steps = Run3(moons);
+            long steps = Run2(moons);
 
             return steps;
         }
@@ -270,7 +258,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(326489627728984, SecondStar());
         }
 
         [Fact]
@@ -287,7 +275,6 @@ namespace Solutions.Event2019
             Assert.Equal(179, moons.Sum(m => m.TotalEnergy));
         }
 
-
         [Fact]
         public void SecondStarExample()
         {
@@ -297,7 +284,7 @@ namespace Solutions.Event2019
             var callisto = new Moon("Callisto", new Point(3, 5, -1));
             var moons = new List<Moon> { io, europa, ganymede, callisto };
 
-            int steps = Run2(moons, 3000);
+            long steps = Run2(moons);
 
             Assert.Equal(2772, steps);
         }
