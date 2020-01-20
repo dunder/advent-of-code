@@ -9,6 +9,14 @@ using static Solutions.InputReader;
 namespace Solutions.Event2019
 {
     // --- Day 22: Slam Shuffle ---
+
+    /// <summary>
+    /// This blog post: https://codeforces.com/blog/entry/72527 gives the basics in
+    /// modular arithmetic which is exactly what is needed to solve star 2 of this day.
+    ///
+    /// If that is not enough to get you on the right track to solve this problem there
+    /// is a problem specific tutorial also: https://codeforces.com/blog/entry/72593 
+    /// </summary>
     public class Day22
     {
         private List<int> Shuffle(List<int> deck, IEnumerable<string> rules)
