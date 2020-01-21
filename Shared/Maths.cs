@@ -18,5 +18,15 @@
         {
             return (a / Gcf(a, b)) * b;
         }
+
+        public static int Mod(int a, int b)
+        {
+            return (a % b + b) % b;
+        }
+
+        public static long Mod(long a, long b)
+        {
+            return (a % b + b) % b;
+        }
     }
 }

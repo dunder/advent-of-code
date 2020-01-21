@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Shared;
 using Xunit;
+using Xunit.Sdk;
 using static Solutions.InputReader;
 
 
@@ -414,6 +416,30 @@ namespace Solutions.Event2019
             };
             var fromIndex = ShuffleIndex(index, 10, input);
             Assert.Equal(expected, fromIndex);
+        }
+
+        [Fact]
+        public void ModFunctionCheckup()
+        {
+            // check if n mod m is n - [n/m] * m where [x] is the largest integer that does not exceed x
+            var actual = -8 % 7;
+
+            try
+            {
+                Assert.Equal(6, actual);
+
+            }
+            catch (EqualException)
+            {
+                // the % operator in .NET does not follow the mod function but the result can be calculated by
+                // taking m + the result of n - [n/m] * m if n - [n/m] * m is negative
+                var mod = actual + 7;
+                Assert.Equal(6, mod);
+            }
+
+            // so for simplicity encapsulate it in its own shared method
+            actual = Maths.Mod(-8, 7);
+            Assert.Equal(6, actual);
         }
     }
 }
