@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text.RegularExpressions;
 using Shared;
 using Xunit;
@@ -165,6 +166,170 @@ namespace Solutions.Event2019
             return newIndex % cardsInDeck;
         }
 
+        private const long Cards = 119315717514047;
+        private const long Shuffles = 101741582076661;
+
+        private static long Pow(long value, long exponent, long modulus)
+        {
+            var bigValue = new BigInteger(value);
+            var bigExponent = new BigInteger(exponent);
+            var bigModulus = new BigInteger(modulus);
+            return (long) BigInteger.ModPow(bigValue, bigExponent, bigModulus);
+        }
+
+
+        private static long ModInverse(long value, long modulus)
+        {
+            var bigValue = new BigInteger(value);
+            var bigExponent = new BigInteger(modulus - 2);
+            var bigModulus = new BigInteger(modulus);
+            return (long) BigInteger.ModPow(bigValue, bigExponent, bigModulus);
+        }
+
+
+        public static long ModInverse2(long a, long m)
+        {
+            if (m == 1) return 0;
+            long m0 = m;
+            (long x, long y) = (1, 0);
+
+            while (a > 1)
+            {
+                long q = a / m;
+                (a, m) = (m, a % m);
+                (x, y) = (y, x - q * y);
+            }
+            return x < 0 ? x + m0 : x;
+        }
+
+        BigInteger Mod(BigInteger a, BigInteger m) => ((a % m) + m) % m;
+        BigInteger ModInv(BigInteger a, BigInteger m) => BigInteger.ModPow(a, m - 2, m);
+
+        //private readonly Func<long, long, long, long, (long, long)> NewStackFast = (a, b, n, m) => ((a - b) % m, -b % m);
+        //private readonly Func<long, long, long, long, (long, long)> CutFast = (a, b, n, m) => ((a + b * n) % m, b);
+        //private readonly Func<long, long, long, long, (long, long)> DealWithIncrement = (a, b, n, m) => (a, (b * ModInverse(n, m)) % m);
+        private readonly Func<long, long, long, long, (long, long)> NewStackFast = (a, b, n, m) => (Maths.Mod(a - b, m) % m, Maths.Mod(-b, m));
+        private readonly Func<long, long, long, long, (long, long)> CutFast = (a, b, n, m) => (Maths.Mod(a + b * n, m), b);
+        private readonly Func<long, long, long, long, (long, long)> DealWithIncrement = (a, b, n, m) => (a, Maths.Mod(b * ModInverse2(n, m), m));
+
+        private (BigInteger a, BigInteger b) Parse(IEnumerable<string> input, long cards, long shuffles)
+        {
+            var a = BigInteger.One;
+            var b = BigInteger.Zero;
+
+            var dealPattern = new Regex(@"deal with increment (\d+)");
+            var cutPattern = new Regex(@"cut (-?\d+)");
+
+            foreach (var rule in input)
+            {
+                switch (rule)
+                {
+                    case var dealIncrement when dealPattern.IsMatch(rule):
+                    {
+                        var match = dealPattern.Match(dealIncrement);
+                        var increment = int.Parse(match.Groups[1].Value);
+
+                        a *= increment;
+                        b *= increment;
+
+                        break;
+                    }
+                    case var cutN when cutPattern.IsMatch(rule):
+                    {
+                        var match = cutPattern.Match(cutN);
+                        var n = int.Parse(match.Groups[1].Value);
+
+                        b = cards + b - n;
+
+                        break;
+                    }
+
+                    case var _ when rule.Equals("deal into new stack"):
+                    {
+                        a = -a;
+                        b = cards - b - 1;
+
+                        break;
+                    }
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unknown rule: {rule}");
+                }
+            }
+
+            var resA = BigInteger.ModPow(a, shuffles, cards);
+            // resB = b * (1 + a + a^2 + ... a^n) = b * (a^n - 1) / (a - 1);
+            var resB = b * (BigInteger.ModPow(a, shuffles, cards) - 1) * ModInv(a - 1, cards) % cards;
+
+            return (resA, resB);
+        }
+        private List<(Func<long, long, long, long, (long, long)>, long)> ParseRules(IEnumerable<string> input)
+        {
+            var dealPattern = new Regex(@"deal with increment (\d+)");
+            var cutPattern = new Regex(@"cut (-?\d+)");
+
+            var rules = new List<(Func<long, long, long, long, (long, long)>, long)>();
+            foreach (var rule in input)
+            {
+                switch (rule)
+                {
+                    case var dealIncrement when dealPattern.IsMatch(rule):
+                    {
+                        var m = dealPattern.Match(dealIncrement);
+                        var increment = int.Parse(m.Groups[1].Value);
+
+                        rules.Add((DealWithIncrement, increment));
+
+                        break;
+                    }
+                    case var cutN when cutPattern.IsMatch(rule):
+                    {
+                        var m = cutPattern.Match(cutN);
+                        var n = int.Parse(m.Groups[1].Value);
+
+                        rules.Add((CutFast, n));
+
+                        break;
+                    }
+
+                    case var _ when rule.Equals("deal into new stack"):
+
+                        rules.Add((NewStackFast, 0));
+
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException($"Unknown rule: {rule}");
+                }
+            }
+
+            return rules;
+        }
+
+        private long ShuffleFastShort(IEnumerable<string> input, long cards, long shuffles, long index)
+        {
+            var (a, b) = Parse(input, cards, shuffles);
+
+            return (long)Mod(ModInv(a, cards) * (index - b), cards);
+
+        }
+        private (long a, long b) ShuffleFast(List<(Func<long, long, long, long, (long, long)>, long)> rules,long cards)
+        {
+            var (a, b) = (0L,1L);
+            foreach (var (rule, n)  in rules)
+            {
+                (a, b) = rule(a, b, n, cards);
+            }
+            return (a, b);
+        }
+
+        private long ShuffleManyFast(IEnumerable<string> input, long cards, long shuffles, int index)
+        {
+            var rules = ParseRules(input);
+            var (offset, increment) = ShuffleFast(rules, cards);
+            offset *= (1 - Pow(increment, Shuffles, Cards)) * ModInverse(1 - increment, Cards);
+            increment = Pow(increment, shuffles, cards);
+            return (offset + increment * index) % cards;
+        }
+
         public int FirstStar()
         {
             var input = ReadLineInput();
@@ -173,12 +338,10 @@ namespace Solutions.Event2019
             return shuffledDeck.IndexOf(2019);
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
             var input = ReadLineInput();
-            var deck = Enumerable.Range(0, 10007).ToList();
-            var shuffledDeck = Shuffle(deck, input);
-            return shuffledDeck.IndexOf(2019);
+            return ShuffleFastShort(input, Cards, Shuffles, 2020);
         }
 
         [Fact]
@@ -190,7 +353,12 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(58348342289943, SecondStar());
+            //Assert.Equal(-1, SecondStar()); //   63245867756113 not right
+            //Assert.Equal(-1, SecondStar()); // 79149270479368 is too high (using Maths.Mod function)
+            //Assert.Equal(-1, SecondStar()); // 83908278694325 is too high (m-2)
+            //                                   58348342289943
+            //Assert.Equal(-1, SecondStar()); // 4836123455273 is too low (n-2)
         }
 
         [Fact]
@@ -347,7 +515,7 @@ namespace Solutions.Event2019
                 "deal into new stack",
                 "deal into new stack"
             };
-            var fromIndex = ShuffleIndex(index, 10, input);
+            var fromIndex = ShuffleFastShort(input, 10, 1, index);
             Assert.Equal(expected, fromIndex);
         }
 
@@ -370,7 +538,7 @@ namespace Solutions.Event2019
                 "deal with increment 7",
                 "deal into new stack"
             };
-            var fromIndex = ShuffleIndex(index, 10, input);
+            var fromIndex = ShuffleFastShort(input, 10, 1, index);
             Assert.Equal(expected, fromIndex);
         }
 
@@ -440,6 +608,22 @@ namespace Solutions.Event2019
             // so for simplicity encapsulate it in its own shared method
             actual = Maths.Mod(-8, 7);
             Assert.Equal(6, actual);
+        }
+
+        [Fact]
+        public void DeckCountPrimeTest()
+        {
+            long deckCount = 119315717514047;
+            Assert.True(Prime.IsPrime(deckCount));
+
+
+        }
+
+        [Fact]
+        public void ShuffleCountPrimeTest()
+        {
+            long shuffles = 101741582076661;
+            Assert.True(Prime.IsPrime(shuffles));
         }
     }
 }
