@@ -6,21 +6,10 @@ namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day24();
+            var day = new Day25();
             
-            var startState = new List<string>
-            {
-                ".###.",
-                "..#.#",
-                "...##",
-                "#.###",
-                "..#.."
-            };
+            day.RunLoop();
 
-
-
-            var encodedStartTiles = day.Parse(startState);
-            day.BugsAfterMinutes(encodedStartTiles, 200);
             Console.ReadKey();
         }
 
