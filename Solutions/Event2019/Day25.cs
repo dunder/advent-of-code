@@ -241,6 +241,8 @@ namespace Solutions.Event2019
 
                 Execute();
             }
+
+            public string OutputAscii => string.Join("", Output.Select(x => (char)x));
         }
 
         public void RunLoop()
@@ -254,10 +256,8 @@ namespace Solutions.Event2019
             {
                 Console.Write((char)c);
             }
+
             computer.Output.Clear();
-
-
-
 
             var collectCommands = new[]
             {
@@ -319,13 +319,14 @@ namespace Solutions.Event2019
             var allItems = new[] { "fixed point", "jam", "easter egg", "asterisk", "tambourine", "antenna", "festive hat", "space heater" };
             int heavier = 0;
             int lighter = 0;
-            var combinationsOfX = allItems.Combinations(4);
+            // trial and error 2 to 4, write it as a loop
+            var combinationsOfX = allItems.Combinations(4).ToList();
             foreach (var items in combinationsOfX)
             {
                 var listOfItems = items.ToList();
                 computer.ExecuteAscii(listOfItems.Select(item => $"take {item}\n").ToList());
                 computer.ExecuteAscii("west\n".Yield().ToList());
-                var outputText = OutputToText(computer.Output);
+                var outputText = computer.OutputAscii;
                 if (outputText.Contains("lighter") || outputText.Contains("heavier"))
                 {
                     if (outputText.Contains("lighter"))
@@ -344,25 +345,11 @@ namespace Solutions.Event2019
                     break;
                 }
             }
-
-            if (lighter + heavier < combinationsOfX.Count())
+            // parse the code and return
+            if (lighter + heavier < combinationsOfX.Count)
             {
-
-                foreach (var c in computer.Output)
-                {
-                    Console.Write((char)c);
-                }
+                Console.Write(computer.OutputAscii);
             }
-
-            foreach (var c in computer.Output)
-            {
-                Console.Write((char)c);
-            }
-        }
-
-        private string OutputToText(Queue<long> outputBuffer)
-        {
-            return string.Join("", outputBuffer.Select(x => (char)x));
         }
 
         public int FirstStar()
