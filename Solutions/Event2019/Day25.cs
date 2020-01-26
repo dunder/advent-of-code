@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Shared.Combinatorics;
 using Shared.Extensions;
 using Xunit;
@@ -45,7 +46,6 @@ namespace Solutions.Event2019
             }
 
             private readonly Dictionary<long, long> memory;
-
 
             private long instructionPointer;
             private long relativeBase;
@@ -230,8 +230,15 @@ namespace Solutions.Event2019
                 }
             }
 
+            public void ExecuteAscii(string asciiInstructions)
+            {
+                ExecuteAscii(asciiInstructions.Yield().ToList());
+            }
+
             public void ExecuteAscii(List<string> asciiInstructions)
             {
+                Output.Clear();
+                
                 var fullProgram = string.Join("", asciiInstructions);
 
                 foreach (var i in fullProgram.Select(c => (long)c))
@@ -245,19 +252,34 @@ namespace Solutions.Event2019
             public string OutputAscii => string.Join("", Output.Select(x => (char)x));
         }
 
-        public void RunLoop()
+        public void Interactive()
         {
             var programInput = ReadInput();
             var program = Parse(programInput);
             var computer = new IntCodeComputer(program);
             computer.Execute();
 
-            foreach (var c in computer.Output)
+            while (true)
             {
-                Console.Write((char)c);
+                Console.Write(computer.OutputAscii);
+                var command = Console.ReadLine();
+                computer.ExecuteAscii($"{command}\n");
+            }
+        }
+
+        public long Solver(Action<string> onOutput = null)
+        {
+            if (onOutput == null)
+            {
+                onOutput = s => { };
             }
 
-            computer.Output.Clear();
+            var programInput = ReadInput();
+            var program = Parse(programInput);
+            var computer = new IntCodeComputer(program);
+            computer.Execute();
+
+            onOutput(computer.OutputAscii);
 
             var collectCommands = new[]
             {
@@ -309,71 +331,44 @@ namespace Solutions.Event2019
             {
                 computer.ExecuteAscii(command.Yield().ToList());
 
-                foreach (var c in computer.Output)
-                {
-                    Console.Write((char)c);
-                }
-                computer.Output.Clear();
+                onOutput(computer.OutputAscii);
             }
 
             var allItems = new[] { "fixed point", "jam", "easter egg", "asterisk", "tambourine", "antenna", "festive hat", "space heater" };
-            int heavier = 0;
-            int lighter = 0;
-            // trial and error 2 to 4, write it as a loop
-            var combinationsOfX = allItems.Combinations(4).ToList();
-            foreach (var items in combinationsOfX)
+
+            var passwordExpression = new Regex(@"(\d+)");
+
+            for (int itemsToCarry = 2; itemsToCarry < allItems.Length; itemsToCarry++)
             {
-                var listOfItems = items.ToList();
-                computer.ExecuteAscii(listOfItems.Select(item => $"take {item}\n").ToList());
-                computer.ExecuteAscii("west\n".Yield().ToList());
-                var outputText = computer.OutputAscii;
-                if (outputText.Contains("lighter") || outputText.Contains("heavier"))
+                var combinationsOfX = allItems.Combinations(itemsToCarry).ToList();
+                foreach (var items in combinationsOfX)
                 {
-                    if (outputText.Contains("lighter"))
+                    var listOfItems = items.ToList();
+                    computer.ExecuteAscii(listOfItems.Select(item => $"take {item}\n").ToList());
+                    computer.ExecuteAscii("west\n".Yield().ToList());
+                    var outputText = computer.OutputAscii;
+                    if (passwordExpression.IsMatch(outputText))
                     {
-                        lighter++;
-                    }
-                    else if (outputText.Contains("heavier"))
-                    {
-                        heavier++;
+                        var password = long.Parse(passwordExpression.Match(outputText).Groups[1].Value);
+                        onOutput(outputText);
+                        return password;
                     }
                     computer.ExecuteAscii(listOfItems.Select(item => $"drop {item}\n").ToList());
-                    computer.Output.Clear();
-                }
-                else
-                {
-                    break;
                 }
             }
-            // parse the code and return
-            if (lighter + heavier < combinationsOfX.Count)
-            {
-                Console.Write(computer.OutputAscii);
-            }
+
+            throw new InvalidOperationException("Could not find any combination of items to access the password");
         }
 
-        public int FirstStar()
+        public long FirstStar()
         {
-            var input = ReadLineInput();
-            return 0;
-        }
-
-        public int SecondStar()
-        {
-            var input = ReadLineInput();
-            return 0;
+            return Solver();
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
-        }
-
-        [Fact]
-        public void SecondStarTest()
-        {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(2147485856, FirstStar());
         }
     }
 }

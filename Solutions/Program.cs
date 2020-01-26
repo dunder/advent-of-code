@@ -8,7 +8,7 @@ namespace Solutions {
         {
             var day = new Day25();
             
-            day.RunLoop();
+            day.Interactive();
 
             Console.ReadKey();
         }
