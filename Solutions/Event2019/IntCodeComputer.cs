@@ -243,6 +243,16 @@ namespace Solutions.Event2019
             }
         }
 
+        public void Execute(params int[] input)
+        {
+            foreach (var i in input)
+            {
+                Input.Enqueue(i);
+            }
+
+            Execute();
+        }
+
         public void ExecuteAscii(string asciiInstructions)
         {
             ExecuteAscii(asciiInstructions.Yield().ToList());
