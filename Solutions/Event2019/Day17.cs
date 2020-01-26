@@ -20,237 +20,237 @@ namespace Solutions.Event2019
         {
             this.output = output;
         }
-        public static List<long> Parse(string input)
-        {
-            return input.Split(',').Select(long.Parse).ToList();
-        }
+        //public static List<long> Parse(string input)
+        //{
+        //    return input.Split(',').Select(long.Parse).ToList();
+        //}
 
-        private class IntCodeComputer
-        {
-            public enum ExecutionState { WaitingForInput, Ready }
-            private enum Mode { Position = 0, Immediate, Relative }
-            private enum ParameterType { Read, Write }
+        //private class IntCodeComputer
+        //{
+        //    public enum ExecutionState { WaitingForInput, Ready }
+        //    private enum Mode { Position = 0, Immediate, Relative }
+        //    private enum ParameterType { Read, Write }
 
-            private class Instruction
-            {
-                public Instruction(long operation)
-                {
-                    OperationCode = operation % 100;
-                    ParameterModes = new[]
-                    {
-                        (Mode)((operation / 100) % 10),
-                        (Mode)((operation / 1000) % 10),
-                        (Mode)((operation / 10000) % 10),
-                    };
-                }
+        //    private class Instruction
+        //    {
+        //        public Instruction(long operation)
+        //        {
+        //            OperationCode = operation % 100;
+        //            ParameterModes = new[]
+        //            {
+        //                (Mode)((operation / 100) % 10),
+        //                (Mode)((operation / 1000) % 10),
+        //                (Mode)((operation / 10000) % 10),
+        //            };
+        //        }
 
-                public long OperationCode { get; }
+        //        public long OperationCode { get; }
 
-                // mode for parameter 1 at index 0
-                // mode for parameter 2 at index 1 
-                // mode for parameter 3 at index 2
-                public Mode[] ParameterModes { get; }
-            }
+        //        // mode for parameter 1 at index 0
+        //        // mode for parameter 2 at index 1 
+        //        // mode for parameter 3 at index 2
+        //        public Mode[] ParameterModes { get; }
+        //    }
 
-            private readonly Dictionary<long, long> memory;
+        //    private readonly Dictionary<long, long> memory;
 
-            private readonly List<long> input;
+        //    private readonly List<long> input;
 
-            private long instructionPointer;
-            private int inputPosition;
-            private long relativeBase;
-            private Instruction instruction;
+        //    private long instructionPointer;
+        //    private int inputPosition;
+        //    private long relativeBase;
+        //    private Instruction instruction;
 
-            private Dictionary<long, long> Load(List<long> code)
-            {
-                var m = new Dictionary<long, long>();
-                for (int i = 0; i < code.Count; i++)
-                {
-                    m.Add(i, code[i]);
-                }
+        //    private Dictionary<long, long> Load(List<long> code)
+        //    {
+        //        var m = new Dictionary<long, long>();
+        //        for (int i = 0; i < code.Count; i++)
+        //        {
+        //            m.Add(i, code[i]);
+        //        }
 
-                return m;
-            }
-            public IntCodeComputer(List<long> program)
-            {
-                this.memory = Load(program);
-                this.input = new List<long>();
-                this.instructionPointer = 0;
-                this.inputPosition = 0;
+        //        return m;
+        //    }
+        //    public IntCodeComputer(List<long> program)
+        //    {
+        //        this.memory = Load(program);
+        //        this.input = new List<long>();
+        //        this.instructionPointer = 0;
+        //        this.inputPosition = 0;
 
-                this.Output = new List<long>();
+        //        this.Output = new List<long>();
 
-            }
+        //    }
 
-            public List<long> Output { get; }
+        //    public List<long> Output { get; }
 
-            public void SetInput(List<long> newInput)
-            {
-                this.input.AddRange(newInput);
-            }
+        //    public void SetInput(List<long> newInput)
+        //    {
+        //        this.input.AddRange(newInput);
+        //    }
 
-            private long ReadMemory(long address)
-            {
-                if (address < 0)
-                {
-                    throw new ArgumentOutOfRangeException($"Cannot access negative memory address: {address}");
-                }
-                if (!memory.ContainsKey(address))
-                {
-                    memory.Add(address, 0);
-                }
+        //    private long ReadMemory(long address)
+        //    {
+        //        if (address < 0)
+        //        {
+        //            throw new ArgumentOutOfRangeException($"Cannot access negative memory address: {address}");
+        //        }
+        //        if (!memory.ContainsKey(address))
+        //        {
+        //            memory.Add(address, 0);
+        //        }
 
-                return memory[address];
-            }
+        //        return memory[address];
+        //    }
 
-            private long Parameter(long position, Mode mode, ParameterType type)
-            {
-                var value = ReadMemory(instructionPointer + position);
+        //    private long Parameter(long position, Mode mode, ParameterType type)
+        //    {
+        //        var value = ReadMemory(instructionPointer + position);
 
-                switch (mode)
-                {
-                    case Mode.Position:
-                        {
-                            return type == ParameterType.Read ? ReadMemory(value) : value;
-                        }
-                    case Mode.Immediate:
-                        {
-                            return value;
-                        }
-                    case Mode.Relative:
-                        {
-                            return type == ParameterType.Read ? ReadMemory(value + relativeBase) : value + relativeBase;
-                        }
-                    default:
-                        throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
-                }
-            }
+        //        switch (mode)
+        //        {
+        //            case Mode.Position:
+        //                {
+        //                    return type == ParameterType.Read ? ReadMemory(value) : value;
+        //                }
+        //            case Mode.Immediate:
+        //                {
+        //                    return value;
+        //                }
+        //            case Mode.Relative:
+        //                {
+        //                    return type == ParameterType.Read ? ReadMemory(value + relativeBase) : value + relativeBase;
+        //                }
+        //            default:
+        //                throw new ArgumentOutOfRangeException($"Unexpected mode parameter {mode}");
+        //        }
+        //    }
 
-            private (long, long, long) LoadParameters(params ParameterType[] parameterTypes)
-            {
-                if (parameterTypes.Length > 3)
-                {
-                    throw new ArgumentOutOfRangeException($"Maximum 3 parameters supported (got {parameterTypes.Length}");
-                }
+        //    private (long, long, long) LoadParameters(params ParameterType[] parameterTypes)
+        //    {
+        //        if (parameterTypes.Length > 3)
+        //        {
+        //            throw new ArgumentOutOfRangeException($"Maximum 3 parameters supported (got {parameterTypes.Length}");
+        //        }
 
-                var result = new long[3];
+        //        var result = new long[3];
 
-                for (long i = 0; i < parameterTypes.Length; i++)
-                {
-                    var mode = instruction.ParameterModes[i];
-                    var type = parameterTypes[i];
+        //        for (long i = 0; i < parameterTypes.Length; i++)
+        //        {
+        //            var mode = instruction.ParameterModes[i];
+        //            var type = parameterTypes[i];
 
-                    result[i] = Parameter(i + 1, mode, type);
-                }
+        //            result[i] = Parameter(i + 1, mode, type);
+        //        }
 
-                return (result[0], result[1], result[2]);
-            }
+        //        return (result[0], result[1], result[2]);
+        //    }
 
-            public ExecutionState Execute()
-            {
-                while (true)
-                {
-                    instruction = new Instruction(ReadMemory(instructionPointer));
+        //    public ExecutionState Execute()
+        //    {
+        //        while (true)
+        //        {
+        //            instruction = new Instruction(ReadMemory(instructionPointer));
 
-                    switch (instruction.OperationCode)
-                    {
-                        case 1:
-                            {
-                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
+        //            switch (instruction.OperationCode)
+        //            {
+        //                case 1:
+        //                    {
+        //                        var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
-                                memory[writeTo] = arg1 + arg2;
+        //                        memory[writeTo] = arg1 + arg2;
 
-                                instructionPointer = instructionPointer + 4;
+        //                        instructionPointer = instructionPointer + 4;
 
-                                break;
-                            }
-                        case 2:
-                            {
-                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
+        //                        break;
+        //                    }
+        //                case 2:
+        //                    {
+        //                        var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
-                                memory[writeTo] = arg1 * arg2;
-                                instructionPointer = instructionPointer + 4;
-                                break;
-                            }
-                        case 3:
-                            {
-                                var (arg1, _, _) = LoadParameters(ParameterType.Write);
+        //                        memory[writeTo] = arg1 * arg2;
+        //                        instructionPointer = instructionPointer + 4;
+        //                        break;
+        //                    }
+        //                case 3:
+        //                    {
+        //                        var (arg1, _, _) = LoadParameters(ParameterType.Write);
 
-                                memory[arg1] = input[inputPosition++];
-                                instructionPointer = instructionPointer + 2;
-                                break;
-                            }
-                        case 4:
-                            {
-                                var (arg1, _, _) = LoadParameters(ParameterType.Read);
+        //                        memory[arg1] = input[inputPosition++];
+        //                        instructionPointer = instructionPointer + 2;
+        //                        break;
+        //                    }
+        //                case 4:
+        //                    {
+        //                        var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
-                                Output.Add(arg1);
-                                instructionPointer = instructionPointer + 2;
-                                return ExecutionState.WaitingForInput;
-                            }
-                        case 5:
-                            {
-                                var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
+        //                        Output.Add(arg1);
+        //                        instructionPointer = instructionPointer + 2;
+        //                        return ExecutionState.WaitingForInput;
+        //                    }
+        //                case 5:
+        //                    {
+        //                        var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
 
-                                instructionPointer = arg1 != 0 ? arg2 : instructionPointer + 3;
-                                break;
-                            }
-                        case 6:
-                            {
-                                var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
+        //                        instructionPointer = arg1 != 0 ? arg2 : instructionPointer + 3;
+        //                        break;
+        //                    }
+        //                case 6:
+        //                    {
+        //                        var (arg1, arg2, _) = LoadParameters(ParameterType.Read, ParameterType.Read);
 
-                                instructionPointer = arg1 == 0 ? arg2 : instructionPointer + 3;
-                                break;
-                            }
-                        case 7:
-                            {
-                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
+        //                        instructionPointer = arg1 == 0 ? arg2 : instructionPointer + 3;
+        //                        break;
+        //                    }
+        //                case 7:
+        //                    {
+        //                        var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
-                                memory[writeTo] = arg1 < arg2 ? 1 : 0;
+        //                        memory[writeTo] = arg1 < arg2 ? 1 : 0;
 
-                                instructionPointer = instructionPointer + 4;
-                                break;
-                            }
-                        case 8:
-                            {
-                                var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
+        //                        instructionPointer = instructionPointer + 4;
+        //                        break;
+        //                    }
+        //                case 8:
+        //                    {
+        //                        var (arg1, arg2, writeTo) = LoadParameters(ParameterType.Read, ParameterType.Read, ParameterType.Write);
 
-                                memory[writeTo] = arg1 == arg2 ? 1 : 0;
+        //                        memory[writeTo] = arg1 == arg2 ? 1 : 0;
 
-                                instructionPointer = instructionPointer + 4;
-                                break;
-                            }
-                        case 9:
-                            {
-                                var (arg1, _, _) = LoadParameters(ParameterType.Read);
+        //                        instructionPointer = instructionPointer + 4;
+        //                        break;
+        //                    }
+        //                case 9:
+        //                    {
+        //                        var (arg1, _, _) = LoadParameters(ParameterType.Read);
 
-                                relativeBase += arg1;
+        //                        relativeBase += arg1;
 
-                                instructionPointer = instructionPointer + 2;
-                                break;
-                            }
-                        case 99:
-                            {
-                                return ExecutionState.Ready;
-                            }
-                        default:
-                            throw new InvalidOperationException(
-                                $"Unknown op code '{instruction.OperationCode}' at address = {instructionPointer}");
-                    }
-                }
-            }
+        //                        instructionPointer = instructionPointer + 2;
+        //                        break;
+        //                    }
+        //                case 99:
+        //                    {
+        //                        return ExecutionState.Ready;
+        //                    }
+        //                default:
+        //                    throw new InvalidOperationException(
+        //                        $"Unknown op code '{instruction.OperationCode}' at address = {instructionPointer}");
+        //            }
+        //        }
+        //    }
 
-            public List<long> ExecuteAll()
-            {
-                var state = ExecutionState.WaitingForInput;
-                while (state != ExecutionState.Ready)
-                {
-                    state = Execute();
-                }
+        //    public List<long> ExecuteAll()
+        //    {
+        //        var state = ExecutionState.WaitingForInput;
+        //        while (state != ExecutionState.Ready)
+        //        {
+        //            state = Execute();
+        //        }
 
-                return Output;
-            }
-        }
+        //        return Output;
+        //    }
+        //}
 
         private static bool IsIntersection(Point aPoint, Dictionary<Point, int> map)
         {
@@ -276,11 +276,12 @@ namespace Solutions.Event2019
             }
         }
 
-        private List<long> RunMapProgram(List<long> program)
+        private List<long> RunMapProgram(string program)
         {
-            var computer = new IntCodeComputer(program);
-            computer.ExecuteAll();
-            return computer.Output;
+            var computer = IntCodeComputer.Load(program);
+            while (computer.Execute() != IntCodeComputer.ExecutionState.Ready) {}
+
+            return computer.Output.ToList();
         }
 
         private static Dictionary<Point, int> CreateMap(List<long> mapData, int width)
@@ -330,14 +331,13 @@ namespace Solutions.Event2019
 
         private (Dictionary<Point, int> map, int width) Run(string input)
         {
-            var program = Parse(input);
-            var mapData = RunMapProgram(program);
+            var mapData = RunMapProgram(input);
             var width = mapData.IndexOf('\n');
             var map = CreateMap(mapData, width);
             return (map,width);
         }
 
-        private long Run2(List<long> program, Dictionary<Point, int> map)
+        private long Run2(string program, Dictionary<Point, int> map)
         {
             var directionChars = new List<int>{'^', '<', '>', 'v'};
 
@@ -380,8 +380,8 @@ namespace Solutions.Event2019
             // use this variable for visual inspection, try to program a solution later
             var readableSegments = string.Join(",", segments.Select(s => $"{s.turn.ToShortString()},{s.steps}"));
 
-            program[0] = 2;
-            var computer = new IntCodeComputer(program);
+            program = "2" + new string(program.Skip(1).ToArray());
+            var computer = IntCodeComputer.Load(program);
 
             var mainRoutine = "A,B,A,C,B,C,B,C,A,C\n";
             var routineA = "R,12,L,10,R,12\n";
@@ -391,8 +391,8 @@ namespace Solutions.Event2019
 
             var input = mainRoutine + routineA + routineB + routineC + no;
 
-            computer.SetInput(input.Select(c => (long)c).ToList());
-            computer.ExecuteAll();
+            computer.ExecuteAscii(input);
+
             return computer.Output.Last();
         }
 
@@ -453,11 +453,10 @@ namespace Solutions.Event2019
         public long SecondStar()
         {
             var input = ReadInput();
-            var (map, width) = Run(input);
+            var (map, _) = Run(input);
 
-            var program = Parse(input);
 
-            return Run2(program, map);
+            return Run2(input, map);
         }
 
         [Fact]
@@ -495,9 +494,8 @@ namespace Solutions.Event2019
             };
             var input = ReadInput();
 
-            var program = Parse(input);
             var map = ParseMap(mapData);
-            var result = Run2(program, map);
+            var result = Run2(input, map);
 
             Assert.Equal(1409507, result);
         }
