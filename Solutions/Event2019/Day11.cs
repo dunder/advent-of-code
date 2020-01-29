@@ -358,7 +358,8 @@ namespace Solutions.Event2019
                 var line = new StringBuilder();
                 for (int x = minX; x <= maxX; x++)
                 {
-                    line.Append(Read(path, new Point(x,y)) == 1 ? "#" : " ");
+                    var symbol = path.TryGetValue(new Point(x, y), out int value) && value == 1 ? "#" : " ";
+                    line.Append(symbol);
                 }
                 output.WriteLine(line.ToString());
             }
@@ -375,7 +376,11 @@ namespace Solutions.Event2019
 
             var startingPoint = new Point(0, 0);
             var painted = new Dictionary<Point, int>();
-            painted.Add(startingPoint, startColor);
+            if (startColor == 1)
+            {
+                painted.Add(startingPoint, startColor);
+
+            }
             var currentDirection = Direction.North;
             var currentLocation = startingPoint;
 
