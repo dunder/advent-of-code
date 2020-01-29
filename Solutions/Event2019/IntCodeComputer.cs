@@ -53,7 +53,7 @@ namespace Solutions.Event2019
         private long relativeBase;
         private Instruction instruction;
 
-        private Dictionary<long, long> Load(List<long> code)
+        private static Dictionary<long, long> Load(List<long> code)
         {
             var m = new Dictionary<long, long>();
             for (int i = 0; i < code.Count; i++)
@@ -64,23 +64,39 @@ namespace Solutions.Event2019
             return m;
         }
 
-        private IntCodeComputer(List<long> program)
-        {
-            this.memory = Load(program);
-            this.Input = new Queue<long>();
-            this.instructionPointer = 0;
+        private IntCodeComputer(List<long> program, params long[] input) : this(Load(program), input) { }
 
-            this.Output = new Queue<long>();
+        private IntCodeComputer(Dictionary<long, long> memory, params long[] input)
+        {
+            this.memory = memory;
+            instructionPointer = 0;
+            Input = new Queue<long>();
+            Output = new Queue<long>();
+            foreach (var i in input)
+            {
+                Input.Enqueue(i);
+            }
         }
 
-        public static IntCodeComputer Load(string textProgram)
+        public static IntCodeComputer Load(string textProgram, params long[] input)
         {
-            return new IntCodeComputer(textProgram.Split(',').Select(long.Parse).ToList());
+            return new IntCodeComputer(textProgram.Split(',').Select(long.Parse).ToList(), input);
         }
 
-        public Queue<long> Output { get; }
-        public Queue<long> Input { get; }
+        public IntCodeComputer CreateSerial(long input)
+        {
+            var newComputer = new IntCodeComputer(memory) {Input = Output};
+            newComputer.Input.Enqueue(input);
+            return newComputer;
+        }
 
+        public Queue<long> Output { get; private set; }
+        public Queue<long> Input { get; private set; }
+
+        public void ConnectOutputTo(IntCodeComputer computer)
+        {
+            Output = computer.Input;
+        }
         public void MemoryOverride(long address, long value)
         {
             memory[address] = value;
@@ -144,9 +160,12 @@ namespace Solutions.Event2019
             return (result[0], result[1], result[2]);
         }
 
-        public ExecutionState Execute()
+        public ExecutionState Execute(bool clearOutputBeforeExecution = true)
         {
-            Output.Clear();
+            if (clearOutputBeforeExecution)
+            {
+                Output.Clear();
+            }
 
             while (true)
             {
