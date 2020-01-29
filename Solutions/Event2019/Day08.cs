@@ -106,7 +106,7 @@ namespace Solutions.Event2019
         [Fact]
         public void SecondStarTest()
         {
-            SecondStar();
+            SecondStar(); // RLAKF
         }
 
         [Fact]
