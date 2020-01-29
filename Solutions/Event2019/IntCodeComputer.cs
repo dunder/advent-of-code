@@ -68,7 +68,7 @@ namespace Solutions.Event2019
 
         private IntCodeComputer(Dictionary<long, long> memory, params long[] input)
         {
-            this.memory = memory;
+            this.memory = new Dictionary<long, long>(memory);
             instructionPointer = 0;
             Input = new Queue<long>();
             Output = new Queue<long>();
