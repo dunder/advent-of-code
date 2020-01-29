@@ -9,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2019
 {
-    // 
+    // --- Day 10: Monitoring Station ---
     public class Day10
     {
         private bool[,] ParseMap(IEnumerable<string> input)
