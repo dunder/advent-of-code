@@ -64,7 +64,7 @@ namespace Solutions.Event2019
             return m;
         }
 
-        public IntCodeComputer(List<long> program)
+        private IntCodeComputer(List<long> program)
         {
             this.memory = Load(program);
             this.Input = new Queue<long>();
@@ -81,6 +81,11 @@ namespace Solutions.Event2019
         public Queue<long> Output { get; }
         public Queue<long> Input { get; }
 
+        public void MemoryOverride(long address, long value)
+        {
+            memory[address] = value;
+        }
+        
         private long ReadMemory(long address)
         {
             if (address < 0)
@@ -141,6 +146,8 @@ namespace Solutions.Event2019
 
         public ExecutionState Execute()
         {
+            Output.Clear();
+
             while (true)
             {
                 instruction = new Instruction(ReadMemory(instructionPointer));
