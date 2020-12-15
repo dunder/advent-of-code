@@ -53,23 +53,24 @@ namespace Solutions.Event2020
 
         private class SpokenHistory
         {
-            private List<int> spokenHistory = new List<int>();
-            private Dictionary<int, SpokenWhen> spokenWhen = new Dictionary<int, SpokenWhen>();
+            private int? lastSpoken = null;
+            private int rounds = 0;
+            private readonly Dictionary<int, SpokenWhen> spokenWhen = new Dictionary<int, SpokenWhen>();
 
             public int LastSpoken()
             {
-                if (!spokenHistory.Any())
+                if (!lastSpoken.HasValue)
                 {
                     throw new InvalidOperationException("No words spoken yet!");
                 }
 
-                return spokenHistory[spokenHistory.Count - 1];
+                return lastSpoken.Value;
             }
 
             public void AddSpoken(int spoken)
             {
-                spokenHistory.Add(spoken);
-                var round = spokenHistory.Count - 1;
+                lastSpoken = spoken;
+                var round = rounds;
                 if (spokenWhen.ContainsKey(spoken))
                 {
                     spokenWhen[spoken].AddLastSpoken(round);
@@ -78,6 +79,7 @@ namespace Solutions.Event2020
                 {
                     spokenWhen.Add(spoken, new SpokenWhen(round));
                 }
+                rounds += 1;
             }
 
             public bool IsSpokenBefore(int spoken)
@@ -95,26 +97,24 @@ namespace Solutions.Event2020
         {
             var spokenHistory = new SpokenHistory();
 
-            foreach (var turn in Enumerable.Range(0, to))
+            foreach (var turn in Enumerable.Range(0, numbers.Count))
             {
-                if (turn < numbers.Count)
+                var spokenNumber = numbers[turn];
+                spokenHistory.AddSpoken(spokenNumber);
+            }
+
+            foreach (var turn in Enumerable.Range(numbers.Count, to - numbers.Count))
+            {
+                var lastSpoken = spokenHistory.LastSpoken();
+
+                if (!spokenHistory.IsSpokenBefore(lastSpoken))
                 {
-                    var spokenNumber = numbers[turn];
-                    spokenHistory.AddSpoken(spokenNumber);
+                    spokenHistory.AddSpoken(0);
                 }
                 else
                 {
-                    var lastSpoken = spokenHistory.LastSpoken();
-
-                    if (!spokenHistory.IsSpokenBefore(lastSpoken))
-                    {
-                        spokenHistory.AddSpoken(0);
-                    }
-                    else
-                    {
-                        var nextSpoken = turn - 1 - spokenHistory.PreviouslySpokenRound(lastSpoken);
-                        spokenHistory.AddSpoken(nextSpoken);
-                    }
+                    var nextSpoken = turn - 1 - spokenHistory.PreviouslySpokenRound(lastSpoken);
+                    spokenHistory.AddSpoken(nextSpoken);
                 }
             }
 
