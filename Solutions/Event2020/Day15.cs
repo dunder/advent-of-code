@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -6,93 +7,118 @@ using Xunit.Abstractions;
 
 namespace Solutions.Event2020
 {
-    // 
+    // --- Day 15: Rambunctious Recitation ---
     public class Day15
     {
         private readonly ITestOutputHelper output;
 
         private static readonly List<int> Numbers = new List<int> { 16, 11, 15, 0, 1, 7 };
+
         public Day15(ITestOutputHelper output)
         {
             this.output = output;
         }
 
-        private int GetPreviouslySpoken(List<int> spoken, int lastSpoken)
+        private class SpokenWhen
         {
-            for (int i = spoken.Count - 2; i >= 0; i--)
+            public int LastSpokenRound { get; private set;  }
+            public int? PreviouslySpokenRound { get; set; }
+
+            public SpokenWhen(int lastSpoken)
             {
-                if (spoken[i] == lastSpoken)
-                {
-                    return i;
-                }
+                LastSpokenRound = lastSpoken;
             }
-            return -1;
+
+            public void AddLastSpoken(int lastSpokenRound)
+            {
+                PreviouslySpokenRound = LastSpokenRound;
+                LastSpokenRound = lastSpokenRound;
+            }
+
+            public int WhenSpoken()
+            {
+                if (PreviouslySpokenRound.HasValue)
+                {
+                    return PreviouslySpokenRound.Value;
+                }
+                return LastSpokenRound;
+            }
+
+            public override string ToString()
+            {
+                var previously = PreviouslySpokenRound.HasValue ? PreviouslySpokenRound.Value.ToString() : "N/A";
+                return $"Last = '{LastSpokenRound}' Previosly: '{previously}'";
+            }
         }
 
-        private int GetPreviouslySpoken2(Dictionary<int, int> spokenBefore, int lastSpoken)
+        private class SpokenHistory
         {
-            if (spokenBefore.ContainsKey(lastSpoken))
+            private List<int> spokenHistory = new List<int>();
+            private Dictionary<int, SpokenWhen> spokenWhen = new Dictionary<int, SpokenWhen>();
+
+            public int LastSpoken()
             {
-                return spokenBefore[lastSpoken];
+                if (!spokenHistory.Any())
+                {
+                    throw new InvalidOperationException("No words spoken yet!");
+                }
+
+                return spokenHistory[spokenHistory.Count - 1];
             }
-            return -1;
+
+            public void AddSpoken(int spoken)
+            {
+                spokenHistory.Add(spoken);
+                var round = spokenHistory.Count - 1;
+                if (spokenWhen.ContainsKey(spoken))
+                {
+                    spokenWhen[spoken].AddLastSpoken(round);
+                }
+                else
+                {
+                    spokenWhen.Add(spoken, new SpokenWhen(round));
+                }
+            }
+
+            public bool IsSpokenBefore(int spoken)
+            {
+                return spokenWhen.ContainsKey(spoken);
+            }
+
+            public int PreviouslySpokenRound(int lastSpoken)
+            {
+                return spokenWhen[lastSpoken].WhenSpoken();
+            }
         }
 
         private int Run(List<int> numbers, int to)
         {
-            var spoken = new List<int>();
-            var spokenBeforeRounds = new Dictionary<int, List<int>>();
-
+            var spokenHistory = new SpokenHistory();
 
             foreach (var turn in Enumerable.Range(0, to))
             {
                 if (turn < numbers.Count)
                 {
                     var spokenNumber = numbers[turn];
-                    spoken.Add(spokenNumber);
-                    spokenBeforeRounds.Add(spokenNumber, new List<int> { turn });
+                    spokenHistory.AddSpoken(spokenNumber);
                 }
                 else
                 {
-                    var lastSpoken = spoken[spoken.Count - 1];
-                    var previouslySpoken = -1;
-                    if (spokenBeforeRounds.ContainsKey(lastSpoken))
-                    {
-                        var spokenBefore = spokenBeforeRounds[lastSpoken];
-                        if (spokenBefore.Count == 1)
-                        {
-                            previouslySpoken = spokenBefore[0];
-                        }
-                        else
-                        {
-                            previouslySpoken = spokenBefore[spokenBefore.Count - 2];
-                        }
-                    }
+                    var lastSpoken = spokenHistory.LastSpoken();
 
-                    if (previouslySpoken == -1)
+                    if (!spokenHistory.IsSpokenBefore(lastSpoken))
                     {
-                        spoken.Add(0);
-                        spokenBeforeRounds.Add(0, new List<int> { turn });
+                        spokenHistory.AddSpoken(0);
                     }
                     else
                     {
-                        var nextSpoken = turn - 1 - previouslySpoken;
-                        spoken.Add(nextSpoken);
-
-                        if (spokenBeforeRounds.ContainsKey(nextSpoken))
-                        {
-                            var spokenBefore = spokenBeforeRounds[nextSpoken];
-                            spokenBefore.Add(turn);
-                        }
-                        else
-                        {
-                            spokenBeforeRounds.Add(nextSpoken, new List<int> { turn });
-                        }
+                        var nextSpoken = turn - 1 - spokenHistory.PreviouslySpokenRound(lastSpoken);
+                        spokenHistory.AddSpoken(nextSpoken);
                     }
                 }
             }
 
-            return spoken[spoken.Count - 1];
+            return spokenHistory.LastSpoken();
         }
 
         public int FirstStar()
@@ -117,36 +143,19 @@ namespace Solutions.Event2020
             Assert.Equal(37312, SecondStar());
         }
 
-        [Fact]
-        public void Example1()
+        [Theory]
+        [InlineData(0,3,6,436)]
+        [InlineData(1,3,2,1)]
+        [InlineData(2, 1, 3, 10)]
+        [InlineData(1, 2, 3, 27)]
+        [InlineData(2, 3, 1, 78)]
+        [InlineData(3, 2, 1, 438)]
+        [InlineData(3, 1, 2, 1836)]
+        public void Examples(int v1, int v2, int v3, int expected)
         {
-            var lastSpoken = Run(new List<int> { 0, 3, 6 }, 2020);
+            var lastSpoken = Run(new List<int> { v1, v2, v3 }, 2020);
 
-            Assert.Equal(436, lastSpoken);
-        }
-
-        [Fact]
-        public void Example2()
-        {
-            var lastSpoken = Run(new List<int> { 1, 3, 2 }, 2020);
-
-            Assert.Equal(1, lastSpoken);
-        }
-
-        [Fact]
-        public void Example3()
-        {
-            var lastSpoken = Run(new List<int> { 1, 2, 3 }, 2020);
-
-            Assert.Equal(27, lastSpoken);
-        }
-
-        [Fact]
-        public void Example4()
-        {
-            var lastSpoken = Run(new List<int> { 2, 3, 1 }, 2020);
-
-            Assert.Equal(78, lastSpoken);
+            Assert.Equal(expected, lastSpoken);
         }
     }
 }
