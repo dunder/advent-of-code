@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -46,7 +45,7 @@ namespace Solutions.Event2020
 
             public override int GetHashCode()
             {
-                return X ^ Y ^ Z;
+                return HashCode.Combine(X, Y, Z);
             }
 
             public static bool operator ==(Point lhs, Point rhs)
@@ -64,8 +63,6 @@ namespace Solutions.Event2020
                 return $"({X},{Y},{Z})";
             }
         }
-
-
 
         private struct Point4D : IEquatable<Point4D>
         {
@@ -98,7 +95,7 @@ namespace Solutions.Event2020
 
             public override int GetHashCode()
             {
-                return X ^ Y ^ Z ^ W;
+                return HashCode.Combine(X, Y, Z, W);
             }
 
             public static bool operator ==(Point4D lhs, Point4D rhs)
@@ -117,7 +114,7 @@ namespace Solutions.Event2020
             }
         }
 
-        private class Cube : IEnumerable<(Point point, bool value)>
+        private class Cube
         {
             public Cube(HashSet<Point> squares)
             {
@@ -133,7 +130,7 @@ namespace Solutions.Event2020
 
             public HashSet<Point> Squares { get; }
 
-            public int Active => this.Count(x => x.value);
+            public int Active => Squares.Count;
 
             public Cube Copy()
             {
@@ -182,26 +179,6 @@ namespace Solutions.Event2020
                             {
                                 yield return (neighbor, Squares.Contains(neighbor));
                             }
-                        }
-                    }
-                }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IEnumerator<(Point point, bool value)> GetEnumerator()
-            {
-                for (int z = ZMin; z <= ZMax; z++)
-                {
-                    for (int y = YMin; y <= YMax; y++)
-                    {
-                        for (int x = XMin; x <= XMax; x++)
-                        {
-                            var p = new Point(x, y, z);
-                            yield return (p, Squares.Contains(p));
                         }
                     }
                 }
@@ -276,7 +253,7 @@ namespace Solutions.Event2020
             }
         }
 
-        private class Cube4D : IEnumerable<(Point4D point, bool value)>
+        private class Cube4D
         {
             public Cube4D(HashSet<Point4D> squares)
             {
@@ -294,7 +271,7 @@ namespace Solutions.Event2020
 
             public HashSet<Point4D> Squares { get; }
 
-            public int Active => this.Count(x => x.value);
+            public int Active => Squares.Count;
 
             public Cube4D Copy()
             {
@@ -345,29 +322,6 @@ namespace Solutions.Event2020
                                 {
                                     yield return (neighbor, Squares.Contains(neighbor));
                                 }
-                            }
-                        }
-                    }
-                }
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IEnumerator<(Point4D point, bool value)> GetEnumerator()
-            {
-                for (int w = WMin; w <= WMax; w++)
-                {
-                    for (int z = ZMin; z <= ZMax; z++)
-                    {
-                        for (int y = YMin; y <= YMax; y++)
-                        {
-                            for (int x = XMin; x <= XMax; x++)
-                            {
-                                var p = new Point4D(x, y, z, w);
-                                yield return (p, Squares.Contains(p));
                             }
                         }
                     }
