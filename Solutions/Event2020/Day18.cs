@@ -58,127 +58,31 @@ namespace Solutions.Event2020
 
             return parts;
         }
-        private bool IsOperation(string candidate) => IsAddition(candidate) || IsMultiplication(candidate);
+
         private bool IsAddition(string candidate) => candidate == "+";
         private bool IsMultiplication(string candidate) => candidate == "*";
-
         private bool IsNumber(string candidate) => int.TryParse(candidate, out int _);
         
-
-        public List<string> IntoParts(string line)
-        {
-            return line.Split(" ").SelectMany(p => Split(p)).ToList();
-        }
-
 
         public Queue<string> ToQueue(string line)
         {
             return new Queue<string>(line.Split(" ").SelectMany(p => Split(p)));
         }
 
-        public long Calculate(List<string> lines)
+        public long SumLines(List<string> lines, bool plusHasPrecedence)
         {
-            return lines.Aggregate(0L, (sum, x) => sum + CalculateLine(x));
+            return lines.Aggregate(0L, (sum, x) => sum + EvaluateLine(x, plusHasPrecedence));
         }
 
-        public long CalculateLine(string line)
+        public long EvaluateLine(string line, bool plusHasPrecedence)
         {
-            var operations = new Stack<string>();
-            var results = new Stack<long>();
-            var result = ReadExpression(IntoParts(line), operations, results);
-            return result;
-        }
-
-        public long ReadExpression(List<string> parts, Stack<string> operations, Stack<long> results)
-        {
-            if (!parts.Any())
-            {
-                return results.Pop();
-            }
-
-            var next = parts[0];
-
-            if (int.TryParse(next, out int num))
-            {
-                if (operations.Any())
-                {
-                    var op = operations.Peek();
-                    if (IsOperation(op))
-                    {
-                        op = operations.Pop();
-                        var last = results.Pop();
-
-                        if (IsAddition(op))
-                        {
-                            var result = num + last;
-                            results.Push(result);
-                            return ReadExpression(parts.Skip(1).ToList(), operations, results);
-                        }
-                        else
-                        {
-                            var result = num * last;
-                            results.Push(result);
-                            return ReadExpression(parts.Skip(1).ToList(), operations, results);
-                        }
-                    }
-                    else
-                    {
-                        results.Push(num);
-                        return ReadExpression(parts.Skip(1).ToList(), operations, results);
-                    }
-                }
-                else
-                {
-                    results.Push(num);
-                    return ReadExpression(parts.Skip(1).ToList(), operations, results);
-                }
-            }
-            else if (IsOperation(next))
-            {
-                operations.Push(next);
-                return ReadExpression(parts.Skip(1).ToList(), operations, results);
-            }
-            else if (next == "(")
-            {
-                operations.Push(next);
-                return ReadExpression(parts.Skip(1).ToList(), operations, results);
-            }
-            else if (next == ")")
-            {
-                if (operations.Peek() == "(")
-                {
-                    operations.Pop();
-                    var res = results.Pop();
-                    parts = parts.Skip(1).ToList();
-                    parts.Insert(0, res.ToString());
-                    return ReadExpression(parts, operations, results);
-                }
-                else
-                {
-                    return ReadExpression(parts.Skip(1).Append(results.Pop().ToString()).ToList(), operations, results);
-                }
-                
-            }
-            else
-            {
-                throw new Exception($"Unexpected: {next}");
-            }
-        }
-
-        public long Calculate2(List<string> lines)
-        {
-            return lines.Aggregate(0L, (sum, x) => sum + CalculateLine2(x));
-        }
-
-        public long CalculateLine2(string line)
-        {
-            var result = ReadExpression2(ToQueue(line));
+            var result = EvaluateExpression(ToQueue(line), plusHasPrecedence);
             return result;
         }
 
         public long Evaluate(string operation, Stack<long> calculationStack)
         {
-            if (operation == "+")
+            if (IsAddition(operation))
             {
                 return calculationStack.Pop() + calculationStack.Pop();
             }
@@ -188,21 +92,21 @@ namespace Solutions.Event2020
             }
         }
 
-        public long ReadExpression2(Queue<string> parts)
+        public long EvaluateExpression(Queue<string> input, bool plusHasPrecedence)
         {
             var operations = new Stack<string>();
             var calculationStack = new Stack<long>();
 
-            while (parts.Any())
+            while (input.Any())
             {
-                string next = parts.Dequeue();
+                string next = input.Dequeue();
                 if (IsNumber(next))
                 {
                     calculationStack.Push(int.Parse(next));
                 }
                 else if (next == "(")
                 {
-                    var result = ReadExpression2(parts);
+                    var result = EvaluateExpression(input, plusHasPrecedence);
                     calculationStack.Push(result);
                 }
                 else if (next == ")")
@@ -211,7 +115,7 @@ namespace Solutions.Event2020
                 }
                 else
                 {
-                    if (!operations.Any() || operations.Peek() == "*")
+                    if (!operations.Any() || (plusHasPrecedence && IsMultiplication(operations.Peek())))
                     {
                         operations.Push(next);
                     }
@@ -236,14 +140,14 @@ namespace Solutions.Event2020
         public long FirstStar()
         {
             var input = ReadLineInput().ToList();
-            var result = Calculate(input);
+            var result = SumLines(input, plusHasPrecedence: false);
             return result;
         }
 
         public long SecondStar()
         {
             var input = ReadLineInput().ToList();
-            var result = Calculate2(input);
+            var result = SumLines(input, plusHasPrecedence: true);
             return result;
         }
 
@@ -266,7 +170,7 @@ namespace Solutions.Event2020
         [InlineData("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2", 13632)]
         public void FirstStarExample(string line, long expected)
         {
-            var expression = CalculateLine(line);
+            var expression = EvaluateLine(line, plusHasPrecedence: false);
             Assert.Equal(expected, expression);
         }
 
@@ -278,7 +182,7 @@ namespace Solutions.Event2020
         [InlineData("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2", 23340)]
         public void SecondStarExample(string line, long expected)
         {
-            var expression = CalculateLine2(line);
+            var expression = EvaluateLine(line, plusHasPrecedence: true);
             Assert.Equal(expected, expression);
         }
     }
