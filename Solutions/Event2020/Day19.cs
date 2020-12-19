@@ -9,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2020
 {
-    // 
+    // --- Day 19: Monster Messages ---
 
     public class Day19
     {
@@ -26,6 +26,8 @@ namespace Solutions.Event2020
             {
                 Id = id;
             }
+
+            protected IDictionary<string, bool> RuleCache = new Dictionary<string, bool>();
 
             public string Id { get; private set; }
 
@@ -65,6 +67,11 @@ namespace Solutions.Event2020
 
             public override bool IsValid(string message, IDictionary<string, Rule> rules)
             {
+                if (RuleCache.ContainsKey(message))
+                {
+                    return RuleCache[message];
+                }
+
                 if (RulesSequence.Count == 1)
                 {
                     return rules[RulesSequence[0]].IsValid(message, rules);
@@ -77,15 +84,17 @@ namespace Solutions.Event2020
 
                     if (rules[RulesSequence[0]].IsValid(seq1, rules) && rules[RulesSequence[1]].IsValid(seq2, rules))
                     {
+                        RuleCache.Add(message, true);
                         return true;
                     }
                 }
+
+                RuleCache.Add(message, false);
 
                 return false;
             }
 
         }
-
 
         private class SubRule : Rule
         {
@@ -124,6 +133,11 @@ namespace Solutions.Event2020
 
             public override bool IsValid(string message, IDictionary<string, Rule> rules)
             {
+                if (RuleCache.ContainsKey(message))
+                {
+                    return RuleCache[message];
+                }
+
                 for (int i = 1; i < message.Length; i++)
                 {
                     var seq1 = message.Substring(0, i);
@@ -134,14 +148,15 @@ namespace Solutions.Event2020
 
                     if (matchLeft || matchRight)
                     {
+                        RuleCache.Add(message, true);
                         return true;
                     }
                 }
 
+                RuleCache.Add(message, false);
                 return false;
             }
         }
-
 
         private class SubRule2 : Rule
         {
@@ -174,11 +189,19 @@ namespace Solutions.Event2020
 
             public override bool IsValid(string message, IDictionary<string, Rule> rules)
             {
-               
-                    var matchLeft = rules[OptionLeft].IsValid(message, rules);
-                    var matchRight = rules[OptionRight].IsValid(message, rules);
+                if (RuleCache.ContainsKey(message))
+                {
+                    return RuleCache[message];
+                }
 
-                    return matchLeft || matchRight;
+                var matchLeft = rules[OptionLeft].IsValid(message, rules);
+                var matchRight = rules[OptionRight].IsValid(message, rules);
+
+                var result = matchLeft || matchRight;
+
+                RuleCache.Add(message, result);
+
+                return result;
             }
         }
 
@@ -275,7 +298,7 @@ namespace Solutions.Event2020
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(122, FirstStar());
         }
 
         [Fact]
