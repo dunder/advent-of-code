@@ -11,7 +11,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2020
 {
-    // 
+    // --- Day 20: Jurassic Jigsaw ---
 
     public class Day20
     {
@@ -196,34 +196,63 @@ namespace Solutions.Event2020
                 return orientations;
             }
 
-            public Grid TurnOn(int x, int y)
+            public int SearchForMonsters(Grid seaMonsterGrid)
             {
-                return new Grid(Squares.Clone() as bool[,], Id);
+                int oneSeaMonsterCount = seaMonsterGrid.OnCount;
+                int matchCount = 0;
+
+                for (int y = 0; y < Height - seaMonsterGrid.Height; y++)
+                {
+                    for (int x = 0; x < Width - seaMonsterGrid.Width; x++)
+                    {
+                        bool found = true;
+
+                        for (int ys = 0; ys < seaMonsterGrid.Height; ys++)
+                        {
+                            for (int xs = 0; xs < seaMonsterGrid.Width; xs++)
+                            {
+                                var xg = x + xs;
+                                var yg = y + ys;
+
+                                var seaMonster = seaMonsterGrid.Squares[xs, ys];
+                                var me = Squares[xg, yg];
+
+                                var seaMonsterMatch = !seaMonster || (seaMonster == me);
+
+                                found = found && seaMonsterMatch;
+
+                                if (!found)
+                                {
+                                    break;
+                                }
+                            }
+
+                            if (!found)
+                            {
+                                break;
+                            }
+                        }
+
+                        if (found)
+                        {
+                            matchCount++;
+                        }
+                    }
+                }
+
+                return matchCount*oneSeaMonsterCount;
             }
 
-            public Grid TurnOn(Point point)
-            {
-                return TurnOn(point.X, point.Y);
-            }
 
-            public Grid TurnOff(int x, int y)
-            {
-                return new Grid(Squares.Clone() as bool[,], Id);
-            }
-
-            public Grid TurnOff(Point point)
-            {
-                return TurnOff(point.X, point.Y);
-            }
 
             public int OnCount
             {
                 get
                 {
                     int count = 0;
-                    for (int x = 0; x < Size; x++)
+                    for (int x = 0; x < Width; x++)
                     {
-                        for (int y = 0; y < Size; y++)
+                        for (int y = 0; y < Height; y++)
                         {
                             if (_squares[x, y])
                             {
@@ -314,7 +343,6 @@ namespace Solutions.Event2020
 
         private static class GridParser
         {
-
             public static Grid Parse(IList<string> input, int id)
             {
 
@@ -367,7 +395,6 @@ namespace Solutions.Event2020
                     {
                         currentId = nextId;
                     }
-
                 }
                 else
                 {
@@ -747,6 +774,28 @@ namespace Solutions.Event2020
             return aboveGrid;
         }
 
+        private int FindSeaMonsters(Grid grid)
+        {
+            var orientations = grid.Orientations();
+
+            var seaMonsterPattern = new List<string>
+            {
+                "                  # ",
+                "#    ##    ##    ###",
+                " #  #  #  #  #  #   "
+            }
+            .Select(line => line.Replace(" ", "."))
+            .ToList();
+
+            var seaMonsterGrid = GridParser.Parse(seaMonsterPattern, 0);
+
+            var results = orientations.Select(o => o.SearchForMonsters(seaMonsterGrid)).ToList();
+
+            var onCount = grid.OnCount;
+
+            return onCount - results.Max();
+        }
+
         public long FirstStar()
         {
             var input = ReadLineInput().ToList();
@@ -768,7 +817,9 @@ namespace Solutions.Event2020
 
             var merged = Merge(positions);
 
-            return 0;
+            var result = FindSeaMonsters(merged);
+
+            return result;
         }
 
         [Fact]
@@ -780,7 +831,7 @@ namespace Solutions.Event2020
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(1680, SecondStar());
         }
 
         [Fact]
@@ -1190,140 +1241,7 @@ namespace Solutions.Event2020
         }
 
         [Fact]
-        public void SecondStarFindPositionsExample()
-        {
-            var input = new List<string>
-            {
-                "Tile 2311:",
-                "..##.#..#.",
-                "##..#.....",
-                "#...##..#.",
-                "####.#...#",
-                "##.##.###.",
-                "##...#.###",
-                ".#.#.#..##",
-                "..#....#..",
-                "###...#.#.",
-                "..###..###",
-                "          ",
-                "Tile 1951:",
-                "#.##...##.",
-                "#.####...#",
-                ".....#..##",
-                "#...######",
-                ".##.#....#",
-                ".###.#####",
-                "###.##.##.",
-                ".###....#.",
-                "..#.#..#.#",
-                "#...##.#..",
-                "          ",
-                "Tile 1171:",
-                "####...##.",
-                "#..##.#..#",
-                "##.#..#.#.",
-                ".###.####.",
-                "..###.####",
-                ".##....##.",
-                ".#...####.",
-                "#.##.####.",
-                "####..#...",
-                ".....##...",
-                "          ",
-                "Tile 1427:",
-                "###.##.#..",
-                ".#..#.##..",
-                ".#.##.#..#",
-                "#.#.#.##.#",
-                "....#...##",
-                "...##..##.",
-                "...#.#####",
-                ".#.####.#.",
-                "..#..###.#",
-                "..##.#..#.",
-                "          ",
-                "Tile 1489:",
-                "##.#.#....",
-                "..##...#..",
-                ".##..##...",
-                "..#...#...",
-                "#####...#.",
-                "#..#.#.#.#",
-                "...#.#.#..",
-                "##.#...##.",
-                "..##.##.##",
-                "###.##.#..",
-                "          ",
-                "Tile 2473:",
-                "#....####.",
-                "#..#.##...",
-                "#.##..#...",
-                "######.#.#",
-                ".#...#.#.#",
-                ".#########",
-                ".###.#..#.",
-                "########.#",
-                "##...##.#.",
-                "..###.#.#.",
-                "          ",
-                "Tile 2971:",
-                "..#.#....#",
-                "#...###...",
-                "#.#.###...",
-                "##.##..#..",
-                ".#####..##",
-                ".#..####.#",
-                "#..#.#..#.",
-                "..####.###",
-                "..#.#.###.",
-                "...#.#.#.#",
-                "          ",
-                "Tile 2729:",
-                "...#.#.#.#",
-                "####.#....",
-                "..#.#.....",
-                "....#..#.#",
-                ".##..##.#.",
-                ".#.####...",
-                "####.#.#..",
-                "##.####...",
-                "##..#.##..",
-                "#.##...##.",
-                "          ",
-                "Tile 3079:",
-                "#.#.#####.",
-                ".#..######",
-                "..#.......",
-                "######....",
-                "####.#..#.",
-                ".#...#.##.",
-                "#.#####.##",
-                "..#.###...",
-                "..#.......",
-                "..#.###..."
-            };
-
-            var grids = Parse(input);
-
-            var positions = FindPositions(grids);
-
-            var grid3079 = positions.SelectMany(x => x).Single(x => x.Id == 3079);
-
-            Assert.Null(grid3079.Top);
-            Assert.Null(grid3079.Right);
-            Assert.Equal(2473, grid3079.Bottom);
-            Assert.Equal(2311, grid3079.Left);
-
-            var grid1427 = positions.SelectMany(x => x).Single(x => x.Id == 1427);
-
-            Assert.Equal(1489, grid1427.Top);
-            Assert.Equal(2473, grid1427.Right);
-            Assert.Equal(2311, grid1427.Bottom);
-            Assert.Equal(2729, grid1427.Left);
-        }
-
-        [Fact]
-        public void SecondStarMergeExample()
+        public void SecondStarExample()
         {
             var input = new List<string>
             {
@@ -1442,13 +1360,10 @@ namespace Solutions.Event2020
             positions = RemoveBorders(positions);
 
             var merged = Merge(positions);
-            var flipped = merged.FlipHorizontal();
 
-            var rotated1 = flipped.RotateRight();
-            var rotated2 = rotated1.RotateRight();
-            var rotated3 = rotated2.RotateRight();
+            var result = FindSeaMonsters(merged);
 
-            Assert.NotNull(merged);
+            Assert.Equal(273, result);
         }
     }
 }
