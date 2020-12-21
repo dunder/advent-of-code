@@ -42,9 +42,10 @@ namespace Solutions.Event2020
                 }
             }
 
-            public Grid(bool[,] squares)
+            public Grid(bool[,] squares, int id)
             {
                 _squares = squares;
+                Id = id;
             }
 
             public int Size => _squares.GetLength(0);
@@ -53,18 +54,39 @@ namespace Solutions.Event2020
 
             public bool[,] Squares => _squares;
 
+            public int Id { get; private set; }
+            public int? Top { get; set; }
+            public int? Right { get; set; }
+            public int? Bottom { get; set; }
+            public int? Left { get; set; }
+
+            public List<int?> Adjacent => new List<int?> { Top, Right, Bottom, Left };
+
+            public bool IsCorner => Adjacent.Where(x => x.HasValue).Count() == 2;
+                
+
             public Grid RemoveBorder()
             {
-                var borderLessPixels = new bool[Size-2, Size-2];
-                for (int y = 1; y < Size-1; y++)
+                var borderLessPixels = new bool[Size - 2, Size - 2];
+                for (int y = 1; y < Size - 1; y++)
                 {
-                    for (int x = 1; x < Size-1; x++)
+                    for (int x = 1; x < Size - 1; x++)
                     {
-                        borderLessPixels[x-1,y-1] = _squares[x, y];
+                        borderLessPixels[x - 1, y - 1] = _squares[x, y];
                     }
                 }
 
-                return new Grid(borderLessPixels);
+                return new Grid(borderLessPixels, Id);
+            }
+
+            public Grid MergeRight(Grid rightGrid)
+            {
+                return rightGrid;
+            }
+
+            public Grid MergeBottom(Grid bottomGrid)
+            {
+                return bottomGrid;
             }
 
             public Grid FlipHorizontal()
@@ -78,21 +100,14 @@ namespace Solutions.Event2020
                     }
                 }
 
-                return new Grid(flippedPixels);
-            }
+                var grid = new Grid(flippedPixels, Id);
 
-            public Grid FlipVertical()
-            {
-                var flippedPixels = new bool[Size, Size];
-                for (int y = 0; y < Size; y++)
-                {
-                    for (int x = 0; x < Size; x++)
-                    {
-                        flippedPixels[x, Size - 1 - y] = _squares[x, y];
-                    }
-                }
+                grid.Top = Top;
+                grid.Right = Left;
+                grid.Bottom = Bottom;
+                grid.Left = Right;
 
-                return new Grid(flippedPixels);
+                return grid;
             }
 
             public Grid RotateRight()
@@ -102,16 +117,53 @@ namespace Solutions.Event2020
                 {
                     for (int x = 0; x < Size; x++)
                     {
-                        rotatedPixels[y, Size - 1 - x] = _squares[x, y];
+                        rotatedPixels[Size - 1 - y, x] = _squares[x, y];
                     }
                 }
 
-                return new Grid(rotatedPixels);
+                var grid = new Grid(rotatedPixels, Id);
+
+                grid.Top = Left;
+                grid.Right = Top;
+                grid.Bottom = Right;
+                grid.Left = Bottom;
+
+                return grid;
+            }
+
+            public List<Grid> Orientations()
+            {
+                var orientations = new List<Grid>();
+
+                orientations.Add(this);
+
+                var flippedHorizontally = FlipHorizontal();
+                orientations.Add(flippedHorizontally);
+
+                var rotated1 = RotateRight();
+                orientations.Add(rotated1);
+
+                var rotated1FlippedHorizontally = rotated1.FlipHorizontal();
+                orientations.Add(rotated1FlippedHorizontally);
+
+                var rotated2 = rotated1.RotateRight();
+                orientations.Add(rotated2);
+
+                var rotated2FlippedHorizontally = rotated2.FlipHorizontal();
+                orientations.Add(rotated2FlippedHorizontally);
+
+                var rotated3 = rotated2.RotateRight();
+                orientations.Add(rotated3);
+
+                var rotated3FlippedHorizontally = rotated3.FlipHorizontal();
+                orientations.Add(rotated3FlippedHorizontally);
+
+                return orientations;
             }
 
             public Grid TurnOn(int x, int y)
             {
-                return new Grid(Squares.Clone() as bool[,]);
+                return new Grid(Squares.Clone() as bool[,], Id);
             }
 
             public Grid TurnOn(Point point)
@@ -121,7 +173,7 @@ namespace Solutions.Event2020
 
             public Grid TurnOff(int x, int y)
             {
-                return new Grid(Squares.Clone() as bool[,]);
+                return new Grid(Squares.Clone() as bool[,], Id);
             }
 
             public Grid TurnOff(Point point)
@@ -228,7 +280,7 @@ namespace Solutions.Event2020
         private static class GridParser
         {
 
-            public static Grid Parse(IList<string> input)
+            public static Grid Parse(IList<string> input, int id)
             {
 
                 bool[,] grid = new bool[input[0].Length, input.Count];
@@ -245,7 +297,7 @@ namespace Solutions.Event2020
                     }
                 }
 
-                return new Grid(grid);
+                return new Grid(grid, id);
             }
         }
 
@@ -270,7 +322,7 @@ namespace Solutions.Event2020
 
                     if (currentGrid.Any())
                     {
-                        var grid = GridParser.Parse(currentGrid);
+                        var grid = GridParser.Parse(currentGrid, currentId);
                         grids.Add(currentId, grid);
 
                         currentId = nextId;
@@ -288,7 +340,7 @@ namespace Solutions.Event2020
                 }
             }
 
-            var lastGrid = GridParser.Parse(currentGrid);
+            var lastGrid = GridParser.Parse(currentGrid, currentId);
             grids.Add(currentId, lastGrid);
 
             return grids;
@@ -297,25 +349,21 @@ namespace Solutions.Event2020
         private static List<Grid> FlipRotate(Grid grid1)
         {
             var flippedHorizontally = grid1.FlipHorizontal();
-            var flippedVertically = grid1.FlipVertical();
 
             var rotated1 = grid1.RotateRight();
             var rotated1FlippedHorizontally = rotated1.FlipHorizontal();
-            var rotated1FlippedVertically = rotated1.FlipVertical();
 
             var rotated2 = rotated1.RotateRight();
             var rotated2FlippedHorizontally = rotated2.FlipHorizontal();
-            var rotated2FlippedVertically = rotated2.FlipVertical();
 
             var rotated3 = rotated2.RotateRight();
             var rotated3FlippedHorizontally = rotated3.FlipHorizontal();
-            var rotated3FlippedVertically = rotated3.FlipVertical();
 
-            return new List<Grid> { 
-                grid1, flippedHorizontally, flippedVertically,
-                rotated1, rotated1FlippedHorizontally, rotated1FlippedVertically,
-                rotated2,  rotated2FlippedHorizontally, rotated2FlippedVertically,
-                rotated3, rotated3FlippedHorizontally, rotated3FlippedVertically
+            return new List<Grid> {
+                grid1, flippedHorizontally,
+                rotated1, rotated1FlippedHorizontally,
+                rotated2,  rotated2FlippedHorizontally,
+                rotated3, rotated3FlippedHorizontally
             };
         }
 
@@ -323,7 +371,7 @@ namespace Solutions.Event2020
         {
             for (int x = 0; x < grid1.Width; x++)
             {
-                
+
                 if (grid1.IsOn(x, 0) != grid2.IsOn(x, grid2.Height - 1))
                 {
                     return false;
@@ -455,455 +503,211 @@ namespace Solutions.Event2020
             return cornerGrids;
         }
 
-        private static MatchingTiles MatchGrids(Grid grid1, int grid2Id, Grid grid2, MatchingTiles matchingTiles)
+        private static Grid MatchGrids(Grid grid1, int grid2Id, Grid grid2)
         {
-            var grid2Variations = FlipRotate(grid2);
+            var otherVariations = Orientations(grid2);
 
-            foreach (var grid2Variation in grid2Variations)
+            foreach (var otherVariation in otherVariations)
             {
-                if (MatchTop(grid1, grid2Variation))
+                if (MatchTop(grid1, otherVariation.Variation))
                 {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = grid1;
-                    return matchingTiles;
+                    grid1.Top = grid2Id;
+                    break;
                 }
-
-                if (MatchRight(grid1, grid2Variation))
+                else if (MatchRight(grid1, otherVariation.Variation))
                 {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = grid1;
-
-                    return matchingTiles;
+                    grid1.Right = grid2Id;
+                    break;
                 }
-
-                if (MatchBottom(grid1, grid2Variation))
+                else if (MatchBottom(grid1, otherVariation.Variation))
                 {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = grid1;
-                    return matchingTiles;
+                    grid1.Bottom = grid2Id;
+                    break;
                 }
-
-                if (MatchLeft(grid1, grid2Variation))
+                else if (MatchLeft(grid1, otherVariation.Variation))
                 {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = grid1;
-                    return matchingTiles;
+                    grid1.Left = grid2Id;
+                    break;
                 }
             }
 
-            var flippedHorizontally = grid1.FlipHorizontal();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(flippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = flippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(flippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = flippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(flippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = flippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(flippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = flippedHorizontally;
-                    return matchingTiles;
-                }
-            }
-
-            var flippedVertically = grid1.FlipVertical();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(grid1, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = flippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(grid1, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = flippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(grid1, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = flippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(grid1, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = flippedVertically;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated1 = grid1.RotateRight();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated1, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated1;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated1, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated1;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated1, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated1;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated1, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated1;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated1FlippedHorizontally = rotated1.FlipHorizontal();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated1FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated1FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated1FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated1FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedHorizontally;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated1FlippedVertically = rotated1.FlipVertical();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated1FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated1FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated1FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated1FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated1FlippedVertically;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated2 = rotated1.RotateRight();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated2, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated2;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated2, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated2;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated2, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated2;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated2, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated2;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated2FlippedHorizontally = rotated2.FlipHorizontal();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated2FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated2FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated2FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated2FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedHorizontally;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated2FlippedVertically = rotated2.FlipVertical();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated2FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated2FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated2FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated2FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated2FlippedVertically;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated3 = rotated2.RotateRight();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated3, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated3;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated3, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated3;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated3, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated3;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated3, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated3;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated3FlippedHorizontally = rotated3.FlipHorizontal();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated3FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated3FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated3FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedHorizontally;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated3FlippedHorizontally, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedHorizontally;
-                    return matchingTiles;
-                }
-            }
-
-            var rotated3FlippedVertically = rotated3.FlipVertical();
-
-            foreach (var grid2Variation in grid2Variations)
-            {
-                if (MatchTop(rotated3FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Left = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchRight(rotated3FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Bottom = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchBottom(rotated3FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Right = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedVertically;
-                    return matchingTiles;
-                }
-
-                if (MatchLeft(rotated3FlippedVertically, grid2Variation))
-                {
-                    matchingTiles.Top = grid2Id;
-                    matchingTiles.Variation = rotated3FlippedVertically;
-                    return matchingTiles;
-                }
-            }
-
-            return matchingTiles;
+            return grid1;
         }
-        
-        private class MatchingTiles
+
+        private class TileMatch
         {
-            public MatchingTiles(int id)
+            public TileMatch(int id)
             {
                 Id = id;
             }
 
             public int Id { get; private set; }
-            public Grid Variation { get; set; }
-            public int? Top { get; set; }
-            public int? Right { get; set; }
-            public int? Bottom { get; set; }
-            public int? Left { get; set; }
+
+            public List<int> Matches { get; set; } = new List<int>();
 
             public override string ToString()
             {
-                var top = Top.HasValue ? Top.Value.ToString() : "-";
-                var right = Right.HasValue ? Right.Value.ToString() : "-";
-                var bottom = Bottom.HasValue ? Bottom.Value.ToString() : "-";
-                var left = Left.HasValue ? Left.Value.ToString() : "-";
-
-                return $"({top},{right},{bottom},{left})";
+                return $"{Id}: " + string.Join(",", Matches.OrderBy(x => x));
             }
         }
 
-        private static IDictionary<int, MatchingTiles> FindPositions(IDictionary<int, Grid> grids)
+        private class GridVariation
         {
-            var positions = new Dictionary<int, MatchingTiles>();
+            public GridVariation(Grid variation, int rotates, int flip)
+            {
+                Variation = variation;
+                Rotates = rotates;
+                Flip = flip;
+            }
 
+            public int Rotates { get; private set; }
+            public int Flip { get; private set; }
+
+            public Grid Variation { get; private set; }
+
+            public override string ToString()
+            {
+                return $"R: {Rotates}, F: {Flip}";
+            }
+        }
+
+        private static List<GridVariation> Orientations(Grid grid)
+        {
+            var variations = new List<GridVariation>();
+
+            variations.Add(new GridVariation(grid, 0, 0));
+
+            var flippedHorizontally = grid.FlipHorizontal();
+            variations.Add(new GridVariation(flippedHorizontally, 0, 1));
+
+            var rotated1 = grid.RotateRight();
+            variations.Add(new GridVariation(rotated1, 1, 0));
+
+            var rotated1FlippedHorizontally = rotated1.FlipHorizontal();
+            variations.Add(new GridVariation(rotated1FlippedHorizontally, 1, 1));
+
+            var rotated2 = rotated1.RotateRight();
+            variations.Add(new GridVariation(rotated2, 2, 0));
+
+            var rotated2FlippedHorizontally = rotated2.FlipHorizontal();
+            variations.Add(new GridVariation(rotated2FlippedHorizontally, 2, 1));
+
+            var rotated3 = rotated2.RotateRight();
+            variations.Add(new GridVariation(rotated3, 3, 0));
+
+            var rotated3FlippedHorizontally = rotated3.FlipHorizontal();
+            variations.Add(new GridVariation(rotated3FlippedHorizontally, 3, 1));
+
+            return variations;
+        }
+
+        private static List<List<Grid>> FindPositions(IDictionary<int, Grid> grids)
+        {
             foreach (var gridId in grids.Keys)
             {
                 var grid = grids[gridId];
-                var variations = FlipRotate(grid);
 
-                var matchingTiles = new MatchingTiles(gridId);
+                var matchingTiles = new TileMatch(gridId);
 
                 foreach (var otherGridId in grids.Keys.Where(k => k != gridId))
                 {
                     var otherGrid = grids[otherGridId];
 
-                    matchingTiles = MatchGrids(grid, otherGridId, otherGrid, matchingTiles);
+                    grid = MatchGrids(grid, otherGridId, otherGrid);
                 }
-
-                positions.Add(gridId, matchingTiles);
             }
 
-            return positions;
+            // just take a corner and assign it to 0,0
+            var aCorner = grids.Values.First(grid => grid.IsCorner);
+
+            var rotatedCorner = aCorner
+                .Orientations()
+                .First(orientation => !orientation.Top.HasValue && !orientation.Left.HasValue);
+
+            // "square arrangement" according to problem description; calculate size by square root
+            int size = (int)System.Math.Sqrt(grids.Count);
+
+            var arrangement = new List<List<Grid>>();
+
+            Grid Above(List<List<Grid>> arrangement, int x, int y)
+            {
+                if (y - 1 < 0)
+                {
+                    return null;
+                }
+
+                return arrangement[y-1][x];
+            }
+
+            for (int y = 0; y < size; y++)
+            {
+                var row = new List<Grid>();
+
+                for (int x = 0; x < size; x++)
+                {
+                    if (x == 0 && y == 0)
+                    {
+                        row.Add(rotatedCorner);
+                    }
+                    else if (x < size)
+                    {
+                        Grid previous = x == 0 ? null : row.Last();
+                        Grid above = Above(arrangement, x, y);
+                        Grid current = above == null ? grids[previous.Right.Value] : grids[above.Bottom.Value];
+                        Grid currentArranged = current
+                            .Orientations()
+                            .Single(o => o.Top == above?.Id && o.Left == previous?.Id);
+
+                        row.Add(currentArranged);
+                    }
+                }
+
+                arrangement.Add(row);
+            }
+
+            return arrangement;
+        }
+
+        private static List<List<Grid>> RemoveBorders(List<List<Grid>> arrangement)
+        {
+            return arrangement.Select(row => row.Select(grid => grid.RemoveBorder()).ToList()).ToList();
+        }
+
+        private static Grid Merge(List<List<Grid>> arrangement)
+        {
+            var mergeBottom = new List<Grid>();
+
+            foreach (var row in arrangement)
+            {
+                Grid leftGrid = null;
+                
+                foreach (var rightGrid in row)
+                {
+                    if (leftGrid == null)
+                    {
+                        leftGrid = rightGrid;
+                    }
+                    else
+                    {
+                        leftGrid = leftGrid.MergeRight(rightGrid);
+                    }
+                }
+
+                mergeBottom.Add(leftGrid);
+            }
+
+            Grid aboveGrid = null;
+            foreach (var bottomGrid in mergeBottom)
+            {
+                if (aboveGrid == null)
+                {
+                    aboveGrid = bottomGrid;
+                }
+
+                aboveGrid = aboveGrid.MergeBottom(bottomGrid);
+            }
+
+            return aboveGrid;
         }
 
         public long FirstStar()
@@ -920,6 +724,10 @@ namespace Solutions.Event2020
         public long SecondStar()
         {
             var input = ReadLineInput().ToList();
+            var grids = Parse(input);
+
+            var positions = FindPositions(grids);
+            positions = RemoveBorders(positions);
 
             return 0;
         }
@@ -1175,7 +983,7 @@ namespace Solutions.Event2020
 
             var grids = Parse(input);
 
-            // 3079 is not flippted or rotated in the example
+            // 3079 is not flipped or rotated in the example
             var withoutBorder = grids[3079].RemoveBorder();
 
             var expectedLines = new List<string>
@@ -1190,9 +998,131 @@ namespace Solutions.Event2020
                 ".#......"
             };
 
-            var expectedGrid = GridParser.Parse(expectedLines);
+            var expectedGrid = GridParser.Parse(expectedLines, 3079);
 
             Assert.Equal(expectedGrid, withoutBorder);
+        }
+
+        [Fact]
+        public void SecondStarRemoveBordersExample()
+        {
+            var input = new List<string>
+            {
+                "Tile 2311:",
+                "..##.#..#.",
+                "##..#.....",
+                "#...##..#.",
+                "####.#...#",
+                "##.##.###.",
+                "##...#.###",
+                ".#.#.#..##",
+                "..#....#..",
+                "###...#.#.",
+                "..###..###",
+                "          ",
+                "Tile 1951:",
+                "#.##...##.",
+                "#.####...#",
+                ".....#..##",
+                "#...######",
+                ".##.#....#",
+                ".###.#####",
+                "###.##.##.",
+                ".###....#.",
+                "..#.#..#.#",
+                "#...##.#..",
+                "          ",
+                "Tile 1171:",
+                "####...##.",
+                "#..##.#..#",
+                "##.#..#.#.",
+                ".###.####.",
+                "..###.####",
+                ".##....##.",
+                ".#...####.",
+                "#.##.####.",
+                "####..#...",
+                ".....##...",
+                "          ",
+                "Tile 1427:",
+                "###.##.#..",
+                ".#..#.##..",
+                ".#.##.#..#",
+                "#.#.#.##.#",
+                "....#...##",
+                "...##..##.",
+                "...#.#####",
+                ".#.####.#.",
+                "..#..###.#",
+                "..##.#..#.",
+                "          ",
+                "Tile 1489:",
+                "##.#.#....",
+                "..##...#..",
+                ".##..##...",
+                "..#...#...",
+                "#####...#.",
+                "#..#.#.#.#",
+                "...#.#.#..",
+                "##.#...##.",
+                "..##.##.##",
+                "###.##.#..",
+                "          ",
+                "Tile 2473:",
+                "#....####.",
+                "#..#.##...",
+                "#.##..#...",
+                "######.#.#",
+                ".#...#.#.#",
+                ".#########",
+                ".###.#..#.",
+                "########.#",
+                "##...##.#.",
+                "..###.#.#.",
+                "          ",
+                "Tile 2971:",
+                "..#.#....#",
+                "#...###...",
+                "#.#.###...",
+                "##.##..#..",
+                ".#####..##",
+                ".#..####.#",
+                "#..#.#..#.",
+                "..####.###",
+                "..#.#.###.",
+                "...#.#.#.#",
+                "          ",
+                "Tile 2729:",
+                "...#.#.#.#",
+                "####.#....",
+                "..#.#.....",
+                "....#..#.#",
+                ".##..##.#.",
+                ".#.####...",
+                "####.#.#..",
+                "##.####...",
+                "##..#.##..",
+                "#.##...##.",
+                "          ",
+                "Tile 3079:",
+                "#.#.#####.",
+                ".#..######",
+                "..#.......",
+                "######....",
+                "####.#..#.",
+                ".#...#.##.",
+                "#.#####.##",
+                "..#.###...",
+                "..#.......",
+                "..#.###..."
+            };
+
+            var grids = Parse(input);
+
+            var positions = FindPositions(grids);
+            positions = RemoveBorders(positions);
+
+            Assert.All(positions.SelectMany(x => x), x => Assert.Equal(8, x.Size));
         }
 
         [Fact]
@@ -1311,22 +1241,46 @@ namespace Solutions.Event2020
 
             var grids = Parse(input);
 
-
             var positions = FindPositions(grids);
 
-            var grid3079 = positions[3079];
+            var grid3079 = positions.SelectMany(x => x).Single(x => x.Id == 3079);
 
-            Assert.False(grid3079.Top.HasValue);
-            Assert.False(grid3079.Right.HasValue);
-            Assert.Equal(2311, grid3079.Left);
+            Assert.Null(grid3079.Top);
+            Assert.Null(grid3079.Right);
             Assert.Equal(2473, grid3079.Bottom);
+            Assert.Equal(2311, grid3079.Left);
 
-            var grid1427 = positions[1427];
+            var grid1427 = positions.SelectMany(x => x).Single(x => x.Id == 1427);
 
-            Assert.Equal(2311, grid1427.Top);
+            Assert.Equal(1489, grid1427.Top);
             Assert.Equal(2473, grid1427.Right);
-            Assert.Equal(1489, grid1427.Bottom);
+            Assert.Equal(2311, grid1427.Bottom);
             Assert.Equal(2729, grid1427.Left);
+        }
+
+        [Fact]
+        public void SecondStarRotateExample()
+        {
+            var input = new List<string>
+            {
+                "..##.#..#.",
+                "##..#.....",
+                "#...##..#.",
+                "####.#...#",
+                "##.##.###.",
+                "##...#.###",
+                ".#.#.#..##",
+                "..#....#..",
+                "###...#.#.",
+                "..###..###",
+            };
+
+            var grid = GridParser.Parse(input, 0);
+
+
+            var rotated = grid.RotateRight();
+
+            Assert.NotEqual(grid, rotated);
         }
     }
 }
