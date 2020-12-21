@@ -64,7 +64,6 @@ namespace Solutions.Event2020
 
             public bool IsCorner => Adjacent.Where(x => x.HasValue).Count() == 2;
                 
-
             public Grid RemoveBorder()
             {
                 var borderLessPixels = new bool[Size - 2, Size - 2];
@@ -81,12 +80,48 @@ namespace Solutions.Event2020
 
             public Grid MergeRight(Grid rightGrid)
             {
-                return rightGrid;
+                var mergedArray = new bool[Width + rightGrid.Width, Height];
+
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        mergedArray[x, y] = Squares[x, y];
+                    }
+                }
+                
+                for (int x = 0; x < rightGrid.Width; x++)
+                {
+                    for (int y = 0; y < rightGrid.Height; y++)
+                    {
+                        mergedArray[Width + x, y] = rightGrid.Squares[x, y];
+                    }
+                }
+
+                return new Grid(mergedArray, 0);
             }
 
             public Grid MergeBottom(Grid bottomGrid)
             {
-                return bottomGrid;
+                var mergedArray = new bool[Width, Height + bottomGrid.Height];
+
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        mergedArray[x, y] = Squares[x, y];
+                    }
+                }
+
+                for (int x = 0; x < bottomGrid.Width; x++)
+                {
+                    for (int y = 0; y < bottomGrid.Height; y++)
+                    {
+                        mergedArray[x, y + Height] = bottomGrid.Squares[x, y];
+                    }
+                }
+
+                return new Grid(mergedArray, 0);
             }
 
             public Grid FlipHorizontal()
@@ -703,8 +738,10 @@ namespace Solutions.Event2020
                 {
                     aboveGrid = bottomGrid;
                 }
-
-                aboveGrid = aboveGrid.MergeBottom(bottomGrid);
+                else
+                {
+                    aboveGrid = aboveGrid.MergeBottom(bottomGrid);
+                }
             }
 
             return aboveGrid;
@@ -728,6 +765,8 @@ namespace Solutions.Event2020
 
             var positions = FindPositions(grids);
             positions = RemoveBorders(positions);
+
+            var merged = Merge(positions);
 
             return 0;
         }
@@ -865,6 +904,31 @@ namespace Solutions.Event2020
             var result = corners.Aggregate(1L, (x, y) => x * y);
 
             Assert.Equal(20899048083289, result);
+        }
+
+        [Fact]
+        public void SecondStarRotateExample()
+        {
+            var input = new List<string>
+            {
+                "..##.#..#.",
+                "##..#.....",
+                "#...##..#.",
+                "####.#...#",
+                "##.##.###.",
+                "##...#.###",
+                ".#.#.#..##",
+                "..#....#..",
+                "###...#.#.",
+                "..###..###",
+            };
+
+            var grid = GridParser.Parse(input, 0);
+
+
+            var rotated = grid.RotateRight();
+
+            Assert.NotEqual(grid, rotated);
         }
 
         [Fact]
@@ -1259,10 +1323,11 @@ namespace Solutions.Event2020
         }
 
         [Fact]
-        public void SecondStarRotateExample()
+        public void SecondStarMergeExample()
         {
             var input = new List<string>
             {
+                "Tile 2311:",
                 "..##.#..#.",
                 "##..#.....",
                 "#...##..#.",
@@ -1273,14 +1338,117 @@ namespace Solutions.Event2020
                 "..#....#..",
                 "###...#.#.",
                 "..###..###",
+                "          ",
+                "Tile 1951:",
+                "#.##...##.",
+                "#.####...#",
+                ".....#..##",
+                "#...######",
+                ".##.#....#",
+                ".###.#####",
+                "###.##.##.",
+                ".###....#.",
+                "..#.#..#.#",
+                "#...##.#..",
+                "          ",
+                "Tile 1171:",
+                "####...##.",
+                "#..##.#..#",
+                "##.#..#.#.",
+                ".###.####.",
+                "..###.####",
+                ".##....##.",
+                ".#...####.",
+                "#.##.####.",
+                "####..#...",
+                ".....##...",
+                "          ",
+                "Tile 1427:",
+                "###.##.#..",
+                ".#..#.##..",
+                ".#.##.#..#",
+                "#.#.#.##.#",
+                "....#...##",
+                "...##..##.",
+                "...#.#####",
+                ".#.####.#.",
+                "..#..###.#",
+                "..##.#..#.",
+                "          ",
+                "Tile 1489:",
+                "##.#.#....",
+                "..##...#..",
+                ".##..##...",
+                "..#...#...",
+                "#####...#.",
+                "#..#.#.#.#",
+                "...#.#.#..",
+                "##.#...##.",
+                "..##.##.##",
+                "###.##.#..",
+                "          ",
+                "Tile 2473:",
+                "#....####.",
+                "#..#.##...",
+                "#.##..#...",
+                "######.#.#",
+                ".#...#.#.#",
+                ".#########",
+                ".###.#..#.",
+                "########.#",
+                "##...##.#.",
+                "..###.#.#.",
+                "          ",
+                "Tile 2971:",
+                "..#.#....#",
+                "#...###...",
+                "#.#.###...",
+                "##.##..#..",
+                ".#####..##",
+                ".#..####.#",
+                "#..#.#..#.",
+                "..####.###",
+                "..#.#.###.",
+                "...#.#.#.#",
+                "          ",
+                "Tile 2729:",
+                "...#.#.#.#",
+                "####.#....",
+                "..#.#.....",
+                "....#..#.#",
+                ".##..##.#.",
+                ".#.####...",
+                "####.#.#..",
+                "##.####...",
+                "##..#.##..",
+                "#.##...##.",
+                "          ",
+                "Tile 3079:",
+                "#.#.#####.",
+                ".#..######",
+                "..#.......",
+                "######....",
+                "####.#..#.",
+                ".#...#.##.",
+                "#.#####.##",
+                "..#.###...",
+                "..#.......",
+                "..#.###..."
             };
 
-            var grid = GridParser.Parse(input, 0);
+            var grids = Parse(input);
 
+            var positions = FindPositions(grids);
+            positions = RemoveBorders(positions);
 
-            var rotated = grid.RotateRight();
+            var merged = Merge(positions);
+            var flipped = merged.FlipHorizontal();
 
-            Assert.NotEqual(grid, rotated);
+            var rotated1 = flipped.RotateRight();
+            var rotated2 = rotated1.RotateRight();
+            var rotated3 = rotated2.RotateRight();
+
+            Assert.NotNull(merged);
         }
     }
 }
