@@ -58,6 +58,39 @@ namespace Solutions.Event2020
             return null;
         }
 
+        private static List<List<string>> SplitIn2(string message)
+        {
+            var result = new List<List<string>>();
+
+            for (int i = 1; i < message.Length; i++)
+            {
+                var seq1 = message.Substring(0, i);
+                var seq2 = message.Substring(i, message.Length - i);
+
+                result.Add(new List<string> { seq1, seq2 });
+            }
+
+            return result;
+        }
+
+        private static List<List<string>> SplitIn3(string message)
+        {
+            var result = new List<List<string>>();
+
+            for (int i = 1; i < message.Length - 1; i++)
+            {
+                for (int j = i+1; j < message.Length; j++)
+                {
+                    var seq1 = message.Substring(0, i);
+                    var seq2 = message.Substring(i, j - i);
+                    var seq3 = message.Substring(j, message.Length - j);
+
+                    result.Add(new List<string> { seq1, seq2, seq3 });
+                }
+            }
+
+            return result;
+        }
 
 
         private abstract class Rule
@@ -315,6 +348,22 @@ namespace Solutions.Event2020
                     return rules[RulesSequence[0]].IsValid(message, rules);
                 }
 
+                if (RulesSequence.Count == 2)
+                {
+                    foreach (var pair in SplitIn2(message))
+                    {
+                        return rules[RulesSequence[0]].IsValid(pair[0], rules) && rules[RulesSequence[1]].IsValid(pair[1], rules);
+                    }
+                }
+
+                if (RulesSequence.Count == 3)
+                {
+                    foreach (var triplet in SplitIn3(message))
+                    {
+                        return rules[RulesSequence[0]].IsValid(triplet[0], rules) && rules[RulesSequence[1]].IsValid(triplet[1], rules) && rules[RulesSequence[1]].IsValid(triplet[2], rules);
+                    }
+                }
+
                 throw new NotImplementedException();
             }
         }
@@ -331,6 +380,9 @@ namespace Solutions.Event2020
                 return description.Contains(":") && description.Contains("|");
             }
 
+            public SequenceRuleRecursive Left { get; set; }
+            public SequenceRuleRecursive Right { get; set; }
+
             public static OrRuleRecursive Parse(string line)
             {
                 var idIdx = line.IndexOf(":");
@@ -343,7 +395,8 @@ namespace Solutions.Event2020
 
                 return new OrRuleRecursive(id)
                 {
-                    
+                    //new SLeft = equenceRuleRecursive(id) { RulesSequence = new List<string> { } },
+                    //Right = new SequenceRuleRecursive(id)
                 };
             }
 
@@ -538,6 +591,34 @@ namespace Solutions.Event2020
             var count = MatchesRule0Cyclic(input);
 
             Assert.Equal(12, count);
+        }
+
+        [Fact]
+        public void SplitIn2Test()
+        {
+            var result = SplitIn2("abcde");
+
+            Assert.Contains(result, pair => pair[0] == "a" && pair[1] == "bcde");
+            Assert.Contains(result, pair => pair[0] == "ab" && pair[1] == "cde");
+            Assert.Contains(result, pair => pair[0] == "abc" && pair[1] == "de");
+            Assert.Contains(result, pair => pair[0] == "abcd" && pair[1] == "e");
+
+            Assert.Equal(4, result.Count);
+        }
+
+        [Fact]
+        public void SplitIn3Test()
+        {
+            var result = SplitIn3("abcde");
+
+            Assert.Contains(result, triplet => triplet[0] == "a" && triplet[1] == "b" && triplet[2] == "cde");
+            Assert.Contains(result, triplet => triplet[0] == "a" && triplet[1] == "bc" && triplet[2] == "de");
+            Assert.Contains(result, triplet => triplet[0] == "a" && triplet[1] == "bcd" && triplet[2] == "e");
+            Assert.Contains(result, triplet => triplet[0] == "ab" && triplet[1] == "c" && triplet[2] == "de");
+            Assert.Contains(result, triplet => triplet[0] == "ab" && triplet[1] == "cd" && triplet[2] == "e");
+            Assert.Contains(result, triplet => triplet[0] == "abc" && triplet[1] == "d" && triplet[2] == "e");
+
+            Assert.Equal(6, result.Count);
         }
     }
 }
