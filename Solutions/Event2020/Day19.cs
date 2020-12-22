@@ -20,44 +20,6 @@ namespace Solutions.Event2020
             this.output = output;
         }
 
-        private static List<List<string>> Split(string message, int times)
-        {
-            var splits = new List<List<string>>();
-
-            return splits;
-        }
-
-        private static List<string> Split(string message, List<List<string>> result, List<string> current, int times)
-        {   
-            // idé 1: fullt rekursiv
-            // idé 2: specialbehandla endast fallen 1, 2 och 3 där 3 blir en dubbel for-loop variant av 2
-            
-            // ababab -> a b abab, a ba bab, a bab ab, a baba b
-            //           ab abab
-            //           aba bab
-
-            //if (!current.Any())
-            //{
-            //    current = new List<string>();
-            //}
-
-            //if (current.Count == times)
-            //{
-            //    return current;
-            //}
-
-            //for (int i = 1; i < message.Length; i++)
-            //{
-            //    var part1 = message.Substring(0, i);
-            //    current.Add(part1);
-            //    var part2 = message.Substring(i, message.Length - i);
-            //    current = current.Concat(Split(part2, ))
-            //}
-
-            //return current;
-            return null;
-        }
-
         private static List<List<string>> SplitIn2(string message)
         {
             var result = new List<List<string>>();
@@ -92,7 +54,6 @@ namespace Solutions.Event2020
             return result;
         }
 
-
         private abstract class Rule
         {
             public Rule(string id)
@@ -105,176 +66,6 @@ namespace Solutions.Event2020
             public string Id { get; private set; }
 
             public abstract bool IsValid(string message, IDictionary<string, Rule> rules);
-        }
-
-        private class SequenceRule : Rule
-        {
-            public static bool MatchesRuleDescription(string description)
-            {
-                return description.Contains(":") && !description.Contains("|") && !description.Contains(@"""");
-            }
-
-            public static SequenceRule Parse(string line)
-            {
-                var parts = line.Split(":");
-                var id = parts[0];
-
-                var rulesSequence = parts[1].Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
-
-                if (rulesSequence.Count > 2)
-                {
-                    throw new NotImplementedException("No support for more than two sequential rules!");
-                }
-
-                return new SequenceRule(id)
-                {
-                    RulesSequence = rulesSequence
-                };
-            }
-
-            public SequenceRule(string id) : base(id) {}
-
-            public List<string> RulesSequence { get; private set; }
-
-
-            public override bool IsValid(string message, IDictionary<string, Rule> rules)
-            {
-                if (RuleCache.ContainsKey(message))
-                {
-                    return RuleCache[message];
-                }
-
-                if (RulesSequence.Count == 1)
-                {
-                    return rules[RulesSequence[0]].IsValid(message, rules);
-                }
-
-                for (int i = 1; i < message.Length; i++)
-                {
-                    var seq1 = message.Substring(0, i);
-                    var seq2 = message.Substring(i, message.Length - i);
-
-                    if (rules[RulesSequence[0]].IsValid(seq1, rules) && rules[RulesSequence[1]].IsValid(seq2, rules))
-                    {
-                        RuleCache.Add(message, true);
-                        return true;
-                    }
-                }
-
-                RuleCache.Add(message, false);
-
-                return false;
-            }
-
-        }
-
-        private class SubRule : Rule
-        {
-            public static Regex MatchExpression = new Regex(@"(\d+): (\d+) (\d+) \| (\d+) (\d+)");
-
-            public static bool MatchesRuleDescription(string description)
-            {
-                return MatchExpression.IsMatch(description);
-            }
-
-            public static SubRule Parse(string line)
-            {
-                var m = MatchExpression.Match(line);
-
-                var id = m.Groups[1].Value;
-                var optionLeft1 = m.Groups[2].Value;
-                var optionLeft2 = m.Groups[3].Value;
-                var optionRight1 = m.Groups[4].Value;
-                var optionRight2 = m.Groups[5].Value;
-
-                return new SubRule(id)
-                {
-                    OptionLeft1 = optionLeft1,
-                    OptionLeft2 = optionLeft2,
-                    OptionRight1 = optionRight1,
-                    OptionRight2 = optionRight2
-                };
-            }
-
-            public SubRule(string id) : base(id) { }
-
-            public string OptionLeft1 { get; set; }
-            public string OptionLeft2 { get; set; }
-            public string OptionRight1 { get; set; }
-            public string OptionRight2 { get; set; }
-
-            public override bool IsValid(string message, IDictionary<string, Rule> rules)
-            {
-                if (RuleCache.ContainsKey(message))
-                {
-                    return RuleCache[message];
-                }
-
-                for (int i = 1; i < message.Length; i++)
-                {
-                    var seq1 = message.Substring(0, i);
-                    var seq2 = message.Substring(i, message.Length - i);
-
-                    var matchLeft = rules[OptionLeft1].IsValid(seq1, rules) && rules[OptionLeft2].IsValid(seq2, rules);
-                    var matchRight = rules[OptionRight1].IsValid(seq1, rules) && rules[OptionRight2].IsValid(seq2, rules);
-
-                    if (matchLeft || matchRight)
-                    {
-                        RuleCache.Add(message, true);
-                        return true;
-                    }
-                }
-
-                RuleCache.Add(message, false);
-                return false;
-            }
-        }
-
-        private class SubRule2 : Rule
-        {
-            public static Regex MatchExpression = new Regex(@"(\d+): (\d+) \| (\d+)");
-
-            public static bool MatchesRuleDescription(string description)
-            {
-                return MatchExpression.IsMatch(description);
-            }
-
-            public static SubRule2 Parse(string line)
-            {
-                var m = MatchExpression.Match(line);
-
-                var id = m.Groups[1].Value;
-                var optionLeft = m.Groups[2].Value;
-                var optionRight = m.Groups[3].Value;
-
-                return new SubRule2(id)
-                {
-                    OptionLeft = optionLeft,
-                    OptionRight = optionRight,
-                };
-            }
-
-            public SubRule2(string id) : base(id) { }
-
-            public string OptionLeft { get; set; }
-            public string OptionRight { get; set; }
-
-            public override bool IsValid(string message, IDictionary<string, Rule> rules)
-            {
-                if (RuleCache.ContainsKey(message))
-                {
-                    return RuleCache[message];
-                }
-
-                var matchLeft = rules[OptionLeft].IsValid(message, rules);
-                var matchRight = rules[OptionRight].IsValid(message, rules);
-
-                var result = matchLeft || matchRight;
-
-                RuleCache.Add(message, result);
-
-                return result;
-            }
         }
 
         private class MatchRule : Rule
@@ -307,28 +98,30 @@ namespace Solutions.Event2020
             {
                 return message == Match;
             }
+
+            public override string ToString()
+            {
+                return $@"""{Match}""";
+            }
         }
 
-        private class SequenceRuleRecursive : Rule
+        private class SequenceRule : Rule
         {
-            public SequenceRuleRecursive(string id) : base(id)
-            {
-
-            }
+            public SequenceRule(string id) : base(id) {}
 
             public static bool MatchesRuleDescription(string description)
             {
                 return description.Contains(":") && !description.Contains("|") && !description.Contains(@"""");
             }
 
-            public static SequenceRuleRecursive Parse(string line)
+            public static SequenceRule Parse(string line)
             {
                 var idIdx = line.IndexOf(":");
                 var id = line.Substring(0, idIdx);
 
-                var ruleIds = line.Substring(idIdx).Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
+                var ruleIds = line.Substring(idIdx + 1).Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-                return new SequenceRuleRecursive(id)
+                return new SequenceRule(id)
                 {
                     RulesSequence = ruleIds
                 };
@@ -345,58 +138,70 @@ namespace Solutions.Event2020
 
                 if (RulesSequence.Count == 1)
                 {
-                    return rules[RulesSequence[0]].IsValid(message, rules);
+                    var result = rules[RulesSequence[0]].IsValid(message, rules);
+                    RuleCache.Add(message, result);
+                    return result;
                 }
 
                 if (RulesSequence.Count == 2)
                 {
-                    foreach (var pair in SplitIn2(message))
-                    {
-                        return rules[RulesSequence[0]].IsValid(pair[0], rules) && rules[RulesSequence[1]].IsValid(pair[1], rules);
-                    }
+                    var pairs = SplitIn2(message);
+
+                    var result = pairs.Any(pair => rules[RulesSequence[0]].IsValid(pair[0], rules) && rules[RulesSequence[1]].IsValid(pair[1], rules));
+
+                    RuleCache.Add(message, result);
+
+                    return result;
                 }
 
                 if (RulesSequence.Count == 3)
                 {
-                    foreach (var triplet in SplitIn3(message))
-                    {
-                        return rules[RulesSequence[0]].IsValid(triplet[0], rules) && rules[RulesSequence[1]].IsValid(triplet[1], rules) && rules[RulesSequence[1]].IsValid(triplet[2], rules);
-                    }
+                    var triplets = SplitIn3(message);
+                    var result = triplets.Any(triple => 
+                        rules[RulesSequence[0]].IsValid(triple[0], rules) && 
+                        rules[RulesSequence[1]].IsValid(triple[1], rules) && 
+                        rules[RulesSequence[2]].IsValid(triple[2], rules));
+
+                    RuleCache.Add(message, result);
+
+                    return result;
                 }
 
                 throw new NotImplementedException();
             }
+
+            public override string ToString()
+            {
+                return string.Join(" ", RulesSequence);
+            }
         }
 
-        private class OrRuleRecursive : Rule
+        private class OrRule : Rule
         {
-            public OrRuleRecursive(string id) : base(id)
-            {
-
-            }
+            public OrRule(string id) : base(id) { }
 
             public static bool MatchesRuleDescription(string description)
             {
                 return description.Contains(":") && description.Contains("|");
             }
 
-            public SequenceRuleRecursive Left { get; set; }
-            public SequenceRuleRecursive Right { get; set; }
+            public SequenceRule Left { get; set; }
+            public SequenceRule Right { get; set; }
 
-            public static OrRuleRecursive Parse(string line)
+            public static OrRule Parse(string line)
             {
                 var idIdx = line.IndexOf(":");
                 var id = line.Substring(0, idIdx);
 
-                var operands = line.Substring(idIdx).Split("|", StringSplitOptions.RemoveEmptyEntries).ToList();
+                var operands = line.Substring(idIdx + 1).Split("|", StringSplitOptions.RemoveEmptyEntries).ToList();
 
                 var left = operands[0];
                 var right = operands[1];
 
-                return new OrRuleRecursive(id)
+                return new OrRule(id)
                 {
-                    //new SLeft = equenceRuleRecursive(id) { RulesSequence = new List<string> { } },
-                    //Right = new SequenceRuleRecursive(id)
+                    Left = SequenceRule.Parse($"{id}: {left}"),
+                    Right = SequenceRule.Parse($"{id}: {right}")
                 };
             }
 
@@ -407,27 +212,28 @@ namespace Solutions.Event2020
                     return RuleCache[message];
                 }
 
-                throw new NotImplementedException();
+                var result = Left.IsValid(message, rules) || Right.IsValid(message, rules);
+                
+                RuleCache.Add(message, result);
+                return result;
+            }
+
+            public override string ToString()
+            {
+                return $"{Left} | {Right}";
             }
         }
 
         private static (IDictionary<string, Rule>, List<string>) Parse(List<string> lines)
         {
-
             var rules = new Dictionary<string, Rule>();
             var messages = new List<string>();
 
-
             foreach (var line in lines)
             {
-                if (SubRule.MatchesRuleDescription(line))
+                if (OrRule.MatchesRuleDescription(line))
                 {
-                    var rule = SubRule.Parse(line);
-                    rules.Add(rule.Id, rule);
-                }
-                else if (SubRule2.MatchesRuleDescription(line))
-                {
-                    var rule = SubRule2.Parse(line);
+                    var rule = OrRule.Parse(line);
                     rules.Add(rule.Id, rule);
                 }
                 else if (MatchRule.MatchesRuleDescription(line))
@@ -440,7 +246,7 @@ namespace Solutions.Event2020
                     SequenceRule sequenceRule = SequenceRule.Parse(line);
                     rules.Add(sequenceRule.Id, sequenceRule);
                 }
-                else
+                else if (!string.IsNullOrEmpty(line))
                 {
                     messages.Add(line);
                 }
@@ -453,32 +259,15 @@ namespace Solutions.Event2020
             return messages.Count(message => rules["0"].IsValid(message, rules));
         }
 
-        private static int EvaluateRules(IDictionary<string, Rule> rules, List<string> messages)
-        {
-            var result = messages.Count(message => rules["0"].IsValid(message, rules));
-
-            var rule31 = rules["31"].RuleCache.Where(kvp => kvp.Value);
-            var rule42 = rules["42"].RuleCache.Where(kvp => kvp.Value);
-
-            var rule31Lengths = rule31.Select(r => r.Key.Length).Distinct();
-            var rule42Lengths = rule42.Select(r => r.Key.Length).Distinct();
-
-            return result;
-        }
-
         private static int MatchesRule0Cyclic(List<string> lines)
         {
-            var (rules, messages) = Parse(lines);
+            var (newRules, messages) = Parse(lines);
 
-            messages.ForEach(message => rules["0"].IsValid(message, rules));
+            newRules["8"] = OrRule.Parse("8: 42 | 42 8");
+            newRules["11"] = OrRule.Parse("11: 42 31 | 42 11 31");
 
-            var maxMessageLength = messages.Max(message => message.Length);
-            var rule31 = rules["31"].RuleCache.Where(kvp => kvp.Value).Select(r => r.Key).ToList();
-            var rule42 = rules["42"].RuleCache.Where(kvp => kvp.Value).Select(r => r.Key).ToList();
-
-            var (newRules, _) = Parse(lines);
-
-            return messages.Count(message => rules["0"].IsValid(message, newRules));
+            var result = messages.Count(message => newRules["0"].IsValid(message, newRules));
+            return result;
         }
 
         public long FirstStar()
@@ -506,9 +295,8 @@ namespace Solutions.Event2020
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());  // 122 is of course not correct
+            Assert.Equal(287, SecondStar());
         }
-    
 
         [Theory]
         [InlineData("aab", true)]
@@ -531,7 +319,31 @@ namespace Solutions.Event2020
 
             Assert.Equal(expected, count);
         }
-    
+
+        [Fact]
+        public void FirstStarExample2()
+        {
+            var input = new List<string> {
+                @"0: 4 1 5",
+                @"1: 2 3 | 3 2",
+                @"2: 4 4 | 5 5",
+                @"3: 4 5 | 5 4",
+                @"4: ""a""",
+                @"5: ""b""",
+                @"",
+                @"ababbb",
+                @"bababa",
+                @"abbbab",
+                @"aaabbb",
+                @"aaaabbb",
+            };
+
+            var (rules, messages) = Parse(input);
+
+            var count = MatchesRule0(rules, messages);
+
+            Assert.Equal(2, count);
+        }
 
         [Fact]
         public void SecondStarExample()
@@ -586,9 +398,7 @@ namespace Solutions.Event2020
                 "aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba"
             };
 
-            var input = ReadLineInput().ToList();
-
-            var count = MatchesRule0Cyclic(input);
+            var count = MatchesRule0Cyclic(inputTest);
 
             Assert.Equal(12, count);
         }
