@@ -40,10 +40,6 @@ namespace Solutions.Event2020
                 var destination = DestinationInt(selected, currentLabel, maxLabel);
                 state = InsertInt(circle, selected, destination);
                 current = NextCurrentInt(state, currentLabel);
-                if (i % 100 == 0)
-                {
-                    Debugger.Break();
-                }
             }
 
             return state;
@@ -292,7 +288,7 @@ namespace Solutions.Event2020
         {
             var range = 100;
             var times = range*10;
-            var input = "389125467".Select(c => int.Parse(c.ToString())).ToList();
+            var input = Parse("389125467");
             var max = input.Max();
             var tail = Enumerable.Range(max + 1, range - max);
             var all = input.Concat(tail).ToList();
