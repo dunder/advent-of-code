@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Diagnostics;
+﻿using MoreLinq;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -16,6 +17,23 @@ namespace Solutions.Event2020
         private readonly ITestOutputHelper output;
 
 
+        private class Cup
+        {
+            public Cup (int label)
+            {
+                Label = label;
+            }
+
+            public Cup Next { get; set; }
+
+            public int Label { get; private set; }
+
+            public override string ToString()
+            {
+                return $"Cup {Label}";
+            }
+        }
+
         public Day23(ITestOutputHelper output)
         {
             this.output = output;
@@ -26,7 +44,7 @@ namespace Solutions.Event2020
             return input.Select(c => int.Parse(c.ToString())).ToList();
         }
 
-        private List<int> MoveInt(List<int> input, int times)
+        private List<int> Move(List<int> input, int times)
         {
             var current = 0;
             var state = input;
@@ -35,17 +53,17 @@ namespace Solutions.Event2020
             foreach (var i in Enumerable.Range(1, times))
             {
                 var currentLabel = state[current];
-                var selected = TakeClockwiseInt(state, current, 3);
-                var circle = LeftAfterTakeInt(state, current, 3);
-                var destination = DestinationInt(selected, currentLabel, maxLabel);
-                state = InsertInt(circle, selected, destination);
-                current = NextCurrentInt(state, currentLabel);
+                var selected = TakeClockwise(state, current, 3);
+                var circle = LeftAfterTake(state, current, 3);
+                var destination = Destination(selected, currentLabel, maxLabel);
+                state = Insert(circle, selected, destination);
+                current = NextCurrent(state, currentLabel);
             }
 
             return state;
         }
 
-        private List<int> LeftAfterTakeInt(List<int> input, int current, int take)
+        private List<int> LeftAfterTake(List<int> input, int current, int take)
         {
             if (take < 1)
             {
@@ -74,7 +92,7 @@ namespace Solutions.Event2020
             return output;
         }
 
-        private List<int> TakeClockwiseInt(List<int> input, int current, int take)
+        private List<int> TakeClockwise(List<int> input, int current, int take)
         {
             var output = new List<int>();
 
@@ -88,15 +106,11 @@ namespace Solutions.Event2020
             return output;
         }
 
-        private int DestinationInt(List<int> selected, int current, int maxLabel)
+        private int Destination(List<int> selected, int current, int maxLabel)
         {
-            var destination = current - 1;
-            if (destination < 1)
-            {
-                destination = maxLabel;
-            }
+            int destination = current;
 
-            while (selected.Any(i => i == destination))
+            do
             {
                 destination -= 1;
 
@@ -104,17 +118,17 @@ namespace Solutions.Event2020
                 {
                     destination = maxLabel;
                 }
-            }
+            } while (selected.Any(i => i == destination));
 
             return destination;
         }
 
-        private int NextCurrentInt(List<int> input, int currentLabel)
+        private int NextCurrent(List<int> input, int currentLabel)
         {
             return (input.IndexOf(currentLabel) + 1) % input.Count;
         }
 
-        private List<int> InsertInt(List<int> input, List<int> selected, int destination)
+        private List<int> Insert(List<int> input, List<int> selected, int destination)
         {
             var i = input.IndexOf(destination) + 1 % input.Count;
 
@@ -125,7 +139,7 @@ namespace Solutions.Event2020
             return firstPart.Concat(selected).Concat(secondPart).ToList();
         }
 
-        private string LabelsFromInt(List<int> labels, int from)
+        private string LabelsFrom(List<int> labels, int from)
         {
             var i = labels.IndexOf(from);
 
@@ -137,27 +151,151 @@ namespace Solutions.Event2020
             return string.Join("", result);
         }
 
-        private long MultiplyNextToCupsFrom(List<int> input, int from)
+        private string Play(string input, int times)
         {
-            var i = input.IndexOf(from);
+            var labels = Parse(input);
 
-            var nextTwo = input.Skip(i + 1).Take(2).ToList();
+            var byLabel = new Dictionary<int, Cup>();
 
-            return nextTwo[0]*nextTwo[1];
+            var cups = labels.Select(label => new Cup(label)).ToList();
+
+            foreach (var cup in cups)
+            {
+                byLabel.Add(cup.Label, cup);
+            }
+
+            for (int i = 0; i < cups.Count; i++)
+            {
+                Cup cup = cups[i];
+                Cup nextCup = i + 1 == cups.Count ? cups[0] : cups[i + 1];
+                cup.Next = nextCup;
+            }
+
+            int maxLabel = labels.Max();
+
+            var current = cups[0];
+
+            foreach (var i in Enumerable.Range(1, times))
+            {
+                var selected = current.Next;
+
+                // close circle
+                current.Next = selected.Next.Next.Next;
+
+                int destinationLabel = DestinationLabel(current, selected, maxLabel);
+                Cup destinationCup = byLabel[destinationLabel];
+
+                Cup afterDestinationCup = destinationCup.Next;
+
+                // insert in circle after destination cup
+                destinationCup.Next = selected;
+                selected.Next.Next.Next = afterDestinationCup;
+
+                current = current.Next;
+            }
+
+            current = byLabel[1].Next;
+
+            var result = new StringBuilder();
+
+            foreach (var i in Enumerable.Range(1, labels.Count - 1))
+            {
+                result.Append(current.Label.ToString());
+                current = current.Next;
+            }
+
+            return result.ToString();
+        }
+
+        private long Play2(string input, int cupCount, int times)
+        {
+            var labels = Parse(input);
+
+            int maxLabel = labels.Max();
+
+            var byLabel = new Dictionary<int, Cup>();
+
+            var cups = labels.Select(label => new Cup(label)).ToList();
+
+            var extraCups = Enumerable.Range(maxLabel + 1, cupCount - maxLabel).Select(i => new Cup(i));
+
+            cups = cups.Concat(extraCups).ToList();
+
+            foreach (var cup in cups)
+            {
+                byLabel.Add(cup.Label, cup);
+            }
+
+            for (int i = 0; i < cups.Count; i++)
+            {
+                Cup cup = cups[i];
+                Cup nextCup = i + 1 == cups.Count ? cups[0] : cups[i + 1];
+                cup.Next = nextCup;
+            }
+
+            // new max label after adding an additional (large) set of cups
+            maxLabel = cupCount;
+
+            var current = cups[0];
+
+            foreach (var i in Enumerable.Range(1, times))
+            {
+                var selected = current.Next;
+
+                // close circle
+                current.Next = selected.Next.Next.Next;
+
+                int destinationLabel = DestinationLabel(current, selected, maxLabel);
+                Cup destinationCup = byLabel[destinationLabel];
+
+                Cup afterDestinationCup = destinationCup.Next;
+
+                // insert in circle after destination cup
+                destinationCup.Next = selected;
+                selected.Next.Next.Next = afterDestinationCup;
+
+                current = current.Next;
+            }
+
+            var nextAfter1 = byLabel[1].Next;
+            var nextAfterThat = nextAfter1.Next;
+
+            return (long)nextAfter1.Label * nextAfterThat.Label;
+        }
+
+        private int DestinationLabel(Cup current, Cup selected, int maxLabel)
+        {
+            int destinationLabel = current.Label;
+            do
+            {
+                destinationLabel -= 1;
+
+                if (destinationLabel < 1)
+                {
+                    destinationLabel = maxLabel;
+                }
+
+            } while (IsInNextThree(selected, destinationLabel));
+
+            return destinationLabel;
+        }
+
+        private bool IsInNextThree(Cup from, int label)
+        {
+            return from.Label == label || from.Next.Label == label || from.Next.Next.Label == label;
         }
 
         public string FirstStar()
         {
-            var input = Input.Select(c => int.Parse(c.ToString())).ToList();
-            var output = MoveInt(input, 100);
-            var result = LabelsFromInt(output, 1);
+            var result = Play(Input, 100);
 
             return result;
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
-            return 0;
+            var result = Play2(Input, 1_000_000, 10_000_000);
+            return result;
         }
 
         [Fact]
@@ -174,126 +312,21 @@ namespace Solutions.Event2020
         }
 
         [Theory]
-        [InlineData("583741926", "92658374")]
-        [InlineData("926583741", "92658374")]
-        [InlineData("192658374", "92658374")]
-        public void FirstStarLabelsFromTest(string input, string expected)
-        {
-            var result = LabelsFromInt(Parse(input), 1);
-
-            Assert.Equal(expected, result);
-        }
-
-        [Fact]
-        public void FirstStarMoveTest()
-        { 
-            var input = "389125467";
-
-            var output = MoveInt(Parse(input), 10);
-
-            Assert.Equal("583741926", string.Join("", output));
-        }
-
-        [Theory]
-        [InlineData(0, "891")]
-        [InlineData(6, "673")]
-        [InlineData(7, "738")]
-        [InlineData(8, "389")]
-        public void FirstStarTakeClockwiseTest(int current, string expected)
-        { 
-            var input = "389125467";
-
-            var output = TakeClockwiseInt(Parse(input), current, 3);
-
-            Assert.Equal(expected, string.Join("", output));
-        }
-
-        [Theory]
-        [InlineData(0, "325467")]
-        [InlineData(6, "891254")]
-        [InlineData(7, "912546")]
-        [InlineData(8, "125467")]
-        public void FirstStarLeftAfterTakeTest(int current, string expected)
-        { 
-            var input = "389125467";
-
-            var output = LeftAfterTakeInt(Parse(input), current, 3);
-
-            Assert.Equal(expected, string.Join("", output));
-        }
-
-        [Theory]
-        [InlineData(3, "891", 2)]
-        [InlineData(2, "891", 7)]
-        [InlineData(5, "467", 3)]
-        [InlineData(8, "913", 7)]
-        [InlineData(4, "679", 3)]
-        [InlineData(1, "367", 9)]
-        [InlineData(9, "367", 8)]
-        [InlineData(2, "583", 1)]
-        [InlineData(6, "741", 5)]
-        [InlineData(5, "741", 3)]
-        public void FirstStarDestinationTest(int current, string selected, int expected)
-        { 
-            var destination = DestinationInt(Parse(selected), current, 9);
-
-            Assert.Equal(expected, destination);
-        }
-
-        [Theory]
-        [InlineData("325467", 2, "891", "328915467")]
-        [InlineData("325467", 7, "891", "325467891")]
-        [InlineData("325891", 3, "467", "346725891")]
-        [InlineData("725846", 7, "913", "791325846")]
-        [InlineData("325841", 3, "679", "367925841")]
-        [InlineData("925841", 9, "367", "936725841")]
-        [InlineData("258419", 8, "367", "258367419")]
-        [InlineData("674192", 1, "583", "674158392")]
-        [InlineData("583926", 5, "741", "574183926")]
-        [InlineData("583926", 3, "741", "583741926")]
-
-        public void FirstStarInsertTest(string circle, int destination, string taken, string expected)
-        { 
-            var output = InsertInt(Parse(circle), Parse(taken), destination);
-
-            Assert.Equal(expected, string.Join("", output));
-        }
-
-        [Theory]
-        [InlineData("389125467", 3, 1)]
-        [InlineData("389125467", 6, 8)]
-        [InlineData("389125467", 7, 0)]
-
-        public void FirstStarNextCurrentTest(string input, char currentLabel, int expected)
-        { 
-            var i = NextCurrentInt(Parse(input), currentLabel);
-
-            Assert.Equal(expected, i);
-        }
-
-        [Theory]
         [InlineData("389125467", 10, "92658374")]
         [InlineData("389125467", 100, "67384529")]
         public void FirstStarExample(string input, int times, string expected)
         {
-            var inp = input.Select(c => int.Parse(c.ToString())).ToList();
-            var output = MoveInt(inp, times);
-            var result = string.Join("", LabelsFromInt(output, 1));
+            var output = Play(input, times);
 
-            Assert.Equal(expected, result);
+            Assert.Equal(expected, output);
         }
 
         [Fact]
         public void SecondStarExample()
         {
-            var range = 100;
-            var times = range*10;
-            var input = Parse("389125467");
-            var max = input.Max();
-            var tail = Enumerable.Range(max + 1, range - max);
-            var all = input.Concat(tail).ToList();
-            var output = MoveInt(all, times);
-            var result = MultiplyNextToCupsFrom(output, 1);
+            var cupCount = 1_000_000;
+            var times = cupCount * 10;
+            var result = Play2("389125467", cupCount, times);
 
             Assert.Equal(149245887792, result);
         }
