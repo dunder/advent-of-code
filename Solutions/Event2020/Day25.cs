@@ -4,7 +4,7 @@ using Xunit.Abstractions;
 
 namespace Solutions.Event2020
 {
-    // 
+    // --- Day 25: Combo Breaker ---
 
     public class Day25
     {
@@ -16,27 +16,67 @@ namespace Solutions.Event2020
             this.output = output;
         }
 
-        public int FirstStar()
+        private long EncryptionKey(long publicKey, long loopSize)
         {
-            return 0;
+            long encryptionKey = 1;
+            long subjectNumber = publicKey;
+
+            for (int i = 0; i < loopSize; i++)
+            {
+                encryptionKey = encryptionKey * subjectNumber % 20201227;
+            }
+
+            return encryptionKey;
         }
 
-        public int SecondStar()
+        private long CalculateLoopSize(long subjectNumber, long publicKey)
         {
-            return 0;
+            long current = 1;
+            long loopSize = 0;
+            do
+            {
+                current = current * subjectNumber % 20201227;
+                loopSize++;
+            } while (current != publicKey);
+
+            return loopSize;
+        }
+
+        public long FirstStar()
+        {
+            var publicKeyCard = 17773298;
+            var publicKeyDoor = 15530095;
+
+            long loopSizeCard = CalculateLoopSize(7, publicKeyCard);
+            long encryptionKey1 = EncryptionKey(publicKeyDoor, loopSizeCard);
+
+            return encryptionKey1;
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(17980581, FirstStar());
         }
 
-        [Fact]
-        public void SecondStarTest()
+        [Theory]
+        [InlineData(5764801, 8)]
+        [InlineData(17807724, 11)]
+        public void FirstStarLoopSizeTest(int publicKey, int expectedLoopSize)
         {
-            var result = SecondStar();
-            Assert.Equal(-1, result);
+            var result = CalculateLoopSize(7, publicKey);
+            Assert.Equal(expectedLoopSize, result);
+        }
+
+        [Theory]
+        [InlineData(5764801, 17807724, 14897079)]
+        [InlineData(17807724, 5764801, 14897079)]
+        public void FirstStarEncryptionKeyTest(int publicKeyCard, int publicKeyDoor, int expectedEncryptionKey)
+        {
+            var result = CalculateLoopSize(7, publicKeyCard);
+            var encryptionKey = EncryptionKey(publicKeyDoor, result);
+
+            Assert.Equal(expectedEncryptionKey, encryptionKey);
         }
     }
 }
