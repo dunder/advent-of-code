@@ -82,7 +82,11 @@ namespace Solutions.Event2020
 
         public int SecondStar()
         {
-            return 0;
+            IList<string> input = ReadLineInput();
+
+            int product = FindProductOfThree(Parse(input));
+
+            return product;
         }
 
         [Fact]
