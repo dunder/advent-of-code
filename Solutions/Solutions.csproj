@@ -230,6 +230,9 @@
     <None Update="Event2018\Input\Day10.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Event2020\Input\Day13.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Event2020\Input\Day12.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -294,6 +297,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Event2020\Input\Day16.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Event2021\Input\Day01.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
