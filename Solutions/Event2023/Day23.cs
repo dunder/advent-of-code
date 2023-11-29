@@ -9,22 +9,24 @@ using static Solutions.InputReader;
 namespace Solutions.Event2023
 {
     // --- Day X: Phrase ---
-    public class DayXX
+    public class Day23
     {
         private readonly ITestOutputHelper output;
 
-        public DayXX(ITestOutputHelper output)
+        public Day23(ITestOutputHelper output)
         {
             this.output = output;
         }
 
         public int FirstStar()
         {
+            var input = ReadLineInput();
             return 0;
         }
 
         public int SecondStar()
         {
+            var input = ReadLineInput();
             return 0;
         }
 
