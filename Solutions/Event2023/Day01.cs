@@ -65,13 +65,12 @@ namespace Solutions.Event2023
                 for (int i = 0; i < text.Length; i++)
                 {
                     var c = text[i];
-                    var rest = text.Substring(i);
                     if (char.IsDigit(c))
                     {
                         first = c.ToString();
                         break;
                     }
-                    if (TryParseDigit(rest, out first))
+                    if (TryParseDigit(text[i..], out first))
                     {
                         break;
                     }
@@ -81,13 +80,12 @@ namespace Solutions.Event2023
                 for (int i = text.Length - 1; i >= 0; i--)
                 {
                     var c = text[i];
-                    var rest = text.Substring(i);
                     if (char.IsDigit(c))
                     {
                         last = c.ToString();
                         break;
                     }
-                    if (TryParseDigit(rest, out last))
+                    if (TryParseDigit(text[i..], out last))
                     {
                         break;
                     }
