@@ -12,8 +12,36 @@ namespace Solutions.Event2023
         private record Position(int X, int Y);
         private record PartNumber(int Id, HashSet<Position> Positions) { }
         private record Symbol(char symbol, Position Position);
-        private record EngineSchematic(int Rows, int Columns, List<PartNumber> Parts, List<Symbol> Symbols)
+
+        private class EngineSchematic
         {
+            private List<List<PartNumber>> partsByRow;
+
+            public EngineSchematic(int Rows, int Columns, List<PartNumber> Parts, List<Symbol> Symbols)
+            {
+                this.Rows = Rows;
+                this.Columns = Columns;
+                this.Parts = Parts;
+                this.Symbols = Symbols;
+
+
+                var partsByRow = Parts
+                    .GroupBy(grouping => grouping.Positions.First().Y)
+                    .ToDictionary(grouping => grouping.Key, grouping => grouping.Select(d => d).ToList());
+
+                this.partsByRow = Enumerable.Range(0, Rows).Select(x => new List<PartNumber>()).ToList();
+
+                foreach (var part in partsByRow)
+                {
+                    this.partsByRow[part.Key] = part.Value;
+                }
+            }
+
+            public int Rows { get; }
+            public int Columns { get; }
+            public List<PartNumber> Parts { get; }
+            public List<Symbol> Symbols { get; }
+
             public int SumPartNumbers()
             {
                 HashSet<Position> symbolPositions = Symbols.Select(symbol => symbol.Position).ToHashSet();
@@ -73,6 +101,7 @@ namespace Solutions.Event2023
             }
 
             private IEnumerable<Symbol> Gears => Symbols.Where(symbol => symbol.symbol == '*');
+
         }
 
         private EngineSchematic Parse(IList<string> input)
