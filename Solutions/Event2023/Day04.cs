@@ -42,7 +42,7 @@ namespace Solutions.Event2023
                 var numberSplit = 
                     line.Substring(line.IndexOf(":") + 1)
                     .Split(" | ")
-                    .Select(part => part.Trim().Replace("  ", " ").Split(" "))
+                    .Select(part => part.Split(" ", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
                     .Select(numbers => numbers.Select(int.Parse).ToHashSet())
                     .ToArray();
 
