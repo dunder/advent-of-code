@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -52,10 +53,37 @@ namespace Solutions.Event2023
             return new Almanac(seeds, mapLookupBySource, mapLookupByDestination);
         }
 
-        private record Range(long Start, long End);
+        private record Range(long Start, long End)
+        {
+            public bool Covers(Range other)
+            {
+                return Start <= other.Start && End >= other.End;
+            }
+
+            public bool Includes(long value)
+            {
+                return value >= Start && value <= End;
+            }
+
+            public bool Overlaps(Range other)
+            {
+                return Includes(other.Start) || Includes(other.End) || Covers(other);
+            }
+
+            public bool Disjunct(Range other)
+            {
+                return End < other.Start || Start > other.End;
+            }
+
+            public bool Within(Range other)
+            {
+                return Start >= other.Start && End <= other.End;
+            }
+        }
 
         private record RangeMapping(long Destination, long Source, long Length)
         {
+            public Range SourceRange => new Range(Source, Source + Length - 1);
             public Range DestinationRange => new Range(Destination, Destination + Length - 1);
          
             public long SourceTo => Source + Length - 1;
@@ -80,12 +108,11 @@ namespace Solutions.Event2023
         {
             public RangeMappingState Next(RangeMapping rangeMapping)
             {
-                var nextState = new RangeMappingState(new List<Range>(), new List<Range>(Output));
+                var nextState = this with { Input = new List<Range>() };
 
                 foreach (Range range in Input)
                 {
-                    // range covers the range map's source range
-                    if (range.Start <= rangeMapping.Source && range.End >= rangeMapping.SourceTo)
+                    if (range.Covers(rangeMapping.SourceRange))
                     {
                         if (range.Start < rangeMapping.Source)
                         {
@@ -99,28 +126,20 @@ namespace Solutions.Event2023
                             nextState.Input.Add(new Range(rangeMapping.SourceTo + 1, range.End));
                         }
                     }
-                    else
-                    // range outside of range map's source range
-                    if (range.End < rangeMapping.Source || range.Start > rangeMapping.SourceTo)
+                    else if (range.Disjunct(rangeMapping.SourceRange))
                     {
                         nextState.Input.Add(range);
                     }
-                    else
-                    // range within range map's source range
-                    if (range.Start >= rangeMapping.Source && range.End <= rangeMapping.SourceTo)
+                    else if (range.Within(rangeMapping.SourceRange))
                     {
                         nextState.Output.Add(rangeMapping.DestinationFor(range));
                     }
-                    else
-                    // range start within range map's source range
-                    if (range.Start >= rangeMapping.Source && range.Start <= rangeMapping.SourceTo)
+                    else if (rangeMapping.SourceRange.Includes(range.Start))
                     {
                         nextState.Output.Add(rangeMapping.DestinationFor(new Range(range.Start, rangeMapping.SourceTo)));
                         nextState.Input.Add(new Range(rangeMapping.SourceTo + 1, range.End));
                     }
-                    else
-                    // range end within range map's source range
-                    if (range.End >= rangeMapping.Source && range.End <= rangeMapping.SourceTo)
+                    else if (rangeMapping.SourceRange.Includes(range.End))
                     {
                         nextState.Input.Add(new Range(range.Start, rangeMapping.Source - 1));
                         nextState.Output.Add(rangeMapping.DestinationFor(new Range(rangeMapping.Source, range.End)));
