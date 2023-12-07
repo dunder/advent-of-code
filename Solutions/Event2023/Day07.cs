@@ -149,29 +149,6 @@ namespace Solutions.Event2023
                 }
             }
 
-            public int Compare(Hand hand1, Hand hand2)
-            {
-                int rank1 = (int)hand1.Type;
-                int rank2 = (int)hand2.Type;
-
-                if (rank1 != rank2)
-                {
-                    return rank1 - rank2;
-                }
-
-                for (int i = 0; i < 5; i++)
-                {
-                    var card1 = hand1.Cards[i].Rank;
-                    var card2 = hand2.Cards[i].Rank;
-                    if (card1 != card2)
-                    {
-                        return card2 - card1;
-                    }
-                }
-
-                return 0;
-            }
-
             public int CompareTo(Hand other)
             {
                 int rank1 = (int)Type;
