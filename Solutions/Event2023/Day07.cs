@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2023
 {
-    // --- Day X: Phrase ---
+    // --- Day 7: Camel Cards ---
     public class Day07
     {
         private readonly ITestOutputHelper output;
