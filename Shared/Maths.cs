@@ -1,4 +1,6 @@
-﻿namespace Shared
+﻿using System.Linq;
+
+namespace Shared
 {
     public static class Maths
     {
@@ -12,6 +14,11 @@
                 a = temp;
             }
             return a;
+        }
+
+        public static long LCM(long[] numbers)
+        {
+            return numbers.Aggregate(Lcm);
         }
 
         public static long Lcm(long a, long b)
