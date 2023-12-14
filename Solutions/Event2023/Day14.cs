@@ -9,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2023
 {
-    // --- Day X: Phrase ---
+    // --- Day 14: Parabolic Reflector Dish ---
     public class Day14
     {
         private readonly ITestOutputHelper output;
@@ -39,34 +39,131 @@ namespace Solutions.Event2023
             return ((input[0].Length, input.Count), rocks);
         }
 
-        private Dictionary<(int, int), char> Tilt((int width, int height) dimension, Dictionary<(int, int), char> rocks)
+        private enum Direction {  North, West, South, East }
+
+        private Dictionary<(int, int), char> Tilt((int width, int height) dimension, Dictionary<(int, int), char> rocks, Direction direction = Direction.North)
         {
-            for (int x = 0; x < dimension.width; x++)
+            if (direction == Direction.North)
             {
-                for (int y = 0; y < dimension.height; y++)
+                for (int x = 0; x < dimension.width; x++)
                 {
-                    var blocked = rocks.ContainsKey((x, y));
-                    if (blocked)
+                    for (int y = 0; y < dimension.height; y++)
                     {
-                        continue;
-                    }
-                    var from = y;
-                    while (++from < dimension.height)
-                    {
-                        if (rocks.TryGetValue((x, from), out char rock))
+                        var blocked = rocks.ContainsKey((x, y));
+                        if (blocked)
                         {
-                            if (rock == 'O')
+                            continue;
+                        }
+                        var from = y;
+                        while (++from < dimension.height)
+                        {
+                            if (rocks.TryGetValue((x, from), out char rock))
                             {
-                                rocks[(x, y)] = 'O';
-                                rocks.Remove((x, from));
+                                if (rock == 'O')
+                                {
+                                    rocks[(x, y)] = 'O';
+                                    rocks.Remove((x, from));
+                                    break;
+                                }
+                                y = from;
                                 break;
                             }
-                            y = from;
-                            break;
                         }
                     }
                 }
             }
+            else if (direction == Direction.West)
+            {
+                for (int y = 0; y < dimension.height; y++)
+                {
+                    for (int x = 0; x < dimension.width; x++)
+                    {
+                        var blocked = rocks.ContainsKey((x, y));
+                        if (blocked)
+                        {
+                            continue;
+                        }
+                        var from = x;
+                        while (++from < dimension.width)
+                        {
+                            if (rocks.TryGetValue((from, y), out char rock))
+                            {
+                                if (rock == 'O')
+                                {
+                                    rocks[(x, y)] = 'O';
+                                    rocks.Remove((from, y));
+                                    break;
+                                }
+                                x = from;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else if (direction == Direction.South)
+            {
+                for (int x = 0; x < dimension.width; x++)
+                {
+                    for (int y = dimension.height-1; y >= 0; y--)
+                    {
+                        var blocked = rocks.ContainsKey((x, y));
+                        if (blocked)
+                        {
+                            continue;
+                        }
+                        var from = y;
+                        while (--from >= 0)
+                        {
+                            if (rocks.TryGetValue((x, from), out char rock))
+                            {
+                                if (rock == 'O')
+                                {
+                                    rocks[(x, y)] = 'O';
+                                    rocks.Remove((x, from));
+                                    break;
+                                }
+                                y = from;
+                                break;
+                            }
+                        }
+                    }
+                }
+
+            }
+            else if (direction == Direction.East)
+            {
+                for (int y = 0; y < dimension.height; y++)
+                {
+                    for (int x = dimension.width-1; x >= 0; x--)
+                    {
+                        var blocked = rocks.ContainsKey((x, y));
+                        if (blocked)
+                        {
+                            continue;
+                        }
+                        var from = x;
+                        while (--from >= 0)
+                        {
+                            if (rocks.TryGetValue((from, y), out char rock))
+                            {
+                                if (rock == 'O')
+                                {
+                                    rocks[(x, y)] = 'O';
+                                    rocks.Remove((from, y));
+                                    break;
+                                }
+                                x = from;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                throw new Exception("Eh?");
+            } 
             return rocks; 
         }
 
@@ -93,44 +190,102 @@ namespace Solutions.Event2023
             output.WriteLine("");
         }
 
-        private int Load(IList<string> example)
+        private int CalculateWeight(Dictionary<(int, int), char> rocks, int height)
+        {
+            return rocks.Where(kvp => kvp.Value == 'O').Select(kvp => (height - kvp.Key.Item2)).Sum();
+        }
+
+        private int Solve1(IList<string> example)
         {
             ((int width, int height), Dictionary<(int, int), char>) rocks = Parse(example);
 
-            (int width, int height) x = rocks.Item1;
-            Dictionary<(int, int), char> y = rocks.Item2;
+            (int width, int height) dimensions = rocks.Item1;
+            Dictionary<(int, int), char> rockLocations = rocks.Item2;
 
-            //Print(y);
+            Dictionary<(int, int), char> tilted = Tilt(dimensions, rockLocations);
 
-            Dictionary<(int, int), char> tilted = Tilt(x, y);
+            return CalculateWeight(tilted, dimensions.height);
+        }
 
-            //Print(tilted);
+        private string ToKey(Dictionary<(int, int), char> rocks, (int width, int height) dimensions)
+        {
+            return string.Join("|", rocks.Where(x => x.Value == 'O').Select(r => $"{r.Key.Item1},{r.Key.Item2}"));
+        }
 
-            return tilted.Where(kvp => kvp.Value == 'O').Select(kvp => (x.height-kvp.Key.Item2)).Sum();
+        private int Solve2(IList<string> example, int iterations = 1)
+        {
+            ((int width, int height), Dictionary<(int, int), char>) rocks = Parse(example);
+
+            (int width, int height) dimensions = rocks.Item1;
+            Dictionary<(int, int), char> rockLocations = rocks.Item2;
+
+            var directions = new[] { Direction.North, Direction.West, Direction.South, Direction.East };
+
+            var sequence = new List<int>();
+
+            var keepGoing = true;
+           
+            var sampleSize = 200;
+            var sampleEvaluationSize = 3;
+
+            while (keepGoing)
+            {
+                foreach (var direction in directions)
+                {
+                    rockLocations = Tilt(dimensions, rockLocations, direction);
+                }
+                var weight = CalculateWeight(rockLocations, dimensions.height);
+
+                sequence.Add(weight);
+                if (sequence.Count == sampleSize)
+                {
+                    break;
+                }
+            }
+
+            var sampleSequence = (sequence as IEnumerable<int>).Reverse().Take(sampleEvaluationSize).ToList();
+
+            int i;
+
+            for (i = 1; i < sequence.Count; i++)
+            {
+                var compareSequence = (sequence as IEnumerable<int>).Reverse().Skip(i).Take(sampleEvaluationSize).ToList();
+
+                if (Enumerable.SequenceEqual(sampleSequence, compareSequence))
+                {
+                    break;
+                }
+            }
+
+            var loop = sequence.Skip(sequence.Count - i).ToList();
+
+            var index = (iterations - (sampleSize-i) - 1) % i;
+
+            return loop[index];
         }
 
         public int FirstStar()
         {
             var input = ReadLineInput();
-            return Load(input);
+            return Solve1(input);
         }
 
         public int SecondStar()
         {
             var input = ReadLineInput();
-            return 0;
+            return Solve2(input, 1000000000);
         }
 
         [Fact]
         public void FirstStarTest()
         {
-            Assert.Equal(-1, FirstStar());
+            Assert.Equal(105003, FirstStar());
         }
 
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(93742, SecondStar());
         }
 
         [Fact]
@@ -150,15 +305,27 @@ namespace Solutions.Event2023
                 "#OO..#....",
             };
 
-            Assert.Equal(136, Load(example));
+            Assert.Equal(136, Solve1(example));
         }
-
-
 
         [Fact]
         public void SecondStarExample()
         {
+            var example = new List<string>
+            {
+                "O....#....",
+                "O.OO#....#",
+                ".....##...",
+                "OO.#O....O",
+                ".O.....O#.",
+                "O.#..O.#.#",
+                "..O..#O..O",
+                ".......O..",
+                "#....###..",
+                "#OO..#....",
+            };
             
+            Assert.Equal(64, Solve2(example, 1000000000));
         }
     }
 }
