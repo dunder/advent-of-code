@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Shared.Tree
@@ -37,6 +38,17 @@ namespace Shared.Tree
                 path.Reverse();
 
                 return path;
+            }
+        }
+
+        public IEnumerable<T> PathFromEnd()
+        {
+            var node = this;
+
+            while (node.Parent != null)
+            {
+                yield return node.Data;
+                node = node.Parent;
             }
         }
 
