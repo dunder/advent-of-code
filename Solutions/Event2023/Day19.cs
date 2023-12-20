@@ -177,7 +177,7 @@ namespace Solutions.Event2023
                 }
                 if (value < End)
                 {
-                    return (new Range(Start, value - 1), new Range(value, End));
+                    return (new Range(Start, value), new Range(value + 1, End));
                 }
                 return (this, new Range(0,0));
             }
@@ -190,7 +190,7 @@ namespace Solutions.Event2023
                 }
                 if (value < End)
                 {
-                    return (new Range(Start, value), new Range(value + 1, End));
+                    return (new Range(Start, value - 1), new Range(value, End));
                 }
                 return (this, new Range(0, 0));
             }
@@ -224,7 +224,7 @@ namespace Solutions.Event2023
                         (Range lower, Range upper) split = xmas[category].SplitGreaterThan(value);
                         if (rule.Parameters.Terminates)
                         {
-                            return rule.Parameters.NextWorkflow == "A" ? Combinations(Replace(xmas, category, split.lower)) : 0;
+                            return rule.Parameters.NextWorkflow == "A" ? Combinations(Replace(xmas, category, split.upper)) : 0;
                         }
                         else
                         {

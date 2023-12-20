@@ -1,16 +1,29 @@
 ﻿using System;
-using System.Collections.Generic;
 using Solutions.Event2019;
 
 namespace Solutions {
     class Program {
         static void Main(string[] args)
         {
-            var day = new Day25();
-            
-            day.Interactive();
+            // RunDay25Event2019();            
 
+            RunDay20Event2023();
+
+            Console.WriteLine("Press any key ...");
             Console.ReadKey();
+        }
+
+        private static void RunDay20Event2023()
+        {
+            var day = new Event2023.Day20(null);
+            
+            day.FirstStar();
+        }
+
+        private static void RunDay25Event2019()
+        {
+            var day = new Day25();
+            day.Interactive();
         }
 
 
