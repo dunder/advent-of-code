@@ -202,14 +202,109 @@ namespace Solutions.Event2023
                 }
             }
 
-            DrawMap(visited, inside);
+            //DrawMap(visited, inside);
 
 
             return visited.Count + inside.Count;
         }
 
 
-        private record VerticalInterval(int Column, int RowTop, int RowBottom)
+        private (HashSet<(int, int)>, HashSet<(int, int)>) DugOutTest(List<Draw> digPlan)
+        {
+            var position = (0, 0);
+
+            HashSet<(int, int)> visited = new()
+            {
+                position
+            };
+
+            Dictionary<int, HashSet<int>> blocks = new();
+
+            void AddBlock(int x, int y)
+            {
+                if (blocks.ContainsKey(y))
+                {
+                    blocks[y].Add(x);
+                }
+                else
+                {
+                    blocks.Add(y, new HashSet<int> { x });
+                }
+            }
+
+            bool IsUTurn(int i)
+            {
+                var previous = i == 0 ? digPlan[^1] : digPlan[i - 1];
+                var next = i == digPlan.Count - 1 ? digPlan[0] : digPlan[i + 1];
+
+                return previous.Direction != next.Direction;
+            }
+
+
+            for (var i = 0; i < digPlan.Count; i++)
+            {
+                Draw instruction = digPlan[i];
+
+                for (var s = 1; s <= instruction.Steps; s++)
+                {
+                    if (s > 1 && (instruction.Direction == Direction.Up || instruction.Direction == Direction.Down))
+                    {
+                        AddBlock(position.Item1, position.Item2);
+                    }
+
+                    position = Move(position, instruction);
+
+                    visited.Add(position);
+                }
+
+                if (instruction.Direction == Direction.Right || instruction.Direction == Direction.Left)
+                {
+                    if (!IsUTurn(i))
+                    {
+                        AddBlock(position.Item1, position.Item2);
+                    }
+                }
+            }
+
+            var border = visited.Count;
+
+            var top = visited.Select(x => x.Item2).Min();
+            var bottom = visited.Select(x => x.Item2).Max();
+            var right = visited.Select(x => x.Item1).Max();
+            var left = visited.Select(x => x.Item2).Min();
+
+            var inside = new HashSet<(int, int)>();
+
+            for (var y = top + 1; y < bottom; y++)
+            {
+                for (var x = left; x <= right; x++)
+                {
+                    if (visited.Contains((x, y)))
+                    {
+                        continue;
+                    }
+
+                    var leftOf = 0;
+
+                    if (blocks.ContainsKey(y))
+                    {
+                        leftOf += blocks[y].Where(xb => xb < x).Count();
+                    }
+
+                    if (leftOf % 2 == 1)
+                    {
+                        inside.Add((x, y));
+                    }
+                }
+            }
+
+            //DrawMap(visited, inside);
+
+
+            return (visited, inside);
+        }
+
+        private record VerticalInterval(int Left, int Right, int RowTop, int RowBottom)
         {
             public int Length => Math.Abs(RowTop - RowBottom) + 1;
 
@@ -224,6 +319,8 @@ namespace Solutions.Event2023
             var position = (0, 0);
 
             long borderCount = 0;
+
+            (HashSet<(int, int)> visited, HashSet<(int, int)> inside) test = DugOutTest(digPlan);
 
             List<VerticalInterval> intervals = new();
 
@@ -246,26 +343,26 @@ namespace Solutions.Event2023
                     case Direction.Up:
                         if (instruction.Steps > 1)
                         {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item2 - instruction.Steps + 1, position.Item2 - 1));
+                            intervals.Add(new VerticalInterval(position.Item1, position.Item1, position.Item2 - instruction.Steps + 1, position.Item2 - 1));
                         }
                         break;
                     case Direction.Down:
                         if (instruction.Steps > 1)
                         {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item2 + 1, position.Item2 + instruction.Steps - 1));
+                            intervals.Add(new VerticalInterval(position.Item1, position.Item1, position.Item2 + 1, position.Item2 + instruction.Steps - 1));
                         }
                         break;
                     case Direction.Right:
                         if (!IsUTurn(i))
                         {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item2, position.Item2));
+                            intervals.Add(new VerticalInterval(position.Item1, position.Item1 + instruction.Steps, position.Item2, position.Item2));
 
                         }
                         break;
                     case Direction.Left:
                         if (!IsUTurn(i))
                         {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item2, position.Item2));
+                            intervals.Add(new VerticalInterval(position.Item1 - instruction.Steps, position.Item1, position.Item2, position.Item2));
                         }
                         break;
                 }
@@ -273,7 +370,7 @@ namespace Solutions.Event2023
                 position = Move2(position, instruction);
             }
 
-            var columnOrderIntevals = intervals.OrderBy(interval => interval.Column).ToList();
+            var columnOrderIntevals = intervals.OrderBy(interval => interval.Left).ToList();
 
             var horizontalLines = new HashSet<int>();
 
@@ -283,31 +380,85 @@ namespace Solutions.Event2023
                 horizontalLines.Add(interval.RowBottom);
             }
 
+
+            horizontalLines.Add(intervals.Select(interval => interval.RowBottom).Max() + 1);
+
             var sortedHorizontalLines = horizontalLines.OrderBy(x => x).ToList();
 
             long insideCount = 0;
+            
+            var lefts = new HashSet<(int, int)>();
+            var rights = new HashSet<(int, int)>();
 
             for (int i = 1; i < sortedHorizontalLines.Count; i++)
             {
                 var yTop = sortedHorizontalLines[i-1];
                 var yBottom = sortedHorizontalLines[i]-1;
+                
 
                 long height = Math.Abs(yBottom - yTop) + 1;
 
-                var columnOrdered = intervals.Where(interval => interval.Overlaps(yTop, yBottom)).OrderBy(interval => interval.Column).ToList();
+                var columnOrdered = intervals.Where(interval => interval.Overlaps(yTop, yBottom)).OrderBy(interval => interval.Left).ToList();
 
                 for (int j = 1; j < columnOrdered.Count; j++)
                 {
                     if (j % 2 != 0)
                     {
-                        var x1 = columnOrdered[j - 1].Column;
-                        var x2 = columnOrdered[j].Column;
+                        var x1 = columnOrdered[j - 1].Right;
+                        var x2 = columnOrdered[j].Left;
 
-                        long width = Math.Abs(x1 - x2) + 1;
+                        rights.Add((x1, i));
+                        lefts.Add((x2, i));
+
+                        long width = Math.Abs(x1 - x2) - 1;
 
                         insideCount += height * width;
                     }
                 }
+            }
+
+            var minx = test.visited.Select(v => v.Item1).Min();
+            var maxx = test.visited.Select(v => v.Item1).Max();
+            var miny = test.visited.Select(v => v.Item2).Min();
+            var maxy = test.visited.Select(v => v.Item2).Max();
+
+            var lminx = lefts.Select(x => x.Item1).Min();
+            var lmaxx = lefts.Select(x => x.Item1).Max();
+            var lminy = lefts.Select(x => x.Item2).Min();
+            var lmaxy = lefts.Select(x => x.Item2).Max();
+            var rinx = rights.Select(x => x.Item1).Min();
+            var rmaxx = rights.Select(x => x.Item1).Max();
+            var riny = rights.Select(x => x.Item2).Min();
+            var rmaxy = rights.Select(x => x.Item2).Max();
+
+            var adjustedRights = rights.Select(r => (r.Item1, r.Item2 - 238));
+            var adjustedLefts = lefts.Select(r => (r.Item1, r.Item2 - 238));
+
+            for (int y = -300; y < 300; y++)
+            {
+                var sb = new StringBuilder();
+
+                for (int x = -300; x < 300; x++)
+                {
+                    if (adjustedRights.Contains((x, y)))
+                    {
+                        sb.Append("<");
+                    }
+                    else if (adjustedLefts.Contains((x, y)))
+                    {
+                        sb.Append(">");
+                    }
+                    else if (test.visited.Contains((x,y)))
+                    {
+                        sb.Append("#");
+                    }
+                    else
+                    {
+                        sb.Append(".");
+                    }
+                }
+
+                output.WriteLine(sb.ToString());
             }
 
             return borderCount + insideCount;
@@ -355,7 +506,7 @@ namespace Solutions.Event2023
         public long SecondStar()
         {
             var input = ReadLineInput();
-            List<Draw> digPlan = Parse2(input);
+            List<Draw> digPlan = Parse(input);
             return DugOut2(digPlan);
         }
 
@@ -417,7 +568,7 @@ namespace Solutions.Event2023
                 "U 2 (#7a21e3)"
             };
 
-            var digPlan = Parse(example);
+            var digPlan = Parse2(example);
             
 
             Assert.Equal(952408144115, DugOut2(digPlan));
