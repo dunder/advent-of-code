@@ -22,6 +22,7 @@ namespace Shared.Tree
                 return walkTo;
             }
         }
+
         public IList<T> Path
         {
             get
@@ -33,6 +34,25 @@ namespace Shared.Tree
                 {
                     node = node.Parent;
                     path.Add(node.Data);
+                }
+
+                path.Reverse();
+
+                return path;
+            }
+        }
+
+        public IList<Node<T>> Nodes
+        {
+            get
+            {
+                var path = new List<Node<T>>();
+                var node = this;
+                path.Add(node);
+                while (node.Parent != null)
+                {
+                    node = node.Parent;
+                    path.Add(node);
                 }
 
                 path.Reverse();
