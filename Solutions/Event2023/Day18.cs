@@ -1,5 +1,4 @@
-﻿using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,7 +10,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2023
 {
-    // --- Day X: Phrase ---
+    // --- Day 18: Lavaduct Lagoon ---
     public class Day18
     {
         private readonly ITestOutputHelper output;
@@ -23,9 +22,9 @@ namespace Solutions.Event2023
 
         private enum Direction { Up, Right, Down, Left }
 
-        private record Draw(Direction Direction, int Steps, string Color); 
+        private record DigInstruction(Direction Direction, int Steps); 
 
-        private List<Draw> Parse(IList<string> input)
+        private List<DigInstruction> Parse(IList<string> input)
         {
             return input.Select(line =>
             {
@@ -43,11 +42,11 @@ namespace Solutions.Event2023
                     _ => throw new InvalidOperationException($"Unkown direction : {directionPart}")
                 };
 
-                return new Draw(direction, steps, color);
+                return new DigInstruction(direction, steps);
             }).ToList();
         }
 
-        private List<Draw> Parse2(IList<string> input)
+        private List<DigInstruction> Parse2(IList<string> input)
         {
             var colorRegex = new Regex(@"[0-9a-f]+");
 
@@ -68,11 +67,11 @@ namespace Solutions.Event2023
                     _ => throw new InvalidOperationException($"Unkown direction : {color}")
                 };
 
-                return new Draw(direction, steps, color);
+                return new DigInstruction(direction, steps);
             }).ToList();
         }
 
-        private (int,int) Move((int, int) position, Draw draw)
+        private (int,int) Move((int, int) position, DigInstruction draw)
         {
             (int x, int y) = position;
 
@@ -91,7 +90,7 @@ namespace Solutions.Event2023
             }
         }
 
-        private (int,int) Move2((int, int) position, Draw draw)
+        private (int,int) Move2((int, int) position, DigInstruction draw)
         {
             (int x, int y) = position;
 
@@ -113,7 +112,6 @@ namespace Solutions.Event2023
         private int DugOut(IList<string> input)
         {
             var digPlan = Parse(input);
-
 
             var position = (0, 0);
 
@@ -147,7 +145,7 @@ namespace Solutions.Event2023
 
             for (var i = 0; i < digPlan.Count; i++)
             {
-                Draw instruction = digPlan[i];
+                DigInstruction instruction = digPlan[i];
 
                 for (var s = 1; s <= instruction.Steps; s++)
                 {
@@ -202,111 +200,13 @@ namespace Solutions.Event2023
                 }
             }
 
-            //DrawMap(visited, inside);
-
-
             return visited.Count + inside.Count;
         }
 
-
-        private (HashSet<(int, int)>, HashSet<(int, int)>) DugOutTest(List<Draw> digPlan)
+        private record Edge(int Left, int Right, int RowTop, int RowBottom, bool UTurn = false)
         {
-            var position = (0, 0);
-
-            HashSet<(int, int)> visited = new()
-            {
-                position
-            };
-
-            Dictionary<int, HashSet<int>> blocks = new();
-
-            void AddBlock(int x, int y)
-            {
-                if (blocks.ContainsKey(y))
-                {
-                    blocks[y].Add(x);
-                }
-                else
-                {
-                    blocks.Add(y, new HashSet<int> { x });
-                }
-            }
-
-            bool IsUTurn(int i)
-            {
-                var previous = i == 0 ? digPlan[^1] : digPlan[i - 1];
-                var next = i == digPlan.Count - 1 ? digPlan[0] : digPlan[i + 1];
-
-                return previous.Direction != next.Direction;
-            }
-
-
-            for (var i = 0; i < digPlan.Count; i++)
-            {
-                Draw instruction = digPlan[i];
-
-                for (var s = 1; s <= instruction.Steps; s++)
-                {
-                    if (s > 1 && (instruction.Direction == Direction.Up || instruction.Direction == Direction.Down))
-                    {
-                        AddBlock(position.Item1, position.Item2);
-                    }
-
-                    position = Move(position, instruction);
-
-                    visited.Add(position);
-                }
-
-                if (instruction.Direction == Direction.Right || instruction.Direction == Direction.Left)
-                {
-                    if (!IsUTurn(i))
-                    {
-                        AddBlock(position.Item1, position.Item2);
-                    }
-                }
-            }
-
-            var border = visited.Count;
-
-            var top = visited.Select(x => x.Item2).Min();
-            var bottom = visited.Select(x => x.Item2).Max();
-            var right = visited.Select(x => x.Item1).Max();
-            var left = visited.Select(x => x.Item2).Min();
-
-            var inside = new HashSet<(int, int)>();
-
-            for (var y = top + 1; y < bottom; y++)
-            {
-                for (var x = left; x <= right; x++)
-                {
-                    if (visited.Contains((x, y)))
-                    {
-                        continue;
-                    }
-
-                    var leftOf = 0;
-
-                    if (blocks.ContainsKey(y))
-                    {
-                        leftOf += blocks[y].Where(xb => xb < x).Count();
-                    }
-
-                    if (leftOf % 2 == 1)
-                    {
-                        inside.Add((x, y));
-                    }
-                }
-            }
-
-            //DrawMap(visited, inside);
-
-
-            return (visited, inside);
-        }
-
-        private record VerticalInterval(int Left, int Right, int RowTop, int RowBottom)
-        {
-            public int Length => Math.Abs(RowTop - RowBottom) + 1;
+            public int Height => Math.Abs(RowTop - RowBottom) + 1;
+            public int Width => Math.Abs(Left - Right) + 1;
 
             public bool Overlaps(int yTop, int yBottom)
             {
@@ -314,155 +214,132 @@ namespace Solutions.Event2023
             }
         }
 
-        private long DugOut2(List<Draw> digPlan)
+        private long DugOut2(List<DigInstruction> digPlan)
         {
             var position = (0, 0);
 
-            long borderCount = 0;
-
-            (HashSet<(int, int)> visited, HashSet<(int, int)> inside) test = DugOutTest(digPlan);
-
-            List<VerticalInterval> intervals = new();
-
-            bool IsUTurn(int i)
-            {
-                var previous = i == 0 ? digPlan[^1] : digPlan[i - 1];
-                var next = i == digPlan.Count - 1 ? digPlan[0] : digPlan[i + 1];
-
-                return previous.Direction != next.Direction;
-            }
+            List<Edge> edges = new();
 
             for (var i = 0; i < digPlan.Count; i++)
             {
-                Draw instruction = digPlan[i];
+                DigInstruction instruction = digPlan[i];
 
-                borderCount += instruction.Steps;
-                
+                (int x, int y) = position;
+
+                bool IsUTurn()
+                {
+                    var previous = i == 0 ? digPlan[^1] : digPlan[i - 1];
+                    var next = i == digPlan.Count - 1 ? digPlan[0] : digPlan[i + 1];
+
+                    return previous.Direction != next.Direction;
+                }
+
                 switch (instruction.Direction)
                 {
                     case Direction.Up:
-                        if (instruction.Steps > 1)
-                        {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item1, position.Item2 - instruction.Steps + 1, position.Item2 - 1));
-                        }
+                        edges.Add(new Edge(x, x, y - instruction.Steps + 1, y - 1));
                         break;
                     case Direction.Down:
-                        if (instruction.Steps > 1)
-                        {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item1, position.Item2 + 1, position.Item2 + instruction.Steps - 1));
-                        }
+                        edges.Add(new Edge(x, x, y + 1, y + instruction.Steps - 1));
                         break;
                     case Direction.Right:
-                        if (!IsUTurn(i))
-                        {
-                            intervals.Add(new VerticalInterval(position.Item1, position.Item1 + instruction.Steps, position.Item2, position.Item2));
-
-                        }
+                        edges.Add(new Edge(x, x + instruction.Steps, y, y, IsUTurn()));
                         break;
                     case Direction.Left:
-                        if (!IsUTurn(i))
-                        {
-                            intervals.Add(new VerticalInterval(position.Item1 - instruction.Steps, position.Item1, position.Item2, position.Item2));
-                        }
+                        edges.Add(new Edge(x - instruction.Steps, x, y, y, IsUTurn()));
                         break;
                 }
-                
+
                 position = Move2(position, instruction);
             }
 
-            var columnOrderIntevals = intervals.OrderBy(interval => interval.Left).ToList();
+            var edgesOrderedByLeft = edges.OrderBy(edge => edge.Left).ToList();
 
             var horizontalLines = new HashSet<int>();
 
-            foreach (var interval in intervals)
+            foreach (var edge in edges)
             {
-                horizontalLines.Add(interval.RowTop);
-                horizontalLines.Add(interval.RowBottom);
+                horizontalLines.Add(edge.RowTop);
+                horizontalLines.Add(edge.RowBottom);
             }
 
-
-            horizontalLines.Add(intervals.Select(interval => interval.RowBottom).Max() + 1);
-
-            var sortedHorizontalLines = horizontalLines.OrderBy(x => x).ToList();
+            List<int> horizontalLinesOrderedByY = horizontalLines.OrderBy(x => x).ToList();
 
             long insideCount = 0;
-            
+
             var lefts = new HashSet<(int, int)>();
             var rights = new HashSet<(int, int)>();
 
-            for (int i = 1; i < sortedHorizontalLines.Count; i++)
+            HashSet<(int, int)> inside = new HashSet<(int, int)>();
+
+            for (int i = 1; i < horizontalLinesOrderedByY.Count; i++)
             {
-                var yTop = sortedHorizontalLines[i-1];
-                var yBottom = sortedHorizontalLines[i]-1;
-                
+                var yTop = horizontalLinesOrderedByY[i - 1];
+                var yBottom = horizontalLinesOrderedByY[i] - 1;
 
                 long height = Math.Abs(yBottom - yTop) + 1;
 
-                var columnOrdered = intervals.Where(interval => interval.Overlaps(yTop, yBottom)).OrderBy(interval => interval.Left).ToList();
-
-                for (int j = 1; j < columnOrdered.Count; j++)
+                if (height > 1)
                 {
-                    if (j % 2 != 0)
-                    {
-                        var x1 = columnOrdered[j - 1].Right;
-                        var x2 = columnOrdered[j].Left;
+                    List<Edge> columnOrdered1 = edges
+                        .Where(edge => edge.Overlaps(yTop, yTop))
+                        .OrderBy(edge => edge.Left)
+                        .ThenBy(edge => edge.Right)
+                        .ToList();
 
-                        rights.Add((x1, i));
-                        lefts.Add((x2, i));
+                    insideCount += Space(yTop, yTop, columnOrdered1);
 
-                        long width = Math.Abs(x1 - x2) - 1;
+                    List<Edge> columnOrdered2 = edges
+                        .Where(edge => edge.Overlaps(yTop + 1, yBottom))
+                        .OrderBy(edge => edge.Left)
+                        .ThenBy(edge => edge.Right)
+                        .ToList();
 
-                        insideCount += height * width;
-                    }
+                    insideCount += Space(yTop + 1, yBottom, columnOrdered2);
+                }
+                else
+                {
+                    List<Edge> columnOrdered = edges
+                        .Where(edge => edge.Overlaps(yTop, yBottom))
+                        .OrderBy(edge => edge.Left)
+                        .ThenBy(edge => edge.Right)
+                        .ToList();
+
+                    insideCount += Space(yTop, yBottom, columnOrdered);
                 }
             }
 
-            var minx = test.visited.Select(v => v.Item1).Min();
-            var maxx = test.visited.Select(v => v.Item1).Max();
-            var miny = test.visited.Select(v => v.Item2).Min();
-            var maxy = test.visited.Select(v => v.Item2).Max();
-
-            var lminx = lefts.Select(x => x.Item1).Min();
-            var lmaxx = lefts.Select(x => x.Item1).Max();
-            var lminy = lefts.Select(x => x.Item2).Min();
-            var lmaxy = lefts.Select(x => x.Item2).Max();
-            var rinx = rights.Select(x => x.Item1).Min();
-            var rmaxx = rights.Select(x => x.Item1).Max();
-            var riny = rights.Select(x => x.Item2).Min();
-            var rmaxy = rights.Select(x => x.Item2).Max();
-
-            var adjustedRights = rights.Select(r => (r.Item1, r.Item2 - 238));
-            var adjustedLefts = lefts.Select(r => (r.Item1, r.Item2 - 238));
-
-            for (int y = -300; y < 300; y++)
-            {
-                var sb = new StringBuilder();
-
-                for (int x = -300; x < 300; x++)
-                {
-                    if (adjustedRights.Contains((x, y)))
-                    {
-                        sb.Append("<");
-                    }
-                    else if (adjustedLefts.Contains((x, y)))
-                    {
-                        sb.Append(">");
-                    }
-                    else if (test.visited.Contains((x,y)))
-                    {
-                        sb.Append("#");
-                    }
-                    else
-                    {
-                        sb.Append(".");
-                    }
-                }
-
-                output.WriteLine(sb.ToString());
-            }
+            long borderCount = digPlan.Select(d => d.Steps).Sum();
 
             return borderCount + insideCount;
         }
+
+        private long Space(int yTop, int yBottom, List<Edge> columnOrdered)
+        {
+            long insideCount = 0;
+            long height = Math.Abs(yBottom - yTop) + 1;
+
+            for (int j = 1, leftCounter = 1; j < columnOrdered.Count; j++, leftCounter++)
+            {
+                var xFrom = columnOrdered[j - 1].Right;
+                var xTo = columnOrdered[j].Left;
+
+                long spaceWidth = Math.Abs(xTo - xFrom) - 1;
+
+                if (columnOrdered[j - 1].UTurn)
+                {
+                    leftCounter++;
+                }
+
+                if (leftCounter % 2 != 0)
+                {
+                    insideCount += spaceWidth * height;
+                }
+            }
+
+            return insideCount;
+        }
+
 
         private void DrawMap(HashSet<(int, int)> visited, HashSet<(int, int)> inside)
         {
@@ -497,16 +374,18 @@ namespace Solutions.Event2023
             }
         }
 
-        public int FirstStar()
+        public long FirstStar()
         {
             var input = ReadLineInput();
+
+
             return DugOut(input);
         }
 
         public long SecondStar()
         {
             var input = ReadLineInput();
-            List<Draw> digPlan = Parse(input);
+            List<DigInstruction> digPlan = Parse2(input);
             return DugOut2(digPlan);
         }
 
@@ -519,7 +398,7 @@ namespace Solutions.Event2023
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(77366737561114, SecondStar());
         }
 
         [Fact]
@@ -542,8 +421,34 @@ namespace Solutions.Event2023
                 "L 2 (#015232)",
                 "U 2 (#7a21e3)"
             };
-
+            
             Assert.Equal(62, DugOut(example));
+        }
+
+        [Fact]
+        public void FirstStarExample2()
+        {
+            var example = new List<string>
+            {
+                "R 6 (#70c710)",
+                "D 5 (#0dc571)",
+                "L 2 (#5713f0)",
+                "D 2 (#d2c081)",
+                "R 2 (#59c680)",
+                "D 2 (#411b91)",
+                "L 5 (#8ceee2)",
+                "U 2 (#caa173)",
+                "L 1 (#1b58a2)",
+                "U 2 (#caa171)",
+                "R 2 (#7807d2)",
+                "U 3 (#a77fa3)",
+                "L 2 (#015232)",
+                "U 2 (#7a21e3)"
+            };
+
+            var digPlan = Parse(example);
+            
+            Assert.Equal(62, DugOut2(digPlan));
         }
         
 
@@ -569,7 +474,6 @@ namespace Solutions.Event2023
             };
 
             var digPlan = Parse2(example);
-            
 
             Assert.Equal(952408144115, DugOut2(digPlan));
         }
