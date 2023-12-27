@@ -110,10 +110,41 @@ namespace Solutions.Event2023
 
         private int Run2(IList<string> input)
         {
-            var bricks = PutBricksToRest(input);
+            List<Brick> bricks = PutBricksToRest(input);
 
+            int count = 0;
 
-            return 0;
+            var nonDisintegratedBricks = bricks.Where(brick => !brick.Supports.All(supporting => supporting.SupportedBy.Count > 1));
+
+            foreach (var supportingBrick in nonDisintegratedBricks)
+            {
+                var canFall = new Queue<Brick>();
+
+                canFall.Enqueue(supportingBrick);
+            
+                HashSet<Brick> removed = new();
+
+                while (canFall.Count > 0)
+                {
+                    var brick = canFall.Dequeue();
+
+                    if (!removed.Add(brick))
+                    {
+                        continue;
+                    }
+
+                    var falling = brick.Supports.Where(b => !b.SupportedBy.Where(b => !removed.Contains(b)).Any());
+
+                    foreach (var fallingBrick in falling)
+                    {
+                        canFall.Enqueue(fallingBrick);
+                    }
+                }
+
+                count += removed.Count - 1;
+            }
+
+            return count;
         }
 
         public int FirstStar()
@@ -137,8 +168,7 @@ namespace Solutions.Event2023
         [Fact]
         public void SecondStarTest()
         {
-            // 1491 That's not the right answer; your answer is too low.
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(61276, SecondStar());
         }
 
         [Fact]
@@ -173,7 +203,6 @@ namespace Solutions.Event2023
             };
 
             Assert.Equal(7, Run2(example));
-
         }
     }
 }
