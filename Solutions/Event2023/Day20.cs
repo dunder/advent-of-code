@@ -1,5 +1,4 @@
 ﻿
-using MoreLinq;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -74,7 +73,7 @@ namespace Solutions.Event2023
 
             public override string ToString()
             {
-                return $"{Name:20}: {string.Join(",", Output):20}";
+                return $"{Name} -> {string.Join(",", Output)}";
             }
         }
 
@@ -86,7 +85,7 @@ namespace Solutions.Event2023
             {
             }
 
-            private bool On => _isFlipped;
+            public bool On => _isFlipped;
 
             public override List<PendingSend> Send(Dictionary<string, Module> modules, string dispatcher, Pulse pulse)
             {
@@ -105,7 +104,7 @@ namespace Solutions.Event2023
             public override string ToString()
             {
                 var flipped = _isFlipped ? "1" : "0";
-                return $"{Name:20}: {flipped:20}";
+                return $"%{Name}: {flipped} -> {string.Join(",", Output)}";
             }
         }
 
@@ -138,7 +137,7 @@ namespace Solutions.Event2023
             public override string ToString()
             {
                 var input = string.Join("", _input.Values.Select(i => i == Pulse.High ? "1" : "0"));
-                return $"{Name:20}: {input:20}";
+                return $"{Name} {input} -> {string.Join(",", Output)}";
             }
         }
 
@@ -154,7 +153,7 @@ namespace Solutions.Event2023
             }
             public override string ToString()
             {
-                return $"{Name:20}: -";
+                return $"{Name,20}: -";
             }
         }
 
@@ -227,6 +226,11 @@ namespace Solutions.Event2023
             public Pulse Pulse { get; }
             public string Dispatcher { get; }
             public Module Module { get; }
+
+            public override string ToString()
+            {
+                return $"Send {Pulse} from {Dispatcher} to {Module.Name}";
+            }
         }
 
         private int Run1(IList<string> input)
@@ -236,49 +240,102 @@ namespace Solutions.Event2023
             var button = new Button(modules, modules["broadcaster"] as Broadcast);
 
             var sendQueue = new Queue<PendingSend>();
-            var sent = new List<Pulse>();
+            var sent = new List<PendingSend>();
 
-            for (int i = 1; i <= 1000000000; i++)
+            for (int i = 1; i <= 1000; i++)
             {
-                List<PendingSend> pendingFromButton = button.Send(modules, "hq", Pulse.Low);
-                sendQueue.Enqueue(pendingFromButton.Single());
+                (_, var sentSinglePress) = PressButton(modules, p => false);
 
-                while (sendQueue.Count > 0)
+                sent.AddRange(sentSinglePress);
+            }
+
+            var sentPulses = sent.Select(s => s.Pulse).ToList();
+    
+            return sentPulses.Count(s => s == Pulse.Low) * sentPulses.Count(s => s == Pulse.High);
+        }
+
+        private (bool, List<PendingSend>) PressButton(Dictionary<string, Module> modules, Func<PendingSend, bool> onPendingSend)
+        {
+            var button = new Button(modules, modules["broadcaster"] as Broadcast);
+
+            List<PendingSend> pendingFromButton = button.Send(modules, "hq", Pulse.Low);
+            
+            var sendQueue = new Queue<PendingSend>();
+            sendQueue.Enqueue(pendingFromButton.Single());
+
+            var sent = new List<PendingSend>();
+
+            while (sendQueue.Count > 0)
+            {
+                var pendingSend = sendQueue.Dequeue();
+
+                if (onPendingSend(pendingSend))
                 {
-                    var pendingSend = sendQueue.Dequeue();
-
-                    //output.WriteLine($"{pendingSend.Dispatcher} -{pendingSend.Pulse} -> {pendingSend.Module.Name}");
-
-                    var pendingSends = pendingSend.Module.Send(modules, pendingSend.Dispatcher, pendingSend.Pulse);
-
-                    sent.Add(pendingSend.Pulse);
-
-                    foreach (var next in pendingSends)
-                    {
-                        sendQueue.Enqueue(next);
-                    }
+                    return (true, sent);
                 }
 
-                DrawSchema(modules, i);
+                var pendingSends = pendingSend.Module.Send(modules, pendingSend.Dispatcher, pendingSend.Pulse);
+                
+                sent.Add(pendingSend);
+
+                foreach (var next in pendingSends)
+                {
+                    sendQueue.Enqueue(next);
+                }
             }
-    
-            return sent.Count(s => s == Pulse.Low) * sent.Count(s => s == Pulse.High);
+
+            return (false, sent);
         }
 
-        private void DrawSchema(Dictionary<string, Module> modules, int counter)
+        private long Run2(IList<string> input)
         {
-            Console.WriteLine($"iteration: {counter:D8} modules: {modules.Count:D8}");
+            Dictionary<string, Module> modules = Parse(input);
 
-            foreach (var module in modules.Where(m => m.Value is Conjunction))
+            var button = new Button(modules, modules["broadcaster"] as Broadcast);
+
+            var sendQueue = new Queue<PendingSend>();
+
+            // found by inspection of input (&xj, &qs, &kz, &km) -> &gq -> rx
+            // &mf -> &xj
+            // &ph -> &qs
+            // &zp -> &kz
+            // &jn -> &km
+
+            Dictionary<string, int> targetCounters = new()
             {
-                Console.WriteLine($"{module.Value.ToString():40}");
-            }
-            Console.CursorTop = 1;
-        }
+                { "mf", 0 },
+                { "ph", 0 },
+                { "zp", 0 },
+                { "jn", 0 }
+            };
 
-        private int Run2(IList<string> input)
-        {
-            return 0;
+            int pressCounter = 0;
+            bool targetsFound = false;
+
+            while (!targetsFound)
+            {
+                bool OnButtonPress(PendingSend pendingSend)
+                {
+                    var updatedTargetCounters = targetCounters
+                        .Where(t => t.Key == pendingSend.Dispatcher && pendingSend.Pulse == Pulse.Low);
+
+                    foreach (var updatedTargetCounter in updatedTargetCounters)
+                    {
+                        targetCounters[updatedTargetCounter.Key] = pressCounter;
+                    }
+
+                    return targetCounters.All(t => t.Value > 0);
+                }
+
+                pressCounter++;
+
+                (bool found, List<PendingSend> sent) = PressButton(modules, OnButtonPress);
+
+                targetsFound = found;
+            }
+
+            // all primes
+            return targetCounters.Values.Aggregate(1L, (total, count) => total * count);
         }
 
         public int FirstStar()
@@ -287,7 +344,7 @@ namespace Solutions.Event2023
             return Run1(input);
         }
 
-        public int SecondStar()
+        public long SecondStar()
         {
             var input = ReadLineInput();
             return Run2(input);
@@ -302,7 +359,7 @@ namespace Solutions.Event2023
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(240162699605221, SecondStar());
         }
 
         [Fact]
