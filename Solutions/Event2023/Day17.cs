@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Solutions.InputReader;
@@ -20,10 +21,10 @@ namespace Solutions.Event2023
         private enum Direction { Up, Right, Down, Left };
 
         
-        private record Position(int X, int Y, Direction Direction, int SinceTurn);
-        private record HeatedPosition(int X, int Y, Direction Direction, int SinceTurn, int AccumulatedHeat, HeatedPosition Parent)
+        private record Position(int X, int Y, Direction Direction, int StraightSteps);
+        private record HeatedPosition(int X, int Y, Direction Direction, int StraightSteps, int AccumulatedHeat, HeatedPosition Parent)
         {
-            public Position Position => new Position(X, Y, Direction, SinceTurn);
+            public Position Position => new Position(X, Y, Direction, StraightSteps);
         }
 
         private record HeatLossMap(Dictionary<(int, int), int> Data, int Width, int Height)
@@ -62,7 +63,7 @@ namespace Solutions.Event2023
 
         private bool MustTurn(Position position)
         {
-            return position.SinceTurn > 1;
+            return position.StraightSteps >= 3;
         }
 
         private static (int x, int y) Next(Direction direction, int x, int y) => direction switch
@@ -124,12 +125,12 @@ namespace Solutions.Event2023
                     X = location.x, 
                     Y = location.y, 
                     Direction = direction,
-                    SinceTurn = turn ? 0 : position.SinceTurn + 1,
+                    StraightSteps = turn ? 1 : position.StraightSteps + 1,
                     AccumulatedHeat = position.AccumulatedHeat + heatLoss,
                     Parent = position};
             }
             
-            if (!MustTurn(position.Position) && heatLossMap.IsWithin(straight))
+            if (position.StraightSteps < 3 && heatLossMap.IsWithin(straight))
             {
                 yield return NewPosition(straight, position.Direction);
             }
@@ -145,7 +146,7 @@ namespace Solutions.Event2023
             }
         }     
 
-        private int Djikstra(HeatLossMap map)
+        private int Dijkstra(HeatLossMap map)
         {
             PriorityQueue<HeatedPosition, int> q = new();
 
@@ -218,34 +219,34 @@ namespace Solutions.Event2023
                     X = location.x,
                     Y = location.y,
                     Direction = direction,
-                    SinceTurn = turn ? 0 : position.SinceTurn + 1,
+                    StraightSteps = turn ? 1 : position.StraightSteps + 1,
                     AccumulatedHeat = position.AccumulatedHeat + heatLoss,
                     Parent = position
                 };
             }
 
-            if (position.SinceTurn < 8 && heatLossMap.IsWithin(straight))
+            if (position.StraightSteps < 10 && heatLossMap.IsWithin(straight))
             {
                 yield return NewPosition(straight, position.Direction);
             }
 
-            if (position.SinceTurn > 2 && heatLossMap.IsWithin(right))
+            if (position.StraightSteps >= 4 && heatLossMap.IsWithin(right))
             {
                 yield return NewPosition(right, TurnRightFrom(position.Direction), true);
             }
 
-            if (position.SinceTurn > 2 && heatLossMap.IsWithin(left))
+            if (position.StraightSteps >= 4 && heatLossMap.IsWithin(left))
             {
                 yield return NewPosition(left, TurnLeftFrom(position.Direction), true);
             }
         }
 
-        private int Djikstra2(HeatLossMap map)
+        private int Dijkstra2(HeatLossMap map)
         {
             PriorityQueue<HeatedPosition, int> q = new();
 
-            q.Enqueue(new HeatedPosition(0, 0, Direction.Right, 1, 0, null), 0);
-            q.Enqueue(new HeatedPosition(0, 0, Direction.Down, 1, 0, null), 0);
+            q.Enqueue(new HeatedPosition(0, 0, Direction.Right, 0, 0, null), 0);
+            q.Enqueue(new HeatedPosition(0, 0, Direction.Down, 0, 0, null), 0);
 
             HashSet<Position> visited = new();
 
@@ -255,7 +256,7 @@ namespace Solutions.Event2023
             {
                 u = q.Dequeue();
 
-                if (map.IsDestinationPoint(u.X, u.Y) && u.Position.SinceTurn > 2)
+                if (map.IsDestinationPoint(u.X, u.Y) && u.Position.StraightSteps >= 4)
                 {
                     break;
                 }
@@ -273,22 +274,116 @@ namespace Solutions.Event2023
                 }
             }
 
+            Draw(map, u);
+
             return u.AccumulatedHeat;
         }
 
+        private int Dijkstra3(HeatLossMap map)
+        {
+            PriorityQueue<HeatedPosition, int> q = new();
+
+            var startRight = new HeatedPosition(0, 0, Direction.Right, 1, 0, null);
+            var startDown = new HeatedPosition(0, 0, Direction.Down, 1, 0, null);
+
+            q.Enqueue(startRight, 0);
+            q.Enqueue(startDown, 0);
+
+            Dictionary<HeatedPosition, int> distances = new()
+            {
+                { startRight, 0 },
+                { startDown, 0 }
+            };
+
+            int CurrentDistanceOrMax(HeatedPosition position)
+            {
+                if (distances.TryGetValue(position, out var distance))
+                {
+                    return distance;
+                }
+                return int.MaxValue;
+            }
+
+            HeatedPosition u = null;
+
+            while (q.Count > 0)
+            {
+                u = q.Dequeue();
+                int dist = distances[u];
+                foreach (var neighbor in Neighbors2(u, map))
+                {
+                    int ndist = dist;
+                    ndist = neighbor.AccumulatedHeat;
+                    if (ndist < CurrentDistanceOrMax(neighbor))
+                    {
+                        distances.Add(neighbor, ndist);
+                        q.Enqueue(neighbor, ndist);
+                    }
+                }
+            }
+
+            return u.AccumulatedHeat;
+        }
+
+        private void Draw(HeatLossMap heatLossMap, HeatedPosition target)
+        {
+            Dictionary<(int, int), Direction> path = new();
+
+            var node = target;
+
+            while (node.Parent != null)
+            {
+                path.Add((node.Position.X, node.Position.Y), node.Direction);
+                node = node.Parent;
+            }
+
+            for (int y = 0; y < heatLossMap.Height; y++)
+            {
+                var line = new StringBuilder();
+
+                for (int x = 0; x < heatLossMap.Width; x++)
+                {
+
+                    if (path.TryGetValue((x,y), out var value))
+                    {
+                        switch(value)
+                        {
+                            case Direction.Up: 
+                                line.Append("^");
+                                break;
+                            case Direction.Right: 
+                                line.Append(">");
+                                break;
+                            case Direction.Down: 
+                                line.Append("v");
+                                break;
+                            case Direction.Left: 
+                                line.Append("<");
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        line.Append(heatLossMap.Data[(x, y)]);
+                    }
+                }
+
+                output.WriteLine(line.ToString());
+            }
+        }
 
         private int Run1(IList<string> input)
         {
             HeatLossMap heatLossMap = Parse(input);
             
-            return Djikstra(heatLossMap);
+            return Dijkstra(heatLossMap);
         }
 
         private int Run2(IList<string> input)
         {
             HeatLossMap heatLossMap = Parse(input);
 
-            return Djikstra2(heatLossMap);
+            return Dijkstra2(heatLossMap);
         }
 
         public int FirstStar()
@@ -306,15 +401,13 @@ namespace Solutions.Event2023
         [Fact]
         public void FirstStarTest()
         {
-            // 740 your answer is too low
-            // 799 your answer is too high 
             Assert.Equal(791, FirstStar());
         }
 
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(900, SecondStar());
         }
 
         [Fact]
