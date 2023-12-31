@@ -5,13 +5,12 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Xunit;
 using Xunit.Abstractions;
-using static Solutions.Event2018.Day13;
 using static Solutions.InputReader;
 
 
 namespace Solutions.Event2023
 {
-    // --- Day X: Phrase ---
+    // --- Day 19: Aplenty ---
     public class Day19
     {
         private readonly ITestOutputHelper output;
@@ -159,12 +158,6 @@ namespace Solutions.Event2023
             return accepted.Select(part => part.Values.Sum()).Sum();
         }
 
-
-        private Dictionary<char, (int, int)> Merge(Dictionary<char, (int, int)> first, Dictionary<char, (int, int)> second)
-        {
-            return first;
-        }
-
         private record Range(int Start, int End)
         {
             public int Length => End - Start + 1;
@@ -208,58 +201,80 @@ namespace Solutions.Event2023
             return copy;
         }
 
-        private long CountRuleCombinations(Dictionary<string, Workflow> workflows, List<Rule> rules, Dictionary<char, Range> xmas)
+        private long CountRuleCombinations(Dictionary<string, Workflow> workflows, Dictionary<char, Range> initialParts)
         {
-            var rule = rules.First();
+            var workflowsToProcess = new Queue<(Dictionary<char, Range>, string)>();
 
-            int value = rule.Parameters.Value;
-            char category = rule.Parameters.Category;
-            string nextWorkflow = rule.Parameters.NextWorkflow;
+            var accepted = new List<Dictionary<char, Range>>();
 
-            switch (rule.Operation)
+            workflowsToProcess.Enqueue((initialParts, "in"));
+
+            while (workflowsToProcess.Count > 0)
             {
-                // mindmap: rfg{s<537:gd,x>2440:R,A}
-                case Operation.GreaterThan:
+                (Dictionary<char, Range> xmas, string workflowName) = workflowsToProcess.Dequeue();
+
+                Workflow workFlow = workflows[workflowName];
+                 
+                foreach (var rule in workFlow.Rules)
+                {
+                    int value = rule.Parameters.Value;
+                    char category = rule.Parameters.Category;
+                    string nextWorkflow = rule.Parameters.NextWorkflow;
+
+                    if (rule.Operation == Operation.GreaterThan)
                     {
                         (Range lower, Range upper) split = xmas[category].SplitGreaterThan(value);
+
                         if (rule.Parameters.Terminates)
                         {
-                            return rule.Parameters.NextWorkflow == "A" ? Combinations(Replace(xmas, category, split.upper)) : 0;
+                            if (rule.Parameters.NextWorkflow == "A")
+                            {
+                                accepted.Add(Replace(xmas, category, split.upper));
+                            }
                         }
                         else
                         {
-                            return CountRuleCombinations(workflows, workflows[nextWorkflow].Rules, Replace(xmas, category, split.upper)) +
-                                CountRuleCombinations(workflows, rules.Skip(1).ToList(), Replace(xmas, category, split.lower));
+                            workflowsToProcess.Enqueue((Replace(xmas, category, split.upper), nextWorkflow));
                         }
+
+                        xmas = Replace(xmas, category, split.lower);
                     }
-                case Operation.LessThan:
+                    else if (rule.Operation == Operation.LessThan)
                     {
                         (Range lower, Range upper) split = xmas[category].SplitLessThan(value);
 
                         if (rule.Parameters.Terminates)
                         {
-                            return rule.Parameters.NextWorkflow == "A" ? Combinations(Replace(xmas, category, split.lower)) : 0;
+                            if (rule.Parameters.NextWorkflow == "A")
+                            {
+                                accepted.Add(Replace(xmas, category, split.lower));
+                            }
                         }
                         else
                         {
-                            return CountRuleCombinations(workflows, workflows[nextWorkflow].Rules, Replace(xmas, category, split.lower)) +
-                                CountRuleCombinations(workflows, rules.Skip(1).ToList(), Replace(xmas, category, split.upper));
+                            workflowsToProcess.Enqueue((Replace(xmas, category, split.lower), nextWorkflow));
                         }
+
+                        xmas = Replace(xmas, category, split.upper);
                     }
-                case Operation.NoOp:
+                    else
                     {
                         if (rule.Parameters.Terminates)
                         {
-                            return rule.Parameters.NextWorkflow == "A" ? Combinations(xmas) : 0;
+                            if (rule.Parameters.NextWorkflow == "A")
+                            {
+                                accepted.Add(xmas);
+                            }
                         }
                         else
                         {
-                            return CountRuleCombinations(workflows, workflows[nextWorkflow].Rules, xmas);
+                            workflowsToProcess.Enqueue((xmas, nextWorkflow));
                         }
                     }
+                }
             }
 
-            throw new InvalidOperationException("Unexpected state");
+            return accepted.Select(Combinations).Sum();
         }
 
         private long Run2(IList<string> input)
@@ -276,7 +291,7 @@ namespace Solutions.Event2023
                 { 's', new Range(1, 4000) }
             };
 
-            return  CountRuleCombinations(workflowLookup, workflowLookup["in"].Rules, initialParts);
+            return CountRuleCombinations(workflowLookup, initialParts);
         }
 
         public int FirstStar()
@@ -300,7 +315,7 @@ namespace Solutions.Event2023
         [Fact]
         public void SecondStarTest()
         {
-            Assert.Equal(-1, SecondStar());
+            Assert.Equal(132392981697081, SecondStar());
         }
 
         [Fact]
