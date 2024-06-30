@@ -64,7 +64,7 @@ namespace Solutions.Event2019
             return display;
         }
 
-        public void Print(Color[,] visiblePixels)
+        private void Print(Color[,] visiblePixels)
         {
             int width = visiblePixels.GetLength(0);
             int height = visiblePixels.GetLength(1);

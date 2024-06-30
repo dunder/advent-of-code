@@ -261,7 +261,7 @@ namespace Solutions.Event2019
             return depthFirst.Max(p => p.Depth);
         }
 
-        public static void ExplorerMode()
+        private static void ExplorerMode()
         {
             var input = ReadInput();
             var computer = IntCodeComputer.Load(input);

@@ -66,6 +66,7 @@ namespace Solutions.Event2023
                 Direction.East => new Position(position.X + 1, position.Y),
                 Direction.South => new Position(position.X, position.Y + 1),
                 Direction.West => new Position(position.X - 1, position.Y),
+                _ => throw new NotImplementedException(),
             };
 
             var newDirection = NewDirection(direction, map[newPosition]);

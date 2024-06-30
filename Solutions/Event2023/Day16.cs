@@ -147,6 +147,7 @@ namespace Solutions.Event2023
                         Direction.Right => (beam.Position.X + 1, beam.Position.Y),
                         Direction.Down => (beam.Position.X, beam.Position.Y + 1),
                         Direction.Left => (beam.Position.X - 1, beam.Position.Y),
+                        _ => throw new ArgumentOutOfRangeException(nameof(beam.Direction)),
                     };
 
                     return beam with { Position = next };

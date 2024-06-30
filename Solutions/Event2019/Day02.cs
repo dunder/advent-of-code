@@ -15,7 +15,7 @@ namespace Solutions.Event2019
             return input.Split(',').Select(int.Parse).ToList();
         }
 
-        public static void Execute(List<int> code)
+        private static void Execute(List<int> code)
         {
             for (int i = 0; i < code.Count;i = i + 4)
             {

@@ -26,7 +26,7 @@ namespace Solutions.Event2015
             public Operation Operation { get; set; }
         }
 
-        public static void UpdateDisplay(int[,] display, Point upperLeft, Point lowerRight, Func<int, int> updateAction)
+        private static void UpdateDisplay(int[,] display, Point upperLeft, Point lowerRight, Func<int, int> updateAction)
         {
             for (int x = upperLeft.X; x <= lowerRight.X; x++)
             {
@@ -92,7 +92,7 @@ namespace Solutions.Event2015
             { Operation.Toggle, x => x + 2}
         };
 
-        public static void ExecuteAll(int[,] display, IEnumerable<DisplayUpdateCommand> commands, IDictionary<Operation, Func<int,int>> operationSet)
+        private static void ExecuteAll(int[,] display, IEnumerable<DisplayUpdateCommand> commands, IDictionary<Operation, Func<int,int>> operationSet)
         {
             foreach (var command in commands)
             {

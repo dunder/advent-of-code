@@ -26,7 +26,7 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        public void SecondStarConsole()
+        internal void SecondStarConsole()
         {
             var input = ReadLineInput();
 
@@ -82,7 +82,7 @@ namespace Solutions.Event2018
             return registry[0];
         }
 
-        public void Print(IList<string> instructions)
+        private void Print(IList<string> instructions)
         {
             Console.WindowHeight = 50;
             Console.WindowWidth = 25;
@@ -93,7 +93,7 @@ namespace Solutions.Event2018
             }
         }
 
-        public void Print(long i, string instruction, int[] registry)
+        private void Print(long i, string instruction, int[] registry)
         {
             var registry0 = registry[0].ToString();
             var registry1 = registry[1].ToString();

@@ -225,7 +225,7 @@ namespace Solutions.Event2015
 
         }
 
-        public static void Connect(string descriptor, Circuit circuit)
+        private static void Connect(string descriptor, Circuit circuit)
         {
             var signalPattern = new Regex(@"^(\d+) -> ([a-z]+)");
             var andPattern = new Regex(@"^(\d+|[a-z]+) AND ([a-z]+) -> ([a-z]+)");

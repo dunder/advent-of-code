@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -72,6 +73,7 @@ namespace Solutions.Event2023
             Direction.Right => (x + 1, y),
             Direction.Down => (x, y + 1),
             Direction.Left => (x - 1, y),
+            _ => throw new ArgumentOutOfRangeException(nameof(direction)),
         };
 
         private static Direction TurnRightFrom(Direction direction) => direction switch
@@ -80,6 +82,7 @@ namespace Solutions.Event2023
             Direction.Right => Direction.Down,
             Direction.Down => Direction.Left,
             Direction.Left => Direction.Up,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction)),
         };
 
         private static Direction TurnLeftFrom(Direction direction) => direction switch
@@ -88,6 +91,7 @@ namespace Solutions.Event2023
             Direction.Right => Direction.Up,
             Direction.Down => Direction.Right,
             Direction.Left => Direction.Down,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction)),
         };
 
         private IEnumerable<HeatedPosition> Neighbors(HeatedPosition position, HeatLossMap heatLossMap)
@@ -98,6 +102,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(Direction.Right, position.X, position.Y),
                 Direction.Down => Next(Direction.Down, position.X, position.Y),
                 Direction.Left => Next(Direction.Left, position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             var right = position.Direction switch
@@ -106,6 +111,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(TurnRightFrom(position.Direction), position.X, position.Y),
                 Direction.Down => Next(TurnRightFrom(position.Direction), position.X, position.Y),
                 Direction.Left => Next(TurnRightFrom(position.Direction), position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             var left = position.Direction switch
@@ -114,6 +120,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
                 Direction.Down => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
                 Direction.Left => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             HeatedPosition NewPosition((int x, int y) location, Direction direction, bool turn = false)
@@ -191,6 +198,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(Direction.Right, position.X, position.Y),
                 Direction.Down => Next(Direction.Down, position.X, position.Y),
                 Direction.Left => Next(Direction.Left, position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             var right = position.Direction switch
@@ -199,6 +207,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(TurnRightFrom(position.Direction), position.X, position.Y),
                 Direction.Down => Next(TurnRightFrom(position.Direction), position.X, position.Y),
                 Direction.Left => Next(TurnRightFrom(position.Direction), position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             var left = position.Direction switch
@@ -207,6 +216,7 @@ namespace Solutions.Event2023
                 Direction.Right => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
                 Direction.Down => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
                 Direction.Left => Next(TurnLeftFrom(position.Direction), position.X, position.Y),
+                _ => throw new ArgumentOutOfRangeException(nameof(position.Direction)),
             };
 
             HeatedPosition NewPosition((int x, int y) location, Direction direction, bool turn = false)

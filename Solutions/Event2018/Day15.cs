@@ -29,7 +29,7 @@ namespace Solutions.Event2018
             return result.ToString();
         }
 
-        public void FirstStarConsole()
+        internal void FirstStarConsole()
         {
             Combat(ReadLineInput(), new ConsoleUi());
         }

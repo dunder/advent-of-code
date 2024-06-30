@@ -12,7 +12,7 @@ namespace Solutions.Event2019
     // --- Day 25: Cryostasis ---
     public class Day25
     {
-        public void Interactive()
+        internal void Interactive()
         {
             var programInput = ReadInput();
             var computer = IntCodeComputer.Load(programInput);

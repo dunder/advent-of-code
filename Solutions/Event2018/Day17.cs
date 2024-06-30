@@ -137,7 +137,7 @@ namespace Solutions.Event2018
 
         
 
-        public static void WriteToFile(HashSet<Point> clay, HashSet<Point> settled, HashSet<Point> overflowed, HashSet<Point> dripping)
+        private static void WriteToFile(HashSet<Point> clay, HashSet<Point> settled, HashSet<Point> overflowed, HashSet<Point> dripping)
         {
             var minX = clay.Min(p => p.X);
             var maxX = clay.Max(p => p.X) + 3;
