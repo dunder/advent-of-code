@@ -259,3 +259,8 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Local advent of code input files
+
+Solutions/Event*/Day*/input.txt
+Solutions/Event*/Input/Day*.txt
