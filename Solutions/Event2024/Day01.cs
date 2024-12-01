@@ -1,4 +1,5 @@
 ﻿using MoreLinq;
+using MoreLinq.Extensions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day X: Phrase ---
+    // --- Day 1: Historian Hysteria ---
     public class Day01
     {
         private readonly ITestOutputHelper output;
@@ -19,41 +20,41 @@ namespace Solutions.Event2024
             this.output = output;
         }
 
+        public static List<(int Left, int Right)> ParseLocationIds(IList<string> input)
+        {
+            return input
+                .Select(x => x.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .Select(s => (int.Parse(s[0]), int.Parse(s[1])))
+                .ToList();
+        }
+
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarTest()
         {
             var input = ReadLineInput();
 
-
             int Execute()
             {
-                var y = input.Select(x => 
+                var locationIds = ParseLocationIds(input);
+
+                var (leftList, rightList) = (new List<int>(), new List<int>());
+
+                var (left, right) = locationIds.Aggregate((leftList, rightList), (state, idPair) =>
                 {
-                    var z = x.Split(' ');
+                    state.leftList.Add(idPair.Left);
+                    state.rightList.Add(idPair.Right);
 
-                    return z;
-                }
-                );
-
-                var left = new List<int>();
-                var right = new List<int>();
-
-                foreach (var value in y)
-                {
-                    left.Add(int.Parse(value[0]));
-                    right.Add(int.Parse(value[3]));
-                }
+                    return state;
+                });
 
                 left.Sort();
                 right.Sort();
 
-                return left.Zip(right).Select((f, s) => Math.Abs(f.First - f.Second)).Sum();
-
-                
+                return left.Zip(right, (l, r) => Math.Abs(l - r)).Sum();
             }
 
-            Assert.Equal(-1, Execute());
+            Assert.Equal(1660292, Execute());
         }
 
         [Fact]
@@ -64,88 +65,30 @@ namespace Solutions.Event2024
 
             int Execute()
             {
-                var y = input.Select(x =>
+                var locationIds = ParseLocationIds(input);
+
+                var initialCounts = new Dictionary<int, int>();
+
+                var counts = locationIds.Aggregate(initialCounts, (currentCounts, idPair) =>
                 {
-                    var z = x.Split(' ');
-
-                    return z;
-                }
-                );
-
-                var left = new List<int>();
-                var right = new Dictionary<int, int>();
-
-                foreach (var value in y)
-                {
-                    left.Add(int.Parse(value[0]));
-                    var r = int.Parse(value[3]);
-
-
-                    if (right.TryGetValue(r, out var s))
+                    if (currentCounts.TryGetValue(idPair.Right, out int count))
                     {
-                        right[r] = right[r] + 1;
+                        currentCounts[idPair.Right] = count + 1;
                     }
                     else
                     {
-                        right.Add(r, 1);
+                        currentCounts.Add(idPair.Right, 1);
                     }
-                }
 
-                int total = 0;
+                    return currentCounts;
+                });
 
-                foreach (var value in left)
-                {
-                    if (right.TryGetValue((int)value, out var found))
-                    {
-                        total += found * value;
-                    }
-                }
-
-                return total;
-
-
+                return locationIds
+                    .Select(idPair => counts.TryGetValue(idPair.Left, out int count) ? idPair.Left * count : 0)
+                    .Sum();
             }
 
-            Assert.Equal(-1, Execute());
-        }
-
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void FirstStarExample()
-        {
-            string inputText = "";
-            List<string> inputLines = 
-                [
-                    "",
-                    ""
-                ];
-
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample()
-        {
-            string inputText = "";
-            List<string> inputLines = 
-                [
-                    "", 
-                    ""
-                ];
-
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(22776016, Execute());
         }
     }
 }
