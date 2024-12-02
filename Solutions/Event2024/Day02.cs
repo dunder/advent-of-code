@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 2: Phrase ---
+    // --- Day 2: Red-Nosed Reports ---
     public class Day02
     {
         private readonly ITestOutputHelper output;
@@ -31,38 +31,49 @@ namespace Solutions.Event2024
 
         public bool Safe(List<int> list)
         {
-            if (list[0] == list[1])
+            var first = list[0];
+            var second = list[1];
+
+            if (first == second)
             {
                 return false;
             }
 
-            bool increasing = list[1] > list[0];
+            bool increasing = second > first;
+            bool decreasing = !increasing;
 
             for (int i = 0; i < list.Count - 1; i++)
             {
-                var x = list[i];
-                var y = list[i + 1];
+                var current = list[i];
+                var next = list[i + 1];
+
+                var difference = next - current;
+
+                var absoluteDifference = Math.Abs(difference);
+                var validDifference = absoluteDifference > 0 && absoluteDifference <= 3;
+
+                if (!validDifference)
+                {
+                    return false;
+                }
 
                 if (increasing)
                 {
-                    int increase = y - x;
-                    if (!(increase == 1 || increase == 2 || increase == 3))
+                    if (difference < 0)
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    int decrease = x - y;
-                    if (!(decrease == 1 || decrease == 2 || decrease == 3))
+                    if (difference > 0)
                     {
                         return false;
                     }
-
                 }
             }
+
             return true;
-            
         }
 
         public bool Safe2(List<int> list)
@@ -95,7 +106,7 @@ namespace Solutions.Event2024
                 return lists.Count(Safe);
             }
 
-            Assert.Equal(-1, Execute());
+            Assert.Equal(236, Execute());
         }
 
         [Fact]
@@ -111,7 +122,7 @@ namespace Solutions.Event2024
                 return lists.Count(Safe2);
             }
 
-            Assert.Equal(-1, Execute()); // inte 298
+            Assert.Equal(308, Execute());
         }
 
 
@@ -119,52 +130,48 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            string inputText = "";
             List<string> inputLines = 
                 [
-"7 6 4 2 1",
-"1 2 7 8 9",
-"9 7 6 2 1",
-"1 3 2 4 5",
-"8 6 4 4 1",
-"1 3 6 7 9",
+                    "7 6 4 2 1",
+                    "1 2 7 8 9",
+                    "9 7 6 2 1",
+                    "1 3 2 4 5",
+                    "8 6 4 4 1",
+                    "1 3 6 7 9",
                 ];
 
             var lists = Parse(inputLines);
 
             int Execute()
             {
-                var safe = lists.Where(Safe).ToArray();
                 return lists.Count(Safe);
             }
 
-            Assert.Equal(-1, Execute());
+            Assert.Equal(2, Execute());
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            string inputText = "";
             List<string> inputLines =
                 [
-"7 6 4 2 1",
-"1 2 7 8 9",
-"9 7 6 2 1",
-"1 3 2 4 5",
-"8 6 4 4 1",
-"1 3 6 7 9",
+                    "7 6 4 2 1",
+                    "1 2 7 8 9",
+                    "9 7 6 2 1",
+                    "1 3 2 4 5",
+                    "8 6 4 4 1",
+                    "1 3 6 7 9",
                 ];
 
             var lists = Parse(inputLines);
 
             int Execute()
             {
-                var safe = lists.Where(Safe2).ToArray();
                 return lists.Count(Safe2);
             }
 
-            Assert.Equal(-1, Execute());
+            Assert.Equal(4, Execute());
         }
     }
 }
