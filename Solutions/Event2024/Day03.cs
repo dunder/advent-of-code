@@ -20,29 +20,62 @@ namespace Solutions.Event2024
             this.output = output;
         }
 
+        private static int Problem1(string input)
+        {
+            var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)");
+            var x = r.Match(input);
+
+            var result = 0;
+
+            while (x.Success)
+            {
+                result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
+                x = x.NextMatch();
+            }
+
+            return result;
+        }
+
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarTest()
         {
             var input = ReadInput();
 
-            int Execute()
+            Assert.Equal(184122457, Problem1(input));
+        }
+
+        private static int Problem2(string input)
+        {
+            var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)");
+            var x = r.Match(input);
+
+            var result = 0;
+
+            bool apply = true;
+
+            while (x.Success)
             {
-                var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)");
-                var x = r.Match(input);
-
-                var result = 0;
-
-                while (x.Success)
+                if (x.Value == "do()")
                 {
-                    result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
-                    x = x.NextMatch();
+                    apply = true;
+                }
+                else if (x.Value == "don't()")
+                {
+                    apply = false;
+                }
+                else
+                {
+                    if (apply)
+                    {
+                        result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
+                    }
                 }
 
-                return result;
+                x = x.NextMatch();
             }
 
-            Assert.Equal(184122457, Execute());
+            return result;
         }
 
         [Fact]
@@ -51,40 +84,7 @@ namespace Solutions.Event2024
         {
             var input = ReadInput();
 
-            int Execute()
-            {
-                var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)");
-                var x = r.Match(input);
-
-                var result = 0;
-
-                bool apply = true;
-
-                while (x.Success)
-                {
-                    if (x.Value == "do()")
-                    {
-                        apply = true;
-                    }
-                    else if (x.Value == "don't()")
-                    {
-                        apply = false;
-                    }
-                    else
-                    {
-                        if (apply)
-                        {
-                            result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
-                        }
-                    }
-
-                    x = x.NextMatch();
-                }
-
-                return result;
-            }
-
-            Assert.Equal(107862689, Execute());
+            Assert.Equal(107862689, Problem2(input));
         }
 
 
@@ -93,66 +93,17 @@ namespace Solutions.Event2024
         public void FirstStarExample()
         {
             string input = "xmul(2,4)%&mul[3,7]!@^do_not_mul(5,5)+mul(32,64]then(mul(11,8)mul(8,5))";
-
-            int Execute()
-            {
-                var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)");
-                var x = r.Match(input);
-
-                var result = 0;
-
-                while (x.Success)
-                {
-                    result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
-                    x = x.NextMatch();
-                }
-
-                return result;
-            }
-
-            Assert.Equal(161, Execute());
+            
+            Assert.Equal(161, Problem1(input));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            string input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";
+            string input = "xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))";           
 
-            int Execute()
-            {
-                var r = new Regex(@"mul\((\d{1,3}),(\d{1,3})\)|do\(\)|don't\(\)");
-                var x = r.Match(input);
-
-                var result = 0;
-
-                bool apply = true;
-
-                while (x.Success)
-                {
-                    if (x.Value == "do()")
-                    {
-                        apply = true;
-                    }
-                    else if (x.Value == "don't()")
-                    {
-                        apply = false;
-                    } 
-                    else
-                    {
-                        if (apply)
-                        {
-                            result += int.Parse(x.Groups[1].Value) * int.Parse(x.Groups[2].Value);
-                        }
-                    }
-                    
-                    x = x.NextMatch();
-                }
-
-                return result;
-            }
-
-            Assert.Equal(48, Execute());
+            Assert.Equal(48, Problem2(input));
         }
     }
 }
