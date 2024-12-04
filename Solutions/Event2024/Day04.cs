@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -8,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 4: Phrase ---
+    // --- Day 4: Ceres Search ---
     public class Day04
     {
         private readonly ITestOutputHelper output;
@@ -34,217 +35,100 @@ namespace Solutions.Event2024
             return map;
         }
 
-
-        public static int CountRowForward(char[,] map)
+        private static char SafeRead(char[,] map, int row, int colum)
         {
-            bool IsXmas(int row, int column)
-            {
-                return 
-                    map[row, column] == 'X' && 
-                    map[row, column + 1] == 'M' && 
-                    map[row, column + 2] == 'A' && 
-                    map[row, column + 3] == 'S';
-            }
+            var rows = map.GetLength(0);
+            var columns = map.GetLength(1);
 
-            var count = 0;
+            bool outOfBounds = row < 0 || row >= rows || colum < 0 || colum >= columns;
 
-            for (var row = 0; row < map.GetLength(0); row++)
-            {
-                for (var column = 0; column < map.GetLength(1)-3; column++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
-        }
-        public static int CountRowBackward(char[,] map)
-        {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'S' &&
-                    map[row, column + 1] == 'A' &&
-                    map[row, column + 2] == 'M' &&
-                    map[row, column + 3] == 'X';
-            }
-
-            var count = 0;
-
-            for (var row = 0; row < map.GetLength(0); row++)
-            {
-                for (var column = 0; column < map.GetLength(1) - 3; column++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
+            return outOfBounds ? '.' : map[row, colum];
         }
 
-        public static int CountColumnForward(char[,] map)
+        public static IEnumerable<char[]> AllDirections(char[,] map, string word)
         {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'X' &&
-                    map[row + 1, column] == 'M' &&
-                    map[row + 2, column] == 'A' &&
-                    map[row + 3, column] == 'S';
-            }
+            var rows = map.GetLength(0);
+            var columns = map.GetLength(1);
+            var wordLength = word.Length;
 
-            var count = 0;
-
-            for (var column = 0; column < map.GetLength(1); column++)
+            for (var r = 0; r < rows; r++)
             {
-                for (var row = 0; row < map.GetLength(0) - 3; row++)
+                for (var c = 0; c < columns; c++)
                 {
-                    if (IsXmas(row, column))
+                    char[] horizontal = new char[wordLength];
+                    char[] vertical = new char[wordLength];
+                    char[] backslash = new char[wordLength];
+                    char[] slash = new char[wordLength];
+
+                    for (var i = 0; i < wordLength; i++)
                     {
-                        count++;
+                        horizontal[i] = SafeRead(map, r, c + i);
+                        vertical[i] = SafeRead(map, r + i, c);
+                        backslash[i] = SafeRead(map, r + i, c + i);
+                        slash[i] = SafeRead(map, r + i, c - i);
                     }
+                    yield return horizontal;
+                    yield return vertical;
+                    yield return backslash;
+                    yield return slash;
                 }
             }
-
-            return count;
-        }
-        public static int CountColumnBackward(char[,] map)
-        {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'S' &&
-                    map[row + 1, column] == 'A' &&
-                    map[row + 2, column] == 'M' &&
-                    map[row + 3, column] == 'X';
-            }
-
-            var count = 0;
-
-            for (var column = 0; column < map.GetLength(1); column++)
-            {
-                for (var row = 0; row < map.GetLength(0) - 3; row++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
         }
 
-        public static int CountDiagonalForwardRight(char[,] map)
+        private static bool IsXmas(char[] cs)
         {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'X' &&
-                    map[row + 1, column + 1] == 'M' &&
-                    map[row + 2, column + 2] == 'A' &&
-                    map[row + 3, column + 3] == 'S';
-            }
-
-            var count = 0;
-
-            for (var row = 0; row < map.GetLength(0) - 3; row++)
-            {
-                for (var column = 0; column < map.GetLength(1) - 3; column++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
+            return new string(cs) == "XMAS" || new string(cs) == "SAMX";
         }
 
-        public static int CountDiagonalForwardLeft(char[,] map)
+        public static IEnumerable<(char[], char[])> XDirections(char[,] map, string word)
         {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'X' &&
-                    map[row + 1, column - 1] == 'M' &&
-                    map[row + 2, column - 2] == 'A' &&
-                    map[row + 3, column - 3] == 'S';
-            }
+            var rows = map.GetLength(0);
+            var columns = map.GetLength(1);
+            var wordLength = word.Length;
 
-            var count = 0;
-
-            for (var row = 0; row < map.GetLength(0) - 3; row++)
+            for (var r = 0; r < rows; r++)
             {
-                for (var column = 3; column < map.GetLength(1); column++)
+                for (var c = 0; c < columns; c++)
                 {
-                    if (IsXmas(row, column))
+                    char[] backslash = new char[wordLength];
+                    char[] slash = new char[wordLength];
+
+                    for (var i = 0; i < wordLength; i++)
                     {
-                        count++;
+                        backslash[i] = SafeRead(map, r + i, c + i);
+                        slash[i] = SafeRead(map, r + i, c + wordLength - 1 - i);
                     }
+
+                    yield return (backslash, slash);
                 }
             }
-
-            return count;
         }
-        public static int CountDiagonalBackwardRight(char[,] map)
+
+        private static bool IsMas((char[] slash, char[] backslash) x)
         {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'S' &&
-                    map[row + 1, column - 1] == 'A' &&
-                    map[row + 2, column - 2] == 'M' &&
-                    map[row + 3, column - 3] == 'X';
-            }
+            string slash = new string(x.slash);
+            string backslash = new string(x.backslash);
 
-            var count = 0;
+            bool slashMas = slash == "MAS";
+            bool slashSam = slash == "SAM";
+            bool backslashMas = backslash == "MAS";
+            bool backslashSam = backslash == "SAM";
 
-            for (var row = 0; row < map.GetLength(0) - 3; row++)
-            {
-                for (var column = 3; column < map.GetLength(1); column++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
+            return slashMas && (backslashMas || backslashSam) || slashSam && (backslashMas || backslashSam);
         }
-        public static int CountDiagonalBackwardLeft(char[,] map)
+
+        public int Problem1(IList<string> input)
         {
-            bool IsXmas(int row, int column)
-            {
-                return
-                    map[row, column] == 'S' &&
-                    map[row + 1, column + 1] == 'A' &&
-                    map[row + 2, column + 2] == 'M' &&
-                    map[row + 3, column + 3] == 'X';
-            }
+            var map = Parse(input);
 
-            var count = 0;
+            return AllDirections(map, "XMAS").Count(IsXmas);
+        }
 
-            for (var row = 0; row < map.GetLength(0) - 3; row++)
-            {
-                for (var column = 0; column < map.GetLength(1) - 3; column++)
-                {
-                    if (IsXmas(row, column))
-                    {
-                        count++;
-                    }
-                }
-            }
+        public int Problem2(IList<string> input)
+        {
+            var map = Parse(input);
 
-            return count;
+            return XDirections(map, "MAS").Count(IsMas);
         }
 
         [Fact]
@@ -253,78 +137,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            var map = Parse(input);
-
-            int Execute()
-            {
-                return CountRowForward(map) +
-                    CountRowBackward(map) +
-                    CountColumnForward(map) +
-                    CountColumnBackward(map) +
-                    CountDiagonalForwardRight(map) +
-                    CountDiagonalForwardLeft(map) +
-                    CountDiagonalBackwardRight(map) +
-                    CountDiagonalBackwardLeft(map);
-            }
-
-            Assert.Equal(-1, Execute());
-        }
-
-
-        public static int CountXmas(char[,] map)
-        {
-            bool IsDiagonalRightForward(int row, int column)
-            {
-                return
-                    map[row, column] == 'M' &&
-                    map[row + 1, column + 1] == 'A' &&
-                    map[row + 2, column + 2] == 'S';
-            }
-
-            bool IsDiagonalLeftForward(int row, int column)
-            {
-                return
-                    map[row, column + 2] == 'M' &&
-                    map[row + 1, column + 1] == 'A' &&
-                    map[row + 2, column] == 'S';
-            }
-
-
-            bool IsDiagonalLeftBackward(int row, int column)
-            {
-                return
-                    map[row, column] == 'S' &&
-                    map[row + 1, column + 1] == 'A' &&
-                    map[row + 2, column + 2] == 'M';
-            }
-
-            bool IsDiagonalRightBackward(int row, int column)
-            {
-                return
-                    map[row, column + 2] == 'S' &&
-                    map[row + 1, column + 1] == 'A' &&
-                    map[row + 2, column] == 'M';
-            }
-
-            var count = 0;
-
-            for (var row = 0; row < map.GetLength(0) - 2; row++)
-            {
-                for (var column = 0; column < map.GetLength(1) - 2; column++)
-                {
-                    bool x1 = IsDiagonalRightForward(row, column); //   \
-                    bool x2 = IsDiagonalLeftForward(row, column); //    /
-                    bool x3 = IsDiagonalLeftBackward(row, column); //   \
-                    bool x4 = IsDiagonalRightBackward(row, column); //  /
-
-                    if ((x1 && x2) || (x1 && x4) || (x3 && x2) || (x3 && x4))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
+            Assert.Equal(2593, Problem1(input));
         }
 
         [Fact]
@@ -333,72 +146,35 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            var map = Parse(input);
-
-            int Execute()
-            {
-                return CountXmas(map);
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(1950, Problem2(input));
         }
 
+        private static List<string> example =
+            [
+                "MMMSXXMASM",
+                "MSAMXMSMSA",
+                "AMXSXMAAMM",
+                "MSAMASMSMX",
+                "XMASAMXAMM",
+                "XXAMMXXAMA",
+                "SMSMSASXSS",
+                "SAXAMASAAA",
+                "MAMMMXMMMM",
+                "MXMXAXMASX",
+            ];
 
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            List<string> input = 
-                [
-                    "MMMSXXMASM",
-                    "MSAMXMSMSA",
-                    "AMXSXMAAMM",
-                    "MSAMASMSMX",
-                    "XMASAMXAMM",
-                    "XXAMMXXAMA",
-                    "SMSMSASXSS",
-                    "SAXAMASAAA",
-                    "MAMMMXMMMM",
-                    "MXMXAXMASX",
-                ];
-
-
-
-            var map = Parse(input);
-
-            int Execute()
-            {
-                return CountRowForward(map) +
-                    CountRowBackward(map) +
-                    CountColumnForward(map) +
-                    CountColumnBackward(map) +
-                    CountDiagonalForwardRight(map) +
-                    CountDiagonalForwardLeft(map) +
-                    CountDiagonalBackwardRight(map) +
-                    CountDiagonalBackwardLeft(map);
-            }
-
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(18, Problem1(example));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            string inputText = "";
-            List<string> inputLines = 
-                [
-                    "", 
-                    ""
-                ];
-
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(9, Problem2(example));
         }
     }
 }
