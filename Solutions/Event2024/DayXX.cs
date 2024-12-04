@@ -46,18 +46,17 @@ namespace Solutions.Event2024
             Assert.Equal(-1, Execute());
         }
 
+        private string exampleText = "";
+        private List<string> exampleInput =
+            [
+                "",
+                ""
+            ];
 
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            string inputText = "";
-            List<string> inputLines = 
-                [
-                    "",
-                    ""
-                ];
-
             int Execute()
             {
                 return 0;
@@ -70,13 +69,6 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            string inputText = "";
-            List<string> inputLines = 
-                [
-                    "", 
-                    ""
-                ];
-
             int Execute()
             {
                 return 0;
