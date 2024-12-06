@@ -1,16 +1,19 @@
-﻿using System;
+﻿using Shared.MapGeometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Security;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
+using static Solutions.Event2018.Day04;
 using static Solutions.InputReader;
 
 
 namespace Solutions.Event2024
 {
-    // --- Day X: Phrase ---
+    // --- Day 6: Guard Gallivant ---
     public class Day06
     {
         private readonly ITestOutputHelper output;
@@ -19,7 +22,6 @@ namespace Solutions.Event2024
         {
             this.output = output;
         }
-
 
         public (Dictionary<(int, int), bool>, (int, int), (int, int)) Parse(IList<string> input)
         {
@@ -53,119 +55,103 @@ namespace Solutions.Event2024
             return guard.x >= 0 && guard.y >= 0 && guard.x <= bounds.x && guard.y <= bounds.y;
         }
 
-        public int DistinctPositions(Dictionary<(int, int), bool> map, (int, int) bounds, (int, int)initialGuard)
+        private (int x, int y) Next((int x, int y) guard, int direction) => direction switch
+        {
+            0 => (guard.x, guard.y - 1),
+            1 => (guard.x + 1, guard.y),
+            2 => (guard.x, guard.y + 1),
+            3 => (guard.x - 1, guard.y),
+            _ => throw new InvalidOperationException($"Invalid direction: {direction}")
+        };
+
+        public HashSet<(int, int)> DistinctPositions(Dictionary<(int, int), bool> map, (int, int) bounds, (int, int)initialGuard)
         {
             (int x, int y) guard = initialGuard;
             int direction = 0;
 
             var visited = new HashSet<(int, int)>();
 
-            void Turn()
-            {
-                direction++;
-                if (direction == 4)
-                {
-                    direction = 0;
-                }
-            }
-
-
-            (int x, int y) Next() => direction switch
-            {
-                0 => (guard.x, guard.y - 1),
-                1 => (guard.x + 1, guard.y),
-                2 => (guard.x, guard.y + 1),
-                3 => (guard.x - 1, guard.y),
-            };
-
             while (InBounds(bounds, guard))
             {
                 visited.Add(guard);
 
-                var next = Next();
+                var next = Next(guard, direction);
                 
                 while (map.ContainsKey(next))
                 {
-                    Turn();
-                    next = Next();
+                    direction = ++direction % 4;
+                    next = Next(guard, direction);
                 }
 
                 guard = next;
             }
 
-            return visited.Count;
+            return visited;
         }
         public int Loops(Dictionary<(int, int), bool> map, (int x, int y) bounds, (int, int) initialGuard)
         {
-            int counter = 0;
-            List<(int x, int y)> obstacles = new List<(int, int)>();
+            int obstacles = 0;
 
+            var guardTrail = DistinctPositions(map, bounds, initialGuard);
+            
             for (int row = 0; row <= bounds.x; row++)
             {
                 for (int column = 0; column <= bounds.y; column++)
                 {
-                    if ((row, column) == (9,7))
-                    {
-                        Console.WriteLine();
-                    }
+                    var obstacle = (row, column);
 
-                    if ((row, column) == initialGuard || map.ContainsKey((row, column)))
+                    if (obstacle == initialGuard || map.ContainsKey(obstacle) || !guardTrail.Contains((row, column)))
                     {
                         continue;
                     }
 
-                    var oMap = new Dictionary<(int, int), bool>(map)
+                    Dictionary<(int, int), bool> oMap = new (map)
                     {
-                        { (row, column), true }
+                        { obstacle, true }
                     };
 
                     (int x, int y) guard = initialGuard;
+
                     int direction = 0;
 
-                    var visited = 1;
-
-                    void Turn()
-                    {
-                        direction++;
-                        if (direction == 4)
-                        {
-                            direction = 0;
-                        }
-                    }
-
-                    (int x, int y) Next() => direction switch
-                    {
-                        0 => (guard.x, guard.y - 1),
-                        1 => (guard.x + 1, guard.y),
-                        2 => (guard.x, guard.y + 1),
-                        3 => (guard.x - 1, guard.y),
-                    };
+                    HashSet<(int x, int y, int direction)> visited = new();
 
                     while (InBounds(bounds, guard))
                     {
-                        visited++;
+                        if (!visited.Add((guard.x, guard.y, direction)))
+                        {
+                            obstacles++;
+                            break;
+                        }
 
-                        var next = Next();
+                        var next = Next(guard, direction);
 
                         while (oMap.ContainsKey(next))
                         {
-                            Turn();
-                            next = Next();
+                            direction = ++direction % 4;
+                            next = Next(guard, direction);
                         }
 
                         guard = next;
-
-                        if (visited > bounds.x * bounds.y)
-                        {
-                            counter++;
-                            obstacles.Add((row, column));
-                            break;
-                        }
                     }
                 }
             }
 
-            return counter;
+            return obstacles;
+        }
+
+        private int Problem1(IList<string> input)
+        {
+            var (map, bounds, guard) = Parse(input);
+            
+            return DistinctPositions(map, bounds, guard).Count;
+        }
+
+        private int Problem2(IList<string> input)
+        {
+            var (map, bounds, guard) = Parse(input);
+
+            return Loops(map, bounds, guard);
         }
 
         [Fact]
@@ -174,14 +160,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            var (map, bounds, guard) = Parse(input);
-
-            int Execute()
-            {
-                return DistinctPositions(map, bounds, guard);
-            }
-
-            Assert.Equal(4752, Execute());
+            Assert.Equal(4752, Problem1(input));
         }
 
         [Fact]
@@ -190,14 +169,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            var (map, bounds, guard) = Parse(input);
-
-            int Execute()
-            {
-                return Loops(map, bounds, guard);
-            }
-
-            Assert.Equal(1719, Execute()); // 1720 too high
+            Assert.Equal(1719, Problem2(input));
         }
 
         private string exampleText = "";
@@ -219,27 +191,14 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            var (map, bounds, guard) = Parse(exampleInput);
-
-            int Execute()
-            {
-                return DistinctPositions(map, bounds, guard);
-            }
-            Assert.Equal(41, Execute());
+            Assert.Equal(41, Problem1(exampleInput));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            var (map, bounds, guard) = Parse(exampleInput);
-
-            int Execute()
-            {
-                return Loops(map, bounds, guard);
-            }
-
-            Assert.Equal(6, Execute());
+            Assert.Equal(6, Problem2(exampleInput));
         }
     }
 }
