@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
+using static Solutions.Event2024.Day07;
 using static Solutions.InputReader;
 
 
@@ -61,18 +62,22 @@ namespace Solutions.Event2024
                 foreach (var combination in combinationCache[calibration.numbers.Count])
                 {
                     long first = calibration.numbers.First();
+                    long total = first;
+                    int op = 0;
 
-                    var (total, _) = calibration.numbers.Skip(1).Aggregate((first, combination),
-                        (state, number) =>
+                    foreach (var second in calibration.numbers.Skip(1))
+                    {
+                        var operation = combination[op++];
+
+                        total = methods[operation](total, second);
+
+                        first = second;
+
+                        if (total > calibration.result)
                         {
-                            var (total, operators) = state;
-
-                            var op = operators.First();
-
-                            total = methods[op](total, number);
-
-                            return (total, operators.Skip(1).ToList());
-                        });
+                            break;
+                        }
+                    }
 
                     totals.Add(total);
 
