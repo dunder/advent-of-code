@@ -9,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 8: Phrase ---
+    // --- Day 8: Resonant Collinearity ---
     public class Day08
     {
         private readonly ITestOutputHelper output;
@@ -89,7 +89,6 @@ namespace Solutions.Event2024
                                 break;
                             }
                         }
-
                     }
 
                     i++;
