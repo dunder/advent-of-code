@@ -1,13 +1,8 @@
-﻿using Shared.MapGeometry;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Security;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using static Solutions.Event2018.Day04;
 using static Solutions.InputReader;
 
 

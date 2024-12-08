@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using static Solutions.Event2024.Day07;
 using static Solutions.InputReader;
 
 
@@ -49,10 +48,30 @@ namespace Solutions.Event2024
 
             var valid = new List<long>();
 
+            List<List<int>> SortCombinations(Variations<int> variations)
+            {
+                var xs = variations.Select(x => x.ToList()).ToList();
+
+                xs.Sort(delegate (List<int> x, List<int> y)
+                {
+                    var difference = x.Zip(y, (first, second) => (first, second)).FirstOrDefault((x => x.first != x.second));
+                    if (difference == default(ValueTuple<int, int>))
+                    {
+                        return 0;
+                    }
+                    return difference.first - difference.second;
+                    
+                });
+
+                return xs;
+            }
+
+            // optimization - sort according to method number, higher method numbers assumed to produce larger numbers
+
             var combinationCache = calibrations
                 .Select(c => c.numbers.Count)
                 .Distinct()
-                .Select(count => (count, new Variations<int>(Enumerable.Range(1, methods.Count).ToList(), count, GenerateOption.WithRepetition)))
+                .Select(count => (count, SortCombinations(new Variations<int>(Enumerable.Range(1, methods.Count).ToList(), count, GenerateOption.WithRepetition))))
                 .ToDictionary();
 
             foreach (var calibration in calibrations)
@@ -73,6 +92,7 @@ namespace Solutions.Event2024
 
                         first = second;
 
+                        // optimization
                         if (total > calibration.result)
                         {
                             break;
@@ -81,6 +101,7 @@ namespace Solutions.Event2024
 
                     totals.Add(total);
 
+                    // optimization
                     if (calibration.result == total)
                     {
                         break;
