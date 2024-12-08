@@ -48,30 +48,16 @@ namespace Solutions.Event2024
 
             var valid = new List<long>();
 
-            List<List<int>> SortCombinations(Variations<int> variations)
+            // optimization iterating list is faster
+            List<List<int>> ToList(Variations<int> variations)
             {
-                var xs = variations.Select(x => x.ToList()).ToList();
-
-                xs.Sort(delegate (List<int> x, List<int> y)
-                {
-                    var difference = x.Zip(y, (first, second) => (first, second)).FirstOrDefault((x => x.first != x.second));
-                    if (difference == default(ValueTuple<int, int>))
-                    {
-                        return 0;
-                    }
-                    return difference.first - difference.second;
-                    
-                });
-
-                return xs;
+                return variations.Select(x => x.ToList()).ToList();
             }
-
-            // optimization - sort according to method number, higher method numbers assumed to produce larger numbers
 
             var combinationCache = calibrations
                 .Select(c => c.numbers.Count)
                 .Distinct()
-                .Select(count => (count, SortCombinations(new Variations<int>(Enumerable.Range(1, methods.Count).ToList(), count, GenerateOption.WithRepetition))))
+                .Select(count => (count, ToList(new Variations<int>(Enumerable.Range(1, methods.Count).ToList(), count, GenerateOption.WithRepetition))))
                 .ToDictionary();
 
             foreach (var calibration in calibrations)
