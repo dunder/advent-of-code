@@ -1,5 +1,4 @@
-﻿using Facet.Combinatorics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -48,57 +47,40 @@ namespace Solutions.Event2024
 
             var valid = new List<long>();
 
-            // optimization iterating list is faster
-            List<List<int>> ToList(Variations<int> variations)
+            List<long> Compute(List<int> numbers, List<long> totals, long result)
             {
-                return variations.Select(x => x.ToList()).ToList();
-            }
+                if (!numbers.Any())
+                {
+                    return totals;
+                }
 
-            var combinationCache = calibrations
-                .Select(c => c.numbers.Count)
-                .Distinct()
-                .Select(count => (count, ToList(new Variations<int>(Enumerable.Range(1, methods.Count).ToList(), count, GenerateOption.WithRepetition))))
-                .ToDictionary();
+                var second = numbers.First();
+
+                // optimization
+                if (second > result)
+                {
+                    return totals;
+                }
+
+                var newNumbers = numbers.Skip(1).ToList();
+                var newTotals = methods.Values
+                    .Select(method => totals.Select(total => method(total, second)).ToList())
+                    .SelectMany(x => x)
+                    .ToList();
+
+                return Compute(newNumbers, newTotals, result);
+            }
 
             foreach (var calibration in calibrations)
             {
-                var totals = new List<long>();
+                var totals = Compute(calibration.numbers.Skip(1).ToList(), [calibration.numbers.First()], calibration.result);
 
-                foreach (var combination in combinationCache[calibration.numbers.Count])
-                {
-                    long first = calibration.numbers.First();
-                    long total = first;
-                    int op = 0;
-
-                    foreach (var second in calibration.numbers.Skip(1))
-                    {
-                        var operation = combination[op++];
-
-                        total = methods[operation](total, second);
-
-                        first = second;
-
-                        // optimization
-                        if (total > calibration.result)
-                        {
-                            break;
-                        }
-                    }
-
-                    totals.Add(total);
-
-                    // optimization
-                    if (calibration.result == total)
-                    {
-                        break;
-                    }
-                }
-
-                if (totals.Any(x => x == calibration.result))
+                if (totals.Any(total => total == calibration.result))
                 {
                     valid.Add(calibration.result);
                 }
             }
+
             return valid.Sum();
         }
 
