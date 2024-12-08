@@ -4,13 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using static Solutions.Event2018.Day13;
 using static Solutions.InputReader;
 
 
 namespace Solutions.Event2024
 {
-    // --- Day 5: Phrase ---
+    // --- Day 5: Print Queue ---
     public class Day05
     {
         private readonly ITestOutputHelper output;
@@ -20,11 +19,9 @@ namespace Solutions.Event2024
             this.output = output;
         }
 
-        public record Ordering(int First, int Second);
-
-        public (List<Ordering> orderings, List<List<int>> updates) Parse(IList<string> input)
+        public (List<(int, int)> rules, List<List<int>> updates) Parse(IList<string> input)
         {
-            List<Ordering> orderings = new List<Ordering>();
+            List<(int, int)> rules = new List<(int, int)>();
             List<List<int>> updates = new List<List<int>>();
 
             foreach (var line in input.Where(line => !string.IsNullOrEmpty(line)))
@@ -35,7 +32,7 @@ namespace Solutions.Event2024
                     var first = int.Parse(parts[0]);
                     var second = int.Parse(parts[1]);
 
-                    orderings.Add(new Ordering(first, second));
+                    rules.Add((first, second));
                 }
                 else
                 {
@@ -43,67 +40,50 @@ namespace Solutions.Event2024
                 }
             }
 
-            return (orderings, updates);
+            return (rules, updates);
         }
 
-        private List<List<int>> Sorted(List<Ordering> orderings, List<List<int>> updates)
+        private List<List<int>> Sorted(List<(int first, int second)> rules, List<List<int>> updates)
         {
-            var sorted = new List<List<int>>();
+            return updates.Where(update => rules.All(rule =>
+                {
+                    int f = update.IndexOf(rule.first);
+                    int s = update.IndexOf(rule.second);
 
-            foreach (var update in updates)
+                return f < 0 || s < 0 || f < s;
+                })).ToList();
+        }
+
+        private List<List<int>> Unsorted(List<(int first, int second)> rules, List<List<int>> updates)
+        {
+            return updates.Where(update => rules.Any(rule =>
             {
-                bool isSorted = true;
-                foreach (var ordering in orderings)
-                {
-                    int f = update.IndexOf(ordering.First);
-                    int s = update.IndexOf(ordering.Second);
+                int f = update.IndexOf(rule.first);
+                int s = update.IndexOf(rule.second);
 
-                    if (f < 0 || s  < 0)
-                    {
-                        continue;
-                    }
-
-                    isSorted = f < s;
-
-                    if (!isSorted)
-                    {
-                        break;
-                    }
-                }
-                if (isSorted)
-                {
-                    sorted.Add(update);
-                }
-            }
-
-            return sorted;
+                return f >= 0 && s >= 0 && f > s;
+            })).ToList();
         }
 
-        private List<List<int>> Sort(List<Ordering> orderings, List<List<int>> updates)
+        private List<List<int>> Sort(List<(int, int)> rules, List<List<int>> updates)
         {
-            var sorted = new List<List<int>>();
-
             foreach (var update in updates)
             {
                 update.Sort(delegate (int x, int y)
                 {
-                    foreach (var ordering in orderings)
+                    foreach (var rule in rules)
                     {
-                        if (ordering.First == x && ordering.Second == y || ordering.First == y && ordering.Second == x)
+                        if ((x, y) ==  rule || (y, x) == rule)
                         {
-                            // 6|7 - 1
-                            // 6,7 - 1
-
-                            var diff = x - y;
-                            var xdiff = ordering.First - ordering.Second;
-
-                            return xdiff * diff;
+                            var (first, second) = rule;
+                            return (first - second) * (x - y);
                         }
                     }
 
                     return 0;
                 });
             }
+
             return updates;
         }
 
@@ -112,22 +92,30 @@ namespace Solutions.Event2024
             return updates[updates.Count / 2];
         }
 
+        private int Problem1(IList<string> input)
+        {
+            var printerData = Parse(input);
+
+            return Sorted(printerData.rules, printerData.updates).Select(Middle).Sum();
+        }
+
+        private int Problem2(IList<string> input)
+        {
+            var printerData = Parse(input);
+
+            var unsortedUpdates = Unsorted(printerData.rules, printerData.updates);
+            var unsortedUpdatesSorted = Sort(printerData.rules, unsortedUpdates);
+
+            return unsortedUpdatesSorted.Select(Middle).Sum();
+        }
+
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarTest()
         {
             var input = ReadLineInput();
 
-            int Execute()
-            {
-                var x = Parse(input);
-
-                var result = Sorted(x.orderings, x.updates);
-                var sum = result.Select(r => Middle(r)).Sum();
-                return sum;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(6034, Problem1(input));
         }
 
         [Fact]
@@ -136,20 +124,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            int Execute()
-            {
-                var x = Parse(input);
-
-                var result = Sorted(x.orderings, x.updates);
-
-                var unsorted = x.updates.Where(x => !result.Contains(x)).ToList();
-
-                var sorted = Sort(x.orderings, unsorted);
-                var sum = sorted.Select(r => Middle(r)).Sum();
-                return sum;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(6305, Problem2(input));
         }
 
         private string exampleText = "";
@@ -189,24 +164,14 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(143, Problem1(exampleInput));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(123, Problem2(exampleInput));
         }
     }
 }
