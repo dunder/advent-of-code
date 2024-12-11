@@ -1,13 +1,10 @@
-﻿using MoreLinq;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
-using Shared.Tree;
 using static Solutions.InputReader;
-using Shared.Extensions;
 
 
 namespace Solutions.Event2024
@@ -47,6 +44,7 @@ namespace Solutions.Event2024
                     }
                 }
             }
+
             return (map, trailHeads);
         }
 
@@ -70,7 +68,7 @@ namespace Solutions.Event2024
             return ascending.ToList();
         }
 
-        private static void FindTrail((int row, int column) trailHead, int[,] map, (int rowBound, int columnBound) bounds, HashSet<(int row, int column)> peaks)
+        private static void FindTrail((int row, int column) trailHead, int[,] map, (int rowBound, int columnBound) bounds, List<(int row, int column)> peaks)
         {
             if (map[trailHead.row, trailHead.column] == 9)
             {
@@ -88,63 +86,37 @@ namespace Solutions.Event2024
             }
         }
 
-        private static void FindTrail2((int row, int column) trailHead, int[,] map, (int rowBound, int columnBound) bounds, List<(int row, int column)> peaks)
+        private static List<List<(int row, int column)>> FindTrails(IList<string> input)
         {
-            if (map[trailHead.row, trailHead.column] == 9)
+            var (map, trailHeads) = Parse(input);
+
+            (int rows, int columns) bounds = (input.Count, input.First().Length);
+
+            List<(int, int)> selected = [trailHeads[0]];
+
+            List<List<(int row, int column)>> allPeaks = new ();
+
+            foreach (var trailHead in trailHeads)
             {
-                peaks.Add(trailHead);
+                List<(int row, int column)> peaks = new();
+
+                FindTrail(trailHead, map, bounds, peaks);
+
+                allPeaks.Add(peaks);
             }
 
-            var neighbors = Neighbors(trailHead, map, bounds);
-
-            foreach (var neighbor in neighbors)
-            {
-                var now = map[trailHead.row, trailHead.column];
-                var next = map[neighbor.row, neighbor.column];
-
-                FindTrail2(neighbor, map, bounds, peaks);
-            }
+            return allPeaks;
         }
 
         private static int Problem1(IList<string> input)
         {
-            var (map, trailHeads) = Parse(input);
-            (int rows, int columns) bounds = (input.Count, input.First().Length);
-
-            List<(int, int)> selected = [trailHeads[0]];
-
-            int score = 0;
-
-            foreach (var trailHead in trailHeads)
-            {
-                var peaks = new HashSet<(int, int)>();
-                FindTrail(trailHead, map, bounds, peaks);
-                score += peaks.Count;
-            }
-            
-            return score;
+            return FindTrails(input).Select(trail => trail.Distinct().Count()).Sum();
         }
 
         private static int Problem2(IList<string> input)
         {
-            var (map, trailHeads) = Parse(input);
-            (int rows, int columns) bounds = (input.Count, input.First().Length);
-
-            List<(int, int)> selected = [trailHeads[0]];
-
-            int score = 0;
-
-            foreach (var trailHead in trailHeads)
-            {
-                var peaks = new List<(int row, int column)>();
-                FindTrail2(trailHead, map, bounds, peaks);
-                score += peaks.Count;
-            }
-
-            return score;
+            return FindTrails(input).Select(trail => trail.Count()).Sum();
         }
-
-
 
         [Fact]
         [Trait("Event", "2024")]
