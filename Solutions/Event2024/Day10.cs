@@ -12,7 +12,7 @@ using Shared.Extensions;
 
 namespace Solutions.Event2024
 {
-    // --- Day 10: Phrase ---
+    // --- Day 10: Hoof It ---
     public class Day10
     {
         private readonly ITestOutputHelper output;
@@ -25,8 +25,8 @@ namespace Solutions.Event2024
         public static (int[,], List<(int row, int column)>) Parse(IList<string> input)
         {
             var trailHeads = new List<(int row, int column)>();
-
             var map = new int[input.Count, input.First().Length];
+
             for (var row = 0; row < input.Count; row++)
             {
                 var line = input[row];
@@ -88,6 +88,24 @@ namespace Solutions.Event2024
             }
         }
 
+        private static void FindTrail2((int row, int column) trailHead, int[,] map, (int rowBound, int columnBound) bounds, List<(int row, int column)> peaks)
+        {
+            if (map[trailHead.row, trailHead.column] == 9)
+            {
+                peaks.Add(trailHead);
+            }
+
+            var neighbors = Neighbors(trailHead, map, bounds);
+
+            foreach (var neighbor in neighbors)
+            {
+                var now = map[trailHead.row, trailHead.column];
+                var next = map[neighbor.row, neighbor.column];
+
+                FindTrail2(neighbor, map, bounds, peaks);
+            }
+        }
+
         private static int Problem1(IList<string> input)
         {
             var (map, trailHeads) = Parse(input);
@@ -105,24 +123,6 @@ namespace Solutions.Event2024
             }
             
             return score;
-        }
-
-        private static void FindTrail2((int row, int column) trailHead, int[,] map, (int rowBound, int columnBound) bounds, List<(int row, int column)> peaks)
-        {
-            if (map[trailHead.row, trailHead.column] == 9)
-            {
-                peaks.Add(trailHead);
-            }
-
-            var neighbors = Neighbors(trailHead, map, bounds);
-
-            foreach (var neighbor in neighbors)
-            {
-                var now = map[trailHead.row, trailHead.column];
-                var next = map[neighbor.row, neighbor.column];
-
-                FindTrail2(neighbor, map, bounds, peaks);
-            }
         }
 
         private static int Problem2(IList<string> input)
@@ -152,7 +152,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(482, Problem1(input));
         }
 
         [Fact]
@@ -161,7 +161,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(1094, Problem2(input));
         }
 
         private string exampleText = "";
@@ -220,16 +220,43 @@ namespace Solutions.Event2024
 
         [Fact]
         [Trait("Event", "2024")]
-        public void FirstStarExample()
+        public void FirstStarExample1()
         {
-            Assert.Equal(-1, Problem1(exampleInputLarge));
+            Assert.Equal(1, Problem1(exampleInput));
+        }
+        [Fact]
+        [Trait("Event", "2024")]
+        public void FirstStarExample2()
+        {
+            Assert.Equal(2, Problem1(exampleInput2));
+        }
+
+        [Fact]
+        [Trait("Event", "2024")]
+        public void FirstStarExample3()
+        {
+            Assert.Equal(4, Problem1(exampleInput3));
+        }
+
+        [Fact]
+        [Trait("Event", "2024")]
+        public void FirstStarExample4()
+        {
+            Assert.Equal(3, Problem1(exampleInput4));
+        }
+
+        [Fact]
+        [Trait("Event", "2024")]
+        public void FirstStarExampleLarge()
+        {
+            Assert.Equal(36, Problem1(exampleInputLarge));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            Assert.Equal(-1, Problem2(exampleInputLarge));
+            Assert.Equal(81, Problem2(exampleInputLarge));
         }
     }
 }
