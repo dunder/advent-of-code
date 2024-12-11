@@ -18,18 +18,23 @@ namespace Solutions.Event2024
             this.output = output;
         }
 
+        private static int Problem1(IList<string> input)
+        {
+            return 0;
+        }
+
+        private static int Problem2(IList<string> input)
+        {
+            return 0;
+        }
+
         [Fact]
         [Trait("Event", "2024")]
         public void FirstStarTest()
         {
             var input = ReadLineInput();
 
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(-1, Problem1(input));
         }
 
         [Fact]
@@ -38,12 +43,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(-1, Problem2(input));
         }
 
         private string exampleText = "";
@@ -57,24 +57,14 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(-1, Problem1(exampleInput));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            int Execute()
-            {
-                return 0;
-            }
-
-            Assert.Equal(-1, Execute());
+            Assert.Equal(-1, Problem2(exampleInput));
         }
     }
 }
