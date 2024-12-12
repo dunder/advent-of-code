@@ -9,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 12: Phrase ---
+    // --- Day 12: Garden Groups ---
     public class Day12
     {
         private readonly ITestOutputHelper output;
@@ -36,10 +36,10 @@ namespace Solutions.Event2024
             return map;
         }
 
-
         private static bool WithinBounds(char[,] map, (int x, int y) location)
         {
             (int x, int y) = location;
+
             return x >= 0 && x < map.GetLength(0) && y >= 0 && y < map.GetLength(1);
         }
 
@@ -47,17 +47,12 @@ namespace Solutions.Event2024
         {
             (int x, int y) = pixel;
 
-            return [
-                (x, y - 1),
-                (x + 1, y),
-                (x, y + 1),
-                (x - 1, y)
-                ];
+            return [(x, y - 1), (x + 1, y), (x, y + 1), (x - 1, y)];
         }
 
         private static HashSet<(int x, int y)> FloodFill(char[,] map, HashSet<(int x, int y)> totalFilled, int x, int y)
         {
-            char crop = map[x, y];
+            char plant = map[x, y];
 
             HashSet<(int x, int y)> filled = new();
             Queue<(int x, int y)> Q = new Queue<(int x, int y)>();
@@ -68,7 +63,7 @@ namespace Solutions.Event2024
             {
                 (int x, int y) = pixel;
 
-                return map[x, y] == crop && !filled.Contains((x, y));
+                return map[x, y] == plant && !filled.Contains((x, y));
             }
 
             while (Q.Count > 0)
@@ -121,32 +116,28 @@ namespace Solutions.Event2024
 
         private static int Sides(char[,] map, HashSet<(int x, int y)> field)
         {
-            var byRow = field.GroupBy(f => f.y);
-
             var any = field.First();
-
-            var crop = map[any.x, any.y];
+            var plant = map[any.x, any.y];
 
             bool OutsideField((int x, int y) p)
             {
                 (int x, int y) = p;
-                return Outside(map, p) || map[x, y] != crop;
+                return Outside(map, p) || map[x, y] != plant;
             }
 
             int count = 0;
 
-            foreach (var row in byRow)
+            foreach (var row in (IEnumerable<IGrouping<int, (int x, int y)>>)field.GroupBy(f => f.y))
             {
-                var up = row.Where(r => OutsideField((r.x, r.y - 1))).Select(r => r.x).OrderBy(x => x).ToList();                
+                var up = row.Where(r => OutsideField((r.x, r.y - 1))).Select(r => r.x).OrderBy(x => x).ToList();
                 var down = row.Where(r => OutsideField((r.x, r.y + 1))).Select(r => r.x).OrderBy(x => x).ToList();
                 
                 count += CountContinous(up);
                 count += CountContinous(down);
             }
 
-            var byColumn = field.GroupBy(f => f.x);
 
-            foreach (var column in byColumn)
+            foreach (var column in (IEnumerable<IGrouping<int, (int x, int y)>>)field.GroupBy(f => f.x))
             {
                 var right = column.Where(r => OutsideField((r.x + 1, r.y))).Select(r => r.y).OrderBy(x => x).ToList();
                 var left = column.Where(r => OutsideField((r.x - 1, r.y))).Select(r => r.y).OrderBy(x => x).ToList();
@@ -158,13 +149,13 @@ namespace Solutions.Event2024
             return count;
         }
 
-        private static long Problem1(IList<string> input)
+        private static (List<HashSet<(int x, int y)>>, char[,]) FieldGroups(IList<string> input)
         {
             var map = Parse(input);
 
             var fields = new List<HashSet<(int x, int y)>>();
             var totalFilled = new HashSet<(int x, int y)>();
-            
+
             for (int y = 0; y < map.GetLength(1); y++)
             {
                 for (int x = 0; x < map.GetLength(0); x++)
@@ -182,37 +173,23 @@ namespace Solutions.Event2024
                 }
             }
 
-            var result = fields.Select(f => f.Count * Perimeter(map, f)).Sum();
+            return (fields, map);
+        }
+
+        private static long Problem1(IList<string> input)
+        {
+            (List<HashSet<(int x, int y)>> fieldGroups, char[,] map) = FieldGroups(input);
+
+            var result = fieldGroups.Select(f => f.Count * Perimeter(map, f)).Sum();
 
             return result;
         }
 
         private static int Problem2(IList<string> input)
         {
+            (List<HashSet<(int x, int y)>> fieldGroups, char[,] map) = FieldGroups(input);
 
-            var map = Parse(input);
-
-            var fields = new List<HashSet<(int x, int y)>>();
-            var totalFilled = new HashSet<(int x, int y)>();
-
-            for (int y = 0; y < map.GetLength(1); y++)
-            {
-                for (int x = 0; x < map.GetLength(0); x++)
-                {
-                    if (totalFilled.Contains((x, y)))
-                    {
-                        continue;
-                    }
-
-                    var fieldFill = FloodFill(map, totalFilled, x, y);
-
-                    fields.Add(fieldFill);
-
-                    totalFilled.UnionWith(fieldFill);
-                }
-            }
-
-            var result = fields.Select(f => f.Count * Sides(map, f)).Sum();
+            var result = fieldGroups.Select(f => f.Count * Sides(map, f)).Sum();
 
             return result;
         }
@@ -223,7 +200,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(1375476, Problem1(input));
         }
 
         [Fact]
@@ -232,7 +209,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(821372, Problem2(input));
         }
 
         private List<string> exampleInput =
@@ -262,12 +239,12 @@ namespace Solutions.Event2024
 
         private List<string> exampleInput4 =
             [
-"AAAAAA",
-"AAABBA",
-"AAABBA",
-"ABBAAA",
-"ABBAAA",
-"AAAAAA",
+                "AAAAAA",
+                "AAABBA",
+                "AAABBA",
+                "ABBAAA",
+                "ABBAAA",
+                "AAAAAA",
             ];
 
 
