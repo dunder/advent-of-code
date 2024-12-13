@@ -9,11 +9,10 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 13: Phrase ---
+    // --- Day 13: Claw Contraption ---
     public class Day13
     {
         private readonly ITestOutputHelper output;
-
 
         public record Machine(int AX, int AY, int BX, int BY, long PX, long PY);
 
@@ -21,89 +20,28 @@ namespace Solutions.Event2024
         {
             List<Machine> machines = new List<Machine>();
 
-            int AX = 0;
-            int AY = 0;
-
-            int BX = 0;
-            int BY = 0;
-
-            int PX = 0;
-            int PY = 0;
-
             var aRegex = new Regex(@"Button A: X\+(\d+), Y\+(\d+)");
             var bRegex = new Regex(@"Button B: X\+(\d+), Y\+(\d+)");
             var pRegex = new Regex(@"Prize: X=(\d+), Y=(\d+)");
 
-            foreach (var line in input)
+            foreach (var chunk in input.Where(line => !string.IsNullOrWhiteSpace(line)).Chunk(3))
             {
-                if (string.IsNullOrEmpty(line)) continue;
+                var aMatch = aRegex.Match(chunk[0]);
+                var bMatch = bRegex.Match(chunk[1]);
+                var pMatch = pRegex.Match(chunk[2]);
 
-                if (aRegex.IsMatch(line))
-                {
-                    var m = aRegex.Match(line);
-                    AX = int.Parse(m.Groups[1].Value);
-                    AY = int.Parse(m.Groups[2].Value);
-                }
+                int AX = int.Parse(aMatch.Groups[1].Value);
+                int AY = int.Parse(aMatch.Groups[2].Value);
 
-                if (bRegex.IsMatch(line))
-                {
-                    var m = bRegex.Match(line);
-                    BX = int.Parse(m.Groups[1].Value);
-                    BY = int.Parse(m.Groups[2].Value);
-                }
-                if (pRegex.IsMatch(line))
-                {
-                    var m = pRegex.Match(line);
-                    PX = int.Parse(m.Groups[1].Value);
-                    PY = int.Parse(m.Groups[2].Value);
-                    machines.Add(new Machine(AX, AY, BX, BY, PX + offset, PY + offset));
-                }
+                int BX = int.Parse(bMatch.Groups[1].Value);
+                int BY = int.Parse(bMatch.Groups[2].Value);
+
+                int PX = int.Parse(pMatch.Groups[1].Value);
+                int PY = int.Parse(pMatch.Groups[2].Value);
+
+                machines.Add(new Machine(AX, AY, BX, BY, PX + offset, PY + offset));
             }
-            return machines;
-        }
 
-        private static List<Machine> Parse(IList<string> input)
-        {
-            List<Machine> machines = new List<Machine>();
-
-            int AX = 0;
-            int AY = 0;
-
-            int BX = 0;
-            int BY = 0;
-
-            int PX = 0;
-            int PY = 0;
-
-            var aRegex = new Regex(@"Button A: X\+(\d+), Y\+(\d+)");
-            var bRegex = new Regex(@"Button B: X\+(\d+), Y\+(\d+)");
-            var pRegex = new Regex(@"Prize: X=(\d+), Y=(\d+)");
-
-            foreach (var line in input)
-            {
-                if (string.IsNullOrEmpty(line)) continue;
-
-                if (aRegex.IsMatch(line))
-                {
-                    var m = aRegex.Match(line);
-                    AX = int.Parse(m.Groups[1].Value);
-                    AY = int.Parse(m.Groups[2].Value);
-                }
-
-                if (bRegex.IsMatch(line))
-                {
-                    var m = bRegex.Match(line);
-                    BX = int.Parse(m.Groups[1].Value);
-                    BY = int.Parse(m.Groups[2].Value);
-                }
-                if (pRegex.IsMatch(line))
-                {
-                    var m = pRegex.Match(line);
-                    PX = int.Parse(m.Groups[1].Value);
-                    PY = int.Parse(m.Groups[2].Value);
-                    machines.Add(new Machine(AX, AY, BX, BY, PX, PY));
-                }
-            }
             return machines;
         }
 
@@ -134,7 +72,6 @@ namespace Solutions.Event2024
                             tokens = Math.Min(3 * a + b, tokens);
                         }
                     }
-
                 }
 
                 if (tokens < int.MaxValue)
@@ -151,11 +88,10 @@ namespace Solutions.Event2024
             var machines = Parse(input, 10000000000000);
 
             long total = 0;
-
             
             foreach (var machine in machines)
             {
-                // cramers rule
+                // cramers rule https://en.wikipedia.org/wiki/Cramer%27s_rule
 
                 long a1 = machine.AX;
                 long b1 = machine.BX;
@@ -188,7 +124,7 @@ namespace Solutions.Event2024
                 total += 3 * (xd / xn) + (yd / yn);
             }
 
-            return total; // 60841592630030 too low
+            return total;
         }
 
         [Fact]
