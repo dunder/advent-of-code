@@ -2,17 +2,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Text;
 using Xunit;
 using Xunit.Abstractions;
-using static Solutions.Event2018.Day23;
 using static Solutions.InputReader;
 
 
 namespace Solutions.Event2024
 {
-    // --- Day 15: Phrase ---
+    // --- Day 15: Warehouse Woes ---
     public class Day15
     {
         private readonly ITestOutputHelper output;
@@ -106,7 +104,7 @@ namespace Solutions.Event2024
             while (c == 'O')
             {
                 (move, c) = Next(map, move, direction);
-            };
+            }
 
             if (c == '#')
             {
@@ -156,7 +154,6 @@ namespace Solutions.Event2024
             foreach (var instruction in instructions)
             {
                 robot = TryMove(map, robot, instruction);
-                //var s = Print(map, robot);
             }
 
             int maxy = map.GetLength(1);
@@ -217,11 +214,11 @@ namespace Solutions.Event2024
             switch (direction)
             {
                 case '^':
-                    return TryMoveUp(map, from, direction);
+                    return TryMoveVertical(map, from, direction);
                 case '>':
                     return TryMoveHorizontal(map, from, direction);
                 case 'v':
-                    return TryMoveDown(map, from, direction);
+                    return TryMoveVertical(map, from, direction);
                 case '<':
                     return TryMoveHorizontal(map, from, direction);
                 default:
@@ -229,7 +226,7 @@ namespace Solutions.Event2024
             }
         }
 
-        private static (bool, List<(int x, int y)>) MarkUp(char[,] map, (int x, int y) from, char direction, List<(int x, int y)> move)
+        private static (bool, List<(int x, int y)>) MarkForMove(char[,] map, (int x, int y) from, char direction, List<(int x, int y)> move)
         {
             char fromc = map[from.x, from.y];
             (var pos, char c) = Next(map, from, direction);
@@ -243,7 +240,7 @@ namespace Solutions.Event2024
                         if (fromc == c)
                         {
                             move.Add(pos);
-                            return MarkUp(map, pos, direction, move);
+                            return MarkForMove(map, pos, direction, move);
 
                         }
                         else
@@ -251,8 +248,8 @@ namespace Solutions.Event2024
                             move.Add(pos);
                             move.Add((pos.x + 1, pos.y));
 
-                            (bool lmove, List<(int x, int y)> lmoves) = MarkUp(map, pos, direction, move);
-                            (bool rmove, List<(int x, int y)> rmoves) = MarkUp(map, (pos.x + 1, pos.y), direction, move);
+                            (bool lmove, List<(int x, int y)> lmoves) = MarkForMove(map, pos, direction, move);
+                            (bool rmove, List<(int x, int y)> rmoves) = MarkForMove(map, (pos.x + 1, pos.y), direction, move);
 
                             return (lmove && rmove, lmoves.Concat(rmoves).ToList());
                         }
@@ -262,15 +259,15 @@ namespace Solutions.Event2024
                         if (fromc == c)
                         {
                             move.Add(pos);
-                            return MarkUp(map, pos, direction, move);
+                            return MarkForMove(map, pos, direction, move);
                         }
                         else
                         {
                             move.Add(pos);
                             move.Add((pos.x - 1, pos.y));
 
-                            (bool rmove, List<(int x, int y)> rmoves) = MarkUp(map, pos, direction, move);
-                            (bool lmove, List<(int x, int y)> lmoves) = MarkUp(map, (pos.x - 1, pos.y), direction, move);
+                            (bool rmove, List<(int x, int y)> rmoves) = MarkForMove(map, pos, direction, move);
+                            (bool lmove, List<(int x, int y)> lmoves) = MarkForMove(map, (pos.x - 1, pos.y), direction, move);
 
                             return (lmove && rmove, lmoves.Concat(rmoves).ToList());
                         }
@@ -282,41 +279,18 @@ namespace Solutions.Event2024
             throw new InvalidOperationException("Undetermined move");
         }
 
-        private static (int x, int y) TryMoveUp(char[,] map, (int x, int y) from, char direction)
+        private static (int x, int y) TryMoveVertical(char[,] map, (int x, int y) from, char direction)
         {
             (var moveTo, char _) = Next(map, from, direction);
 
-            (bool move, List<(int x, int y)> boxes) = MarkUp(map, from, direction, new List<(int x, int y)>());
+            (bool move, List<(int x, int y)> boxes) = MarkForMove(map, from, direction, new List<(int x, int y)>());
 
             if (move)
             {
-                boxes = boxes.Distinct().OrderBy(b => b.y).ToList();
-
-                foreach ((int x, int y) part in boxes)
-                {
-                    char p = map[part.x, part.y];
-
-                    (var pos, char c) = Next(map, part, direction);
-
-                    map[part.x, part.y] = '.';
-                    map[pos.x, pos.y] = p;
-                }
-
-                return moveTo;
-            }
-
-            return from;
-        }
-
-        private static (int x, int y) TryMoveDown(char[,] map, (int x, int y) from, char direction)
-        {
-            (var moveTo, char _) = Next(map, from, direction);
-
-            (bool move, List<(int x, int y)> boxes) = MarkUp(map, from, direction, new List<(int x, int y)>());
-
-            if (move)
-            {
-                boxes = boxes.Distinct().OrderByDescending(b => b.y).ToList();
+                // MarkForMove produces duplicates, use Distinct() as a work around 
+                boxes = direction == '^' ?
+                    boxes.Distinct().OrderBy(b => b.y).ToList() :
+                    boxes.Distinct().OrderByDescending(b => b.y).ToList();
 
                 foreach ((int x, int y) part in boxes)
                 {
@@ -336,7 +310,6 @@ namespace Solutions.Event2024
 
         private static (int x, int y) TryMoveHorizontal(char[,] map, (int x, int y) from, char direction)
         {
-
             (var pos, char c) = Next(map, from, direction);
 
             if (c == '.')
@@ -383,12 +356,10 @@ namespace Solutions.Event2024
             map = SecondWarehouse(map);
 
             robot = (robot.x * 2, robot.y);
-            //Print(map, robot);
 
             foreach (var instruction in instructions)
             {
                 robot = TryMove2(map, robot, instruction);
-                //var s = Print(map, robot);
             }
 
             int maxy = map.GetLength(1);
@@ -495,93 +466,11 @@ namespace Solutions.Event2024
             "<vv<<^^<<^^",
         ];
 
-        private List<string> example2Input2 =
-        [
-            "#######",
-            "#...#.#",
-            "#.....#",
-            "#.@OO.#",
-            "#..O..#",
-            "#.....#",
-            "#######",
-            "",
-            ">>>>>>>",
-        ];
-
-        private List<string> example2Input3 =
-        [
-            "#######",
-            "#...#.#",
-            "#.....#",
-            "#..OO@#",
-            "#..O..#",
-            "#.....#",
-            "#######",
-            "",
-            "<<<<<<<<",
-        ];
-
-        private List<string> example2Input4 =
-        [
-            "#######",
-            "#...#.#",
-            "#.....#",
-            "#..OO.#",
-            "#...O.#",
-            "#...@.#",
-            "#######",
-            "",
-            "^^^^^^^^^"
-        ];
-
-        private List<string> example2Input5 =
-        [
-            "#######",
-            "#...#.#",
-            "#...@.#",
-            "#..OO.#",
-            "#...O.#",
-            "#.....#",
-            "#OOOOO#",
-            "#.....#",
-            "#######",
-            "",
-            "vvvvv"
-        ];
-
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample1()
         {
-            Assert.Equal(-1, Problem2(example2Input1));
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample2()
-        {
-            Assert.Equal(-1, Problem2(example2Input2));
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample3()
-        {
-            Assert.Equal(-1, Problem2(example2Input3));
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample4()
-        {
-            Assert.Equal(-1, Problem2(example2Input4));
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample5()
-        {
-            Assert.Equal(-1, Problem2(example2Input5));
+            Assert.Equal(618, Problem2(example2Input1));
         }
     }
 }
