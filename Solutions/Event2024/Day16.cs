@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Solutions.InputReader;
@@ -47,12 +49,12 @@ namespace Solutions.Event2024
             return (map, start, end);
         }
 
-        public static (int x, int y) Move((int x, int y) position, int direction) => direction switch
+        public static (int x, int y, int d) Move(int x, int y, int d) => d switch
         {
-            0 => (position.x, position.y + 1),
-            1 => (position.x + 1, position.y),
-            2 => (position.x, position.y - 1),
-            3 => (position.x - 1, position.y),
+            0 => (x, y - 1, d),
+            1 => (x + 1, y, d),
+            2 => (x, y + 1, d),
+            3 => (x - 1, y, d),
             _ => throw new InvalidOperationException()
         };
 
@@ -68,23 +70,24 @@ namespace Solutions.Event2024
         {
             (int x, int y, int d) = position;
 
-            int rightDirection = (d + 1) % 4;
-            int leftDirection = (d - 1) < 0 ? 3 : (d - 1);
+            int dr = (d + 1) % 4;
+            int dl = (d - 1) < 0 ? 3 : (d - 1);
 
-            List<((int x, int y, int d), int cost)> neighbors = 
+            (int x, int y, int d) forward = Move(x, y, d);
+            (int x, int y, int d) right = Move(x, y, dr);
+            (int x, int y, int d) left = Move(x, y, dl);
+
+
+            List<((int x, int y, int d) pos, int cost)> neighbors = 
             [
-                ((x, y, rightDirection), 1000),
-                ((x, y, leftDirection), 1000),
+                (right, 1001),
+                (left, 1001),
+                (forward, 1)
             ];
 
-            (int fx, int fy) = Move((x, y), d);
+            var ns = neighbors.Where(n => WithinBounds(map, (n.pos.x, n.pos.x)) && map[n.pos.x, n.pos.y] != '#').ToList();
 
-            if (WithinBounds(map, (fx, fy)) && map[fx, fy] != '#')
-            {
-                neighbors.Add(((fx, fy, d), 1));
-            }
-
-            return neighbors;
+            return ns;
         }
 
         private static int Problem1(IList<string> input)
@@ -144,94 +147,129 @@ namespace Solutions.Event2024
                 }
             }
 
-            var shortestDistance = Distance((end.x, end.y, 0));
-
-            shortestDistance = Math.Min(shortestDistance, Distance((end.x, end.y, 1)));
-            shortestDistance = Math.Min(shortestDistance, Distance((end.x, end.y, 2)));
-            shortestDistance = Math.Min(shortestDistance, Distance((end.x, end.y, 3)));
-
-            return shortestDistance;
+            return Enumerable.Range(0, 4).Select(d => Distance((end.x, end.y, d))).Min();
         }
 
-        private record Deer(int X, int Y, int D, int Score);
 
-        private static int Problem2(IList<string> input, int min)
+
+
+        private void Print(char[,] map, HashSet<(int x, int y)> visited)
         {
+            var width = map.GetLength(0);
+            var height = map.GetLength(1);
 
+            var s = new StringBuilder();
 
-            //(char[,] map, (int x, int y) start, (int x, int y) end) = Parse(input);
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (visited.Contains((x,y)))
+                    {
+                        s.Append('O');
+                    }
+                    else
+                    {
+                        s.Append(map[x, y]);
+                    }
+                }
+                s.AppendLine();
+            }
 
-            //if (map.GetLength(0) != map.GetLength(1))
-            //{
-            //    throw new ArgumentOutOfRangeException($"Map must be a square");
-            //}
+            output.WriteLine(s.ToString());
+        }
 
-            //var visited = new HashSet<Deer>();
+        private int Problem2(IList<string> input)
+        {
+            (char[,] map, (int x, int y) start, (int x, int y) end) = Parse(input);
 
-            //var queue = new Queue<Node<Deer>>();
+            if (map.GetLength(0) != map.GetLength(1))
+            {
+                throw new ArgumentOutOfRangeException($"Map must be a square");
+            }
 
-            //queue.Enqueue(new Node<Deer>(new Deer(start.x, start.y, 1, 0), 0));
+            var mapDimension = map.GetLength(0);
 
-            //List<Deer> DeerNeighbors(Deer deer)
-            //{
-            //    (int x, int y, int d) = (deer.X, deer.Y, deer.D);
+            var queue = new PriorityQueue<(int x, int y, int d), int>();
 
-            //    int rightDirection = (d + 1) % 4;
-            //    int leftDirection = (d - 1) < 0 ? 3 : (d - 1);
+            var startNode = (start.x, start.y, 1);
 
-            //    List<Deer> neighbors =
-            //    [
-            //        new Deer(x, y, rightDirection, deer.Score + 1000),
-            //        new Deer(x, y, leftDirection, deer.Score + 1000),
-            //    ];
+            queue.Enqueue(startNode, 0);
 
-            //    (int fx, int fy) = Move((x, y), d);
+            var distances = new Dictionary<(int x, int y, int d), int>
+            {
+                { startNode, 0 }
+            };
 
-            //    if (WithinBounds(map, (fx, fy)) && map[fx, fy] != '#')
-            //    {
-            //        neighbors.Add(new Deer(fx, fy, d, deer.Score + 1));
-            //    }
+            var prev = new Dictionary<(int x, int y, int d), List<(int x, int y, int d)>>();
 
-            //    return neighbors;
-            //}
+            int Distance((int x, int y, int d) position)
+            {
+                if (distances.TryGetValue(position, out int distance))
+                {
+                    return distances[position];
+                }
+                else
+                {
+                    return int.MaxValue;
+                }
+            }
 
-            //int minScore = min;
+            // djikstra https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
 
-            //List<Node<Deer>> paths = new ();
+            while (queue.Count > 0)
+            {
+                var current = queue.Dequeue();
 
-            //while (queue.Count != 0)
-            //{
-            //    var current = queue.Dequeue();
+                foreach (var neighbor in Neighbors(map, current))
+                {
+                    (var pos, int cost) = neighbor;
 
-            //    if (!visited.Add(current.Data))
-            //    {
-            //        continue;
-            //    }
+                    var alt = Distance(current) + cost;
 
-            //    if (current.Data.X == end.x && current.Data.Y == end.y)
-            //    {
-            //        minScore = Math.Min(minScore, current.Data.Score);
-            //        paths.Add(current);
-            //        continue;
-            //    }
+                    if (alt == Distance(pos))
+                    {
+                        prev[pos].Add(current);
+                    }
 
-            //    var neighbors = DeerNeighbors(current.Data).Where(n => !visited.Contains(n)).ToList();
+                    if (alt < Distance(pos))
+                    {
+                        prev[pos] = [current];
+                        distances[pos] = alt;
+                        queue.Enqueue(pos, alt);
+                    }
+                }
+            }
 
-            //    foreach (var neighbor in neighbors)
-            //    {
-            //        if (neighbor.Score > minScore)
-            //        {
-            //            continue;
-            //        }
+            
 
-            //        queue.Enqueue(new Node<Deer>(neighbor, current.Depth + 1, current));
-            //    }
-            //}
+            var min = Enumerable.Range(0, 4).Select(d => Distance((end.x, end.y, d))).Min();
 
-            //var result = paths.SelectMany(p => p.Nodes.Select(n => (n.Data.X, n.Data.Y)));
+            // by inspection there is only one route to E at the end of the maze
+            (int x, int y, int d) bestEnd = distances.Where(d => d.Key.x == end.x && d.Key.y == end.y && d.Value == min).Select(kvp => kvp.Key).Single();
 
-            //return paths.SelectMany(p => p.Nodes.Select(n => (n.Data.X, n.Data.Y))).ToHashSet().Count();
-            return 0;
+            void CountSeats(HashSet<(int x, int y)> seasts, (int x, int y, int d) currentNode)
+            {
+                (int x, int y) currentPosition = (currentNode.x, currentNode.y);
+
+                seasts.Add(currentPosition);
+
+                if (currentPosition == start)
+                {
+                    return;
+                }
+
+                foreach (var parent in prev[(currentNode)])
+                {
+                    CountSeats(seasts, parent);
+                }
+            }
+
+            HashSet<(int x, int y)> visited = new();
+
+            CountSeats(visited, bestEnd);
+
+            return visited.Count;
         }
 
         [Fact]
@@ -249,7 +287,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input, 105496));
+            Assert.Equal(-1, Problem2(input));  // 582 too high
         }
 
         private List<string> exampleInput =
@@ -310,14 +348,14 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            Assert.Equal(-1, Problem2(exampleInput, 7036));
+            Assert.Equal(45, Problem2(exampleInput));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample2()
         {
-            Assert.Equal(-1, Problem2(exampleInput2, 11048));
+            Assert.Equal(64, Problem2(exampleInput2));
         }
     }
 }
