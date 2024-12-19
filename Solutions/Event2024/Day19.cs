@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Xunit;
 using Xunit.Abstractions;
 using static Solutions.InputReader;
@@ -9,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 19: Phrase ---
+    // --- Day 19: Linen Layout ---
     public class Day19
     {
         private readonly ITestOutputHelper output;
@@ -26,7 +25,6 @@ namespace Solutions.Event2024
 
             var patterns = input.Skip(2).ToList();
 
-
             return (towels, patterns);
         }
 
@@ -37,16 +35,18 @@ namespace Solutions.Event2024
                 return true;
             }
 
-            var examine = towels.Where(pattern.StartsWith).ToList();
+            var matchingTowels = towels.Where(pattern.StartsWith).ToList();
 
-            bool found = false;
+            bool isMatch = false;
 
-            foreach (var towel in examine)
+            foreach (var towel in matchingTowels)
             {
-                found = found || PickTowels(towels, pattern.Substring(pattern.Length - (pattern.Length - towel.Length)));
+                string patternWithoutTowel = pattern.Substring(pattern.Length - (pattern.Length - towel.Length));
+
+                isMatch = isMatch || PickTowels(towels, patternWithoutTowel);
             }
 
-            return found;
+            return isMatch;
         }
 
         private static long CountTowels(HashSet<string> towels, string pattern, Dictionary<string, long> countCache)
@@ -61,18 +61,19 @@ namespace Solutions.Event2024
                 return 1;
             }
 
-            var examine = towels.Where(pattern.StartsWith).ToList();
+            var matchingTowels = towels.Where(pattern.StartsWith).ToList();
 
             long count = 0;
 
-            foreach (var towel in examine)
+            foreach (var towel in matchingTowels)
             {
-                string next = pattern.Substring(pattern.Length - (pattern.Length - towel.Length));
-                var tcount = CountTowels(towels, next, countCache);
+                string patternWithoutTowel = pattern.Substring(pattern.Length - (pattern.Length - towel.Length));
+                
+                var towelCount = CountTowels(towels, patternWithoutTowel, countCache);
 
-                countCache[next] = tcount;
+                countCache[patternWithoutTowel] = towelCount;
 
-                count += tcount;
+                count += towelCount;
             }
 
             return count;
@@ -115,7 +116,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(236, Problem1(input));
         }
 
         [Fact]
@@ -124,10 +125,9 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));  // 2634497 That's not the right answer
+            Assert.Equal(643685981770598, Problem2(input));
         }
 
-        private string exampleText = "";
         private List<string> exampleInput =
             [
                 "r, wr, b, g, bwu, rb, gb, br",
@@ -146,14 +146,14 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            Assert.Equal(-1, Problem1(exampleInput));
+            Assert.Equal(6, Problem1(exampleInput));
         }
 
         [Fact]
         [Trait("Event", "2024")]
         public void SecondStarExample()
         {
-            Assert.Equal(-1, Problem2(exampleInput));
+            Assert.Equal(16, Problem2(exampleInput));
         }
     }
 }
