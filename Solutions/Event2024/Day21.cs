@@ -1,8 +1,6 @@
-﻿using Newtonsoft.Json.Linq;
-using Solutions.Event2016.Day02;
+﻿
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -11,7 +9,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2024
 {
-    // --- Day 21: Phrase ---
+    // --- Day 21: Keypad Conundrum ---
     public class Day21
     {
         private readonly ITestOutputHelper output;
@@ -23,392 +21,181 @@ namespace Solutions.Event2024
 
         static Day21()
         {
-            foreach (var fromKey in KeyPositions(Keyboard.Numeric).Keys)
+            foreach (var fromKey in numpadKeys)
             {
-                foreach (var toKey in KeyPositions(Keyboard.Numeric).Keys)
+                foreach (var toKey in numpadKeys)
                 {
-                    if (fromKey == toKey)
-                    {
-                        numpadShortestPaths.Add((fromKey, toKey), ["A"]);
-                    }
-                    else
-                    {
-                        (Dictionary<Position, int> dist, Dictionary<Position, List<Position>> prev) = DjikstraShortestPath(fromKey, Keyboard.Numeric);
-
-                        var shortestPaths = ConstructPaths(KeyPositions(Keyboard.Numeric)[fromKey], KeyPositions(Keyboard.Numeric)[toKey], dist, prev);
-                        //List<string> shortestPaths = [];
-
-                        numpadShortestPaths.Add((fromKey, toKey), shortestPaths);
-                    }
+                    numpadShortestPaths.Add((fromKey, toKey), CalculateShortestPath(fromKey, toKey, Keyboard.Numeric));
                 }
             }
 
-
-            foreach (var fromKey in KeyPositions(Keyboard.Directional).Keys)
+            foreach (var fromKey in dirpadKeys)
             {
-                foreach (var toKey in KeyPositions(Keyboard.Directional).Keys)
+                foreach (var toKey in dirpadKeys)
                 {
-                    if (fromKey == toKey)
-                    {
-                        dirpadShortestPaths.Add((fromKey, toKey), ["A"]);
-                    }
-                    else
-                    {
-                        (Dictionary<Position, int> dist, Dictionary<Position, List<Position>> prev) = DjikstraShortestPath(fromKey, Keyboard.Directional);
-
-                        var shortestPaths = ConstructPaths(KeyPositions(Keyboard.Directional)[fromKey], KeyPositions(Keyboard.Directional)[toKey], dist, prev);
-                        //List<string> shortestPaths = [];
-
-                        dirpadShortestPaths.Add((fromKey, toKey), shortestPaths);
-                    }
+                    dirpadShortestPaths.Add((fromKey, toKey), CalculateShortestPath(fromKey, toKey, Keyboard.Directional));
                 }
             }
         }
 
-        // positive x goes left, positive y goes up
         private static readonly Dictionary<char, (int x, int y)> numpad = new()
-            {
-                { 'A', (0, 0) },
-                { '0', (1, 0) },
-                { '1', (2, 1) },
-                { '2', (1, 1) },
-                { '3', (0, 1) },
-                { '4', (2, 2) },
-                { '5', (1, 2) },
-                { '6', (0, 2) },
-                { '7', (2, 3) },
-                { '8', (1, 3) },
-                { '9', (0, 3) },
-            };
+        {
+            { '7', (0, 0) },
+            { '8', (1, 0) },
+            { '9', (2, 0) },
+            { '4', (0, 1) },
+            { '5', (1, 1) },
+            { '6', (2, 1) },
+            { '1', (0, 2) },
+            { '2', (1, 2) },
+            { '3', (2, 2) },
+            { '0', (1, 3) },
+            { 'A', (2, 3) },
+        };
 
-        private static readonly HashSet<(int x, int y)> numpadKeySet = numpad.Values.ToHashSet();
+        private static readonly HashSet<char> numpadKeys = numpad.Keys.ToHashSet();
+        private static readonly HashSet<(int x, int y)> numpadKeyPositions = numpad.Values.ToHashSet();
+        private static readonly Dictionary<(char, char), string> numpadShortestPaths = new();
 
         private static readonly Dictionary<char, (int x, int y)> dirpad = new()
-            {
-                { 'A', (0, 0) },
-                { '^', (1, 0) },
-                { '>', (0, -1) },
-                { 'v', (1, -1) },
-                { '<', (2, -1) },
-            };
-
-        private static readonly HashSet<(int x, int y)> dirpadKeySet = dirpad.Values.ToHashSet();
-
-        private static HashSet<(int x, int y)> KeySet(Keyboard keyboard) => keyboard switch
         {
-            Keyboard.Numeric => numpadKeySet,
-            Keyboard.Directional => dirpadKeySet,
+            { '^', (1, 0) },
+            { 'A', (2, 0) },
+            { '<', (0, 1) },
+            { 'v', (1, 1) },
+            { '>', (2, 1) },
+        };
+
+        private static readonly HashSet<char> dirpadKeys = dirpad.Keys.ToHashSet();
+        private static readonly HashSet<(int x, int y)> dirpadKeyPositions = dirpad.Values.ToHashSet();
+        private static readonly Dictionary<(char, char), string> dirpadShortestPaths = new();
+
+        private static HashSet<char> KeySet(Keyboard keyboard) => keyboard switch
+        {
+            Keyboard.Numeric => numpadKeys,
+            Keyboard.Directional => dirpadKeys,
             _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
         };
 
-        private static Dictionary<char, (int x, int y)> KeyPositions(Keyboard keyboard) => keyboard switch
+        private static HashSet<(int x, int y)> KeyPositions(Keyboard keyboard) => keyboard switch
         {
-            Keyboard.Numeric => numpad,
-            Keyboard.Directional => dirpad,
+            Keyboard.Numeric => numpadKeyPositions,
+            Keyboard.Directional => dirpadKeyPositions,
             _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
         };
 
-        private record Keypad(Keyboard Keyboard)
+        private static (int x, int y) KeyPosition(char key, Keyboard keyboard) => keyboard switch
         {
-            public char CurrentPosition { get; set; }
-        }
+            Keyboard.Numeric => numpad[key],
+            Keyboard.Directional => dirpad[key],
+            _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
+        };
+
+        private record Keypad(Keyboard Keyboard, char CurrentPosition);
 
         private record Position(int x, int y, char dir);
 
-        private static readonly Dictionary<(char, char), List<string>> numpadShortestPaths = new();
-        private static readonly Dictionary<(char, char), List<string>> dirpadShortestPaths = new();
 
-        private enum Keyboard
+        public enum Keyboard
         {
             Numeric,
             Directional
         }
 
-        public static int ManhattanDistance((int x, int y) point, (int x, int y) toPoint)
+        private static string Press(string key, int times)
         {
-            return Math.Abs(point.x - toPoint.x) + Math.Abs(point.y - toPoint.y);
+            return string.Join("", Enumerable.Repeat(key, Math.Abs(times)));
         }
+
+        private static string CalculateShortestPath(char fromKey, char toKey, Keyboard keyboard)
+        {
+            (int x, int y) start = KeyPosition(fromKey, keyboard);
+            (int x, int y) end = KeyPosition(toKey, keyboard);
+
+            string pressSequence = "";
+
+            while (start != end)
+            {
+                if (end.x < start.x)
+                {
+                    if (KeyPositions(keyboard).Contains((end.x, start.y)))
+                    {
+                        pressSequence += "<";
+                        start.x -= 1;
+                    }
+                    else
+                    {
+                        pressSequence += Press("^", (start.y - end.y));
+                        start.y = end.y;
+                    }
+                }
+                else if (end.y < start.y)
+                {
+                    pressSequence += "^";
+                    start.y -= 1;
+                }
+                else if (end.y > start.y)
+                {
+                    if (KeyPositions(keyboard).Contains((start.x, end.y)))
+                    {
+                        pressSequence += "v";
+                        start.y += 1;
+                    }
+                    else
+                    {
+                        pressSequence += Press(">", (end.x - start.x));
+                        start.x = end.x;
+                    }
+                }
+                else if (end.x > start.x)
+                {
+                    pressSequence += ">";
+                    start.x += 1;
+                }
+            }
+
+            return pressSequence + "A";
+        }
+
+        private static string ShortestPath(char fromKey, char toKey, Keyboard keyboard) => keyboard switch
+        {
+            Keyboard.Numeric => numpadShortestPaths[(fromKey, toKey)],
+            Keyboard.Directional => dirpadShortestPaths[(fromKey, toKey)],
+            _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
+        };
 
         private static int Complexity(string code, int shortestPath)
         {
             return int.Parse(code.TrimEnd('A')) * shortestPath;
         }
 
-        private static string Punch(string key, int times)
+        private static List<string> Sequences(string sequence, Keyboard keyboard)
         {
-            return string.Join("", Enumerable.Repeat(key, Math.Abs(times)));
-        }
+            List<string> keys = [];
 
-        //private static string EnterCode(string inputKeyPresses, Dictionary<int, Keypad> keypads, int keypadIndex)
-        //{
-        //    if (!keypads.ContainsKey(keypadIndex))
-        //    {
-        //        return inputKeyPresses;
-        //    }
-        //    string outputKeyPresses = "";
+            char fromKey = 'A';
 
-        //    Keypad keypad = keypads[keypadIndex];
-
-        //    foreach (var key in inputKeyPresses)
-        //    {
-        //        var keyFrom = keypad.CurrentPosition;
-        //        (int x, int y) numFrom = keypad.Keys[keyFrom];
-
-        //        keypad.CurrentPosition = key;
-
-        //        (int x, int y) numTo = keypad.Keys[key];
-
-        //        if (keypadIndex == 0)
-        //        {
-        //            char[] left = ['1', '4', '7'];
-        //            char[] bottom = ['0', 'A'];
-
-        //            if (left.Contains(keyFrom) && bottom.Contains(key))
-        //            {
-        //                outputKeyPresses += Punch(">", 1);
-        //                numFrom = (numFrom.x - 1, numFrom.y);
-        //            }
-        //            else if (bottom.Contains(keyFrom) && left.Contains(key))
-        //            {
-        //                outputKeyPresses += Punch("^", 1);
-        //                numFrom = (numFrom.x, numFrom.y + 1);
-        //            }
-        //        }
-        //        else
-        //        {
-        //            char[] left = ['<'];
-        //            char[] top = ['^', 'A'];
-
-        //            if (left.Contains(keyFrom) && top.Contains(key))
-        //            {
-        //                outputKeyPresses += Punch(">", 1);
-        //                numFrom = (numFrom.x - 1, numFrom.y);
-        //            }
-        //            else if (top.Contains(keyFrom) && left.Contains(key))
-        //            {
-        //                outputKeyPresses += Punch("v", 1);
-        //                numFrom = (numFrom.x, numFrom.y - 1);
-        //            }
-        //        }
-
-        //        var xdiff = (numTo.x - numFrom.x);
-        //        var ydiff = (numTo.y - numFrom.y);
-
-        //        if (xdiff > 0)
-        //        {
-        //            outputKeyPresses += Punch("<", xdiff);
-        //        }
-        //        else
-        //        {
-        //            outputKeyPresses += Punch(">", xdiff);
-        //        }
-
-        //        if (ydiff > 0)
-        //        {
-        //            outputKeyPresses += Punch("^", ydiff);
-        //        }
-        //        else
-        //        {
-        //            outputKeyPresses += Punch("v", ydiff);
-        //        }
-
-        //        outputKeyPresses += "A";
-        //    }
-
-        //    return EnterCode(outputKeyPresses, keypads, keypadIndex + 1);
-        //}
-
-
-        private static Position Move(int x, int y, int d) => d switch
-        {
-            0 => new Position(x, y + 1, '^'),
-            1 => new Position(x - 1, y, '>'),
-            2 => new Position(x, y - 1, 'v'),
-            3 => new Position(x + 1, y, '<'),
-            _ => throw new InvalidOperationException()
-        };
-
-        private static List<Position> Neighbors(Keyboard keyboard, Position position)
-        {
-            (int x, int y, _) = position;
-
-            List<Position> neighbors = [Move(x, y, 0), Move(x, y, 1), Move(x, y, 2), Move(x, y, 3)];
-
-            var valid = KeySet(keyboard);
-
-            var ns = neighbors.Where(neighbor => valid.Contains((neighbor.x, neighbor.y))).ToList();
-
-            return ns;
-        }
-
-        private static (Dictionary<Position, int> dist, Dictionary<Position, List<Position>> prev) DjikstraShortestPath(char fromKey, Keyboard keyboard)
-        {
-            var queue = new PriorityQueue<Position, int>();
-
-            var startPosition = KeyPositions(keyboard)[fromKey];
-
-            var startNode = new Position(startPosition.x, startPosition.y, 'x');
-
-            queue.Enqueue(startNode, 0);
-
-            var distances = new Dictionary<Position, int>
+            foreach (var toKey in sequence)
             {
-                { startNode, 0 }
-            };
-
-            var prev = new Dictionary<Position, List<Position>>();
-
-            int Distance(Position position)
-            {
-                if (distances.TryGetValue(position, out int distance))
-                {
-                    return distances[position];
-                }
-                else
-                {
-                    return int.MaxValue;
-                }
+                keys.Add(CalculateShortestPath(fromKey, toKey, keyboard));
+                fromKey = toKey;
             }
 
-            // djikstra https://en.wikipedia.org/wiki/Dijkstra%27s_algorithm
-
-            while (queue.Count > 0)
-            {
-                var current = queue.Dequeue();
-
-                foreach (var neighbor in Neighbors(keyboard, current))
-                {
-                    (int x, int y, char dir) = neighbor;
-
-                    var alt = Distance(current) + 1;
-
-                    if (alt == Distance(neighbor))
-                    {
-                        prev[neighbor].Add(current);
-                    }
-
-                    if (alt < Distance(neighbor))
-                    {
-                        prev[neighbor] = [current];
-                        distances[neighbor] = alt;
-                        queue.Enqueue(neighbor, alt);
-                    }
-                }
-            }
-
-            return (distances, prev);
-        }
-
-        private static string Reverse(string s)
-        {
-            char[] charArray = s.ToCharArray();
-            Array.Reverse(charArray);
-            return new string(charArray);
-        }
-
-        private static List<string> ConstructPaths((int x, int y) start, (int x, int y) end, Dictionary<Position, int> distances, Dictionary<Position, List<Position>> prev)
-        {
-            var min = distances.Where(d => d.Key.x == end.x && d.Key.y == end.y).Select(d => d.Value).Min();
-            var best = distances.Where(d => d.Key.x == end.x && d.Key.y == end.y && d.Value == min).Select(d => d.Key).ToList();
-
-            void FindKeyStrokes(List<string> paths, string path, Position currentNode)
-            {
-                if ((currentNode.x, currentNode.y) == start)
-                {
-                    paths.Add(Reverse(path) + "A");
-                    return;
-                }
-
-                foreach (var parent in prev[currentNode])
-                {
-                    FindKeyStrokes(paths, path + currentNode.dir, parent);
-                }
-            }
-
-            List<string> keypaths = new();
-
-            foreach (var b in best)
-            {
-                FindKeyStrokes(keypaths, "", b);
-            }
-
-            return keypaths;
-        }
-
-        private static Dictionary<(char, char), List<string>> ShortestPaths(Keyboard keyboard)
-        {
-            return keyboard == Keyboard.Numeric ? numpadShortestPaths : dirpadShortestPaths;
-        }
-
-        private static void CombineCodes(string code, List<List<string>> parts, List<string> codes)
-        {
-            if (parts.Count == 0)
-            {
-                codes.Add(code);
-                return;
-            }
-
-            foreach (string alternative in parts.First())
-            {
-                CombineCodes(code + alternative, parts.Skip(1).ToList(), codes);
-            }
-        }
-
-        private static void EnterCode(string code, string path, List<List<string>> paths, Dictionary<int, Keypad> keypads, int keypadIndex)
-        {
-            Keypad keypad = keypads[keypadIndex];
-            Keyboard keyboard = keypadIndex == 0 ? Keyboard.Numeric : Keyboard.Directional;
-
-            List<List<string>> codes = new ();
-
-            foreach (var toKey in code)
-            {
-                char fromKey = keypad.CurrentPosition;
-                var shortestPaths = ShortestPaths(keyboard)[(fromKey, toKey)];
-                keypad.CurrentPosition = toKey;
-
-                codes.Add(shortestPaths);
-            }
-
-            List<string> combinations = new();
-
-            CombineCodes("", codes, combinations);
-
-            if (keypadIndex == keypads.Keys.Max())
-            {
-                paths.Add(combinations);
-            }
-            else
-            {
-                foreach (string c in combinations)
-                {
-                    EnterCode(c, "", paths, keypads, keypadIndex + 1);
-                }
-            }
+            return keys;
         }
 
         private int Problem1(IList<string> input)
         {
-            var totalComplexity = 0;
+            List<Keyboard> keyboards = [Keyboard.Numeric, Keyboard.Directional, Keyboard.Directional];
 
-            Dictionary<int, Keypad> keypads = new()
-                {
-                    { 0, new Keypad(Keyboard.Numeric) { CurrentPosition = 'A' } },
-                    { 1, new Keypad(Keyboard.Directional) { CurrentPosition = 'A' } },
-                    { 2, new Keypad(Keyboard.Directional) { CurrentPosition = 'A' } },
-                };
+            var codes = input.ToList();
 
-            foreach (var code in input)
-            {
-                List<List<string>> paths = new();
-                EnterCode(code, "", paths, keypads, 0);
+            var sequences = input.Select(code => string.Join("", Sequences(code, Keyboard.Numeric))).ToList();
 
-                int min = paths.SelectMany(p => p).Select(s => s.Length).Min();
+            sequences = sequences.Select(code => string.Join("", Sequences(code, Keyboard.Directional))).ToList();
+            sequences = sequences.Select(code => string.Join("", Sequences(code, Keyboard.Directional))).ToList();
 
-                totalComplexity += Complexity(code, min);
-            }
-
-            return totalComplexity;
+            return codes.Select((code, i) => Complexity(code, sequences[i].Length)).Sum();
         }
 
         private static int Problem2(IList<string> input)
@@ -422,7 +209,7 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(179444, Problem1(input));
         }
 
         [Fact]
@@ -448,7 +235,7 @@ namespace Solutions.Event2024
         [Trait("Event", "2024")]
         public void FirstStarExample()
         {
-            Assert.Equal(-1, Problem1(exampleInput));
+            Assert.Equal(126384, Problem1(exampleInput));
         }
 
         [Fact]
@@ -465,19 +252,26 @@ namespace Solutions.Event2024
             Assert.Equal(68 * 29, Complexity("029A", "<vA<AA>>^AvAA<^A>A<v<A>>^AvA^A<vA>^A<v<A>^A>AAvA^A<v<A>A>^AAAvA<^A>A".Length));
         }
 
-        [Fact]
+        [Theory]
+        [InlineData('A', '9', Keyboard.Numeric, "^^^A")]
+        [InlineData('A', '1', Keyboard.Numeric, "^<<A")]
+        [InlineData('A', '4', Keyboard.Numeric, "^^<<A")]
+        [InlineData('A', '7', Keyboard.Numeric, "^^^<<A")]
+        [InlineData('7', 'A', Keyboard.Numeric, ">>vvvA")]
+        [InlineData('7', '0', Keyboard.Numeric, ">vvvA")]
+        [InlineData('1', '0', Keyboard.Numeric, ">vA")]
+        [InlineData('A', '<', Keyboard.Directional, "^<<A")]
+        [InlineData('A', '>', Keyboard.Directional, "vA")]
+        [InlineData('^', '<', Keyboard.Directional, "^<A")]
+        [InlineData('<', 'A', Keyboard.Directional, "^>>A")]
+        [InlineData('A', 'A', Keyboard.Directional, "A")]
+        [InlineData('>', '^', Keyboard.Directional, "<^A")]
         [Trait("Event", "2024")]
-        public void CombineCodesTest()
+        public void ShortestPathTest(char fromKey, char toKey, Keyboard keyboard, string expected)
         {
-            List<string> codes = [];
+            var path = CalculateShortestPath(fromKey, toKey, keyboard);
 
-            CombineCodes("", [["A", "B"], ["C"], ["D", "E"]], codes);
-
-            Assert.Equal(4, codes.Count);
-            Assert.Equal("ACD", codes[0]);
-            Assert.Equal("ACE", codes[1]);
-            Assert.Equal("BCD", codes[2]);
-            Assert.Equal("BCE", codes[3]);
+            Assert.Equal(expected, path);
         }
     }
 }
