@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -19,25 +18,6 @@ namespace Solutions.Event2024
             this.output = output;
         }
 
-        static Day21()
-        {
-            foreach (var fromKey in numpadKeys)
-            {
-                foreach (var toKey in numpadKeys)
-                {
-                    numpadShortestPaths.Add((fromKey, toKey), CalculateShortestPath(fromKey, toKey, Keyboard.Numeric));
-                }
-            }
-
-            foreach (var fromKey in dirpadKeys)
-            {
-                foreach (var toKey in dirpadKeys)
-                {
-                    dirpadShortestPaths.Add((fromKey, toKey), CalculateShortestPath(fromKey, toKey, Keyboard.Directional));
-                }
-            }
-        }
-
         private static readonly Dictionary<char, (int x, int y)> numpad = new()
         {
             { '7', (0, 0) },
@@ -53,9 +33,7 @@ namespace Solutions.Event2024
             { 'A', (2, 3) },
         };
 
-        private static readonly HashSet<char> numpadKeys = numpad.Keys.ToHashSet();
         private static readonly HashSet<(int x, int y)> numpadKeyPositions = numpad.Values.ToHashSet();
-        private static readonly Dictionary<(char, char), string> numpadShortestPaths = new();
 
         private static readonly Dictionary<char, (int x, int y)> dirpad = new()
         {
@@ -66,16 +44,7 @@ namespace Solutions.Event2024
             { '>', (2, 1) },
         };
 
-        private static readonly HashSet<char> dirpadKeys = dirpad.Keys.ToHashSet();
         private static readonly HashSet<(int x, int y)> dirpadKeyPositions = dirpad.Values.ToHashSet();
-        private static readonly Dictionary<(char, char), string> dirpadShortestPaths = new();
-
-        private static HashSet<char> KeySet(Keyboard keyboard) => keyboard switch
-        {
-            Keyboard.Numeric => numpadKeys,
-            Keyboard.Directional => dirpadKeys,
-            _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
-        };
 
         private static HashSet<(int x, int y)> KeyPositions(Keyboard keyboard) => keyboard switch
         {
@@ -90,11 +59,6 @@ namespace Solutions.Event2024
             Keyboard.Directional => dirpad[key],
             _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
         };
-
-        private record Keypad(Keyboard Keyboard, char CurrentPosition);
-
-        private record Position(int x, int y, char dir);
-
 
         public enum Keyboard
         {
@@ -114,6 +78,8 @@ namespace Solutions.Event2024
 
             string pressSequence = "";
 
+            // prioritize left movements and make right movements last priority to generate short 
+            // press sequences on the directconaly keyboard
             while (start != end)
             {
                 if (end.x < start.x)
@@ -157,19 +123,12 @@ namespace Solutions.Event2024
             return pressSequence + "A";
         }
 
-        private static string ShortestPath(char fromKey, char toKey, Keyboard keyboard) => keyboard switch
-        {
-            Keyboard.Numeric => numpadShortestPaths[(fromKey, toKey)],
-            Keyboard.Directional => dirpadShortestPaths[(fromKey, toKey)],
-            _ => throw new ArgumentOutOfRangeException(nameof(keyboard)),
-        };
-
-        private static int Complexity(string code, int shortestPath)
+        private static long Complexity(string code, long shortestPath)
         {
             return int.Parse(code.TrimEnd('A')) * shortestPath;
         }
 
-        private static List<string> Sequences(string sequence, Keyboard keyboard)
+        private static List<string> PressSequences(string sequence, Keyboard keyboard)
         {
             List<string> keys = [];
 
@@ -184,23 +143,102 @@ namespace Solutions.Event2024
             return keys;
         }
 
-        private int Problem1(IList<string> input)
+        private long Problem1(IList<string> input)
         {
             List<Keyboard> keyboards = [Keyboard.Numeric, Keyboard.Directional, Keyboard.Directional];
 
             var codes = input.ToList();
 
-            var sequences = input.Select(code => string.Join("", Sequences(code, Keyboard.Numeric))).ToList();
+            var sequences = input.Select(code => string.Join("", PressSequences(code, Keyboard.Numeric))).ToList();
 
-            sequences = sequences.Select(code => string.Join("", Sequences(code, Keyboard.Directional))).ToList();
-            sequences = sequences.Select(code => string.Join("", Sequences(code, Keyboard.Directional))).ToList();
+            sequences = sequences.Select(code => string.Join("", PressSequences(code, Keyboard.Directional))).ToList();
+            sequences = sequences.Select(code => string.Join("", PressSequences(code, Keyboard.Directional))).ToList();
 
             return codes.Select((code, i) => Complexity(code, sequences[i].Length)).Sum();
         }
 
-        private static int Problem2(IList<string> input)
+        private static List<string> KeySequences(char fromKey, char toKey, Keyboard keyboard)
         {
-            return 0;
+            var start = KeyPosition(fromKey, keyboard);
+            var end = KeyPosition(toKey, keyboard);
+
+            var ydiff = end.y - start.y;
+            var vertical = Press(ydiff > 0 ? "v" : "^", ydiff);
+
+            var xdiff = end.x - start.x;
+            var horizontal = Press(xdiff > 0 ? ">" : "<", xdiff);
+
+            List<string> sequences = [];
+
+            // generate this sequence if it after full vertical movement hits a valid key
+            if (KeyPositions(keyboard).Contains((start.x, end.y)))
+            {
+                sequences.Add($"{vertical}{horizontal}A");
+            }
+
+            // generate this sequence if it after full horizontal movement hits a valid key
+            if (KeyPositions(keyboard).Contains((end.x, start.y)))
+            {
+                sequences.Add($"{horizontal}{vertical}A");
+            }
+
+            return sequences;
+        }
+
+        private static long CountKeyPress(char fromKey, char toKey, List<Keyboard> keyboards, Dictionary<(char, char, int), long> cache)
+        {
+            if (cache.ContainsKey((fromKey, toKey, keyboards.Count)))
+            {
+                return cache[(fromKey, toKey, keyboards.Count)];
+            }
+
+            long cost = long.MaxValue;
+
+            foreach (var sequence in KeySequences(fromKey, toKey, keyboards.First()))
+            {
+                cost = Math.Min(cost, CountKeyPresses(sequence, keyboards[1..], cache));
+            }
+
+            cache.Add((fromKey, toKey, keyboards.Count), cost);
+
+            return cost;
+        }
+
+        private static long CountKeyPresses(string keys, List<Keyboard> keyboards, Dictionary<(char, char, int), long> cache)
+        {
+            if (!keyboards.Any())
+            {
+                return keys.Length;
+            }
+
+            char fromKey = 'A';
+
+            long sequenceLength = 0;
+
+            foreach (char toKey in keys)
+            {
+                sequenceLength += CountKeyPress(fromKey, toKey, keyboards, cache);
+
+                fromKey = toKey;
+            }
+
+            return sequenceLength;
+        }
+
+        private static long Problem2(IList<string> input)
+        {
+            Dictionary<(char, char, int), long> cache = new();
+
+            long totalComplexity = 0;
+
+            List<Keyboard> keyboards = Enumerable.Repeat(Keyboard.Directional, 25).Prepend(Keyboard.Numeric).ToList();
+
+            foreach (var code in input)
+            {
+                totalComplexity += Complexity(code, CountKeyPresses(code, keyboards, cache));
+            }
+
+            return totalComplexity;
         }
 
         [Fact]
@@ -218,10 +256,9 @@ namespace Solutions.Event2024
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(223285811665866, Problem2(input));
         }
 
-        private string exampleText = "";
         private List<string> exampleInput =
             [
                 "029A",
@@ -236,13 +273,6 @@ namespace Solutions.Event2024
         public void FirstStarExample()
         {
             Assert.Equal(126384, Problem1(exampleInput));
-        }
-
-        [Fact]
-        [Trait("Event", "2024")]
-        public void SecondStarExample()
-        {
-            Assert.Equal(-1, Problem2(exampleInput));
         }
 
         [Fact]
