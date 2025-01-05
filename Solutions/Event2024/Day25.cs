@@ -22,9 +22,9 @@ namespace Solutions.Event2024
             List<List<int>> locks = new();
             List<List<int>> keys = new();
 
-            List<IEnumerable<string>> batches = input.Split(string.IsNullOrWhiteSpace).ToList();
+            var batches = input.Split(string.IsNullOrWhiteSpace);
             
-            foreach (List<string> batch in batches.ToList())
+            foreach (List<string> batch in batches)
             {
                 if (batch.First() == "#####")
                 {
@@ -77,20 +77,7 @@ namespace Solutions.Event2024
         {
             (List<List<int>> locks, List<List<int>> keys) = Parse(input);
 
-            int count = 0;
-
-            foreach (var @lock in locks)
-            {
-                foreach (var key in keys)
-                {
-                    if (Fits(@lock, key))
-                    {
-                        count++;
-                    }
-                }
-            }
-
-            return count;
+            return locks.Select(@lock => keys.Count(key => Fits(@lock, key))).Sum();
         }
 
         [Fact]
