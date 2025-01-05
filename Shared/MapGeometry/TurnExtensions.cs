@@ -4,14 +4,14 @@ namespace Shared.MapGeometry
 {
     public static class TurnExtensions
     {
-        public static Turn TurnFromString(this string turn)
+        public static Turn Turn(this string turn)
         {
             switch (turn)
             {
                 case "R":
-                    return Turn.Right;
+                    return MapGeometry.Turn.Right;
                 case "L":
-                    return Turn.Left;
+                    return MapGeometry.Turn.Left;
                 default:
                     throw new ArgumentOutOfRangeException($"Unexpected turn string: {turn} (only 'R' and 'L' are valid)");
             }
@@ -21,14 +21,13 @@ namespace Shared.MapGeometry
         {
             switch (turn)
             {
-                case Turn.Right:
+                case MapGeometry.Turn.Right:
                     return "R";
-                case Turn.Left:
+                case MapGeometry.Turn.Left:
                     return "L";
                 default:
                     throw new ArgumentOutOfRangeException($"Unexpected turn: {(int)turn}");
             }
         }
     }
-
 }
