@@ -94,18 +94,21 @@ namespace Solutions.Event2021
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void FirstStarTest()
         {
             Assert.Equal(1840243, FirstStar());
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void SecondStarTest()
         {
             Assert.Equal(1727785422, SecondStar());
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void FirstStarExample()
         {
             var example = new List<string>
@@ -122,6 +125,7 @@ namespace Solutions.Event2021
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void SecondStarExample()
         {
             var example = new List<string>

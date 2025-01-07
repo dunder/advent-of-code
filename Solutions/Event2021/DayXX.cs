@@ -29,24 +29,28 @@ namespace Solutions.Event2021
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void FirstStarTest()
         {
             Assert.Equal(-1, FirstStar());
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void SecondStarTest()
         {
             Assert.Equal(-1, SecondStar());
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void FirstStarExample()
         {
             
         }
 
         [Fact]
+        [Trait("Event", "2021")]
         public void SecondStarExample()
         {
             
