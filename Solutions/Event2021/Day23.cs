@@ -34,6 +34,12 @@ namespace Solutions.Event2021
         private class State : IEquatable<State>
         {
             private readonly static int RoomOffset = 7;
+            private readonly static List<(int from, int to)> Gaps = [(1, 2), (2, 3), (3, 4), (4, 5)];
+            private readonly static List<char> PodTypes = ['A', 'B', 'C', 'D'];
+
+            public Dictionary<(int, Moving), List<int>> outPaths = new();
+            public Dictionary<(char, int), List<int>> homePaths = new();
+
             private readonly HashSet<(int, int)> hiddenSteps = new();
 
             private string _encoded;
@@ -54,6 +60,7 @@ namespace Solutions.Event2021
                 _encoded = sb.ToString();
 
                 InitializeHiddenSteps();
+                InitializePaths();
             }
 
             private State(string encoded)
@@ -61,20 +68,20 @@ namespace Solutions.Event2021
                 _encoded = encoded;
 
                 InitializeHiddenSteps();
+                InitializePaths();
             }
 
             private void InitializeHiddenSteps()
             {
                 (int, int) Swap((int, int) tuple) => (tuple.Item2, tuple.Item1);
 
-                List<(int from, int to)> gaps = [(1, 2), (2, 3), (3, 4), (4, 5)];
-                foreach (var gap in gaps)
+                foreach (var gap in Gaps)
                 {
                     hiddenSteps.Add(gap);
                     hiddenSteps.Add(Swap(gap));
                 }
 
-                List<(char, int left, int right)> pods = [('A', 1, 2), ('B', 2, 3), ('C', 3, 4), ('D', 4, 5)];
+                List<(char, int left, int right)> pods = PodTypes.Zip(Gaps, ((pod, gap) => (pod, gap.from, gap.to))).ToList();
 
                 foreach ((char pod, int left, int right) cnx in pods)
                 {
@@ -85,6 +92,90 @@ namespace Solutions.Event2021
                     hiddenSteps.Add(Swap(left));
                     hiddenSteps.Add(right);
                     hiddenSteps.Add(Swap(right));
+                }
+            }
+
+            private void InitializePaths()
+            {
+                foreach ((char pod, int i) in PodTypes.Select((pod, i) => (pod, i)))
+                {
+                    for (int startPosition = 0; startPosition < RoomOffset; startPosition++)
+                    {
+                        var gap = Gaps[i];
+
+                        List<int> path = new();
+
+                        homePaths.Add((pod, startPosition), path);
+
+                        if (startPosition < gap.to)
+                        {
+                            // walking right in hallway
+                            for (int pos = startPosition + 1; pos < gap.to; pos++)
+                            {
+                                path.Add(pos);
+                            }
+
+                            // walking down in room
+                            var r = RoomIndeces(pod);
+
+                            for (int room = r.end; room >= r.start; room--)
+                            {
+                                path.Add(room);
+                            }
+                        }
+                        else
+                        {
+                            // walking left in hallway
+                            for (int pos = startPosition - 1; pos > gap.from; pos--)
+                            {
+                                path.Add(pos);
+                            }
+
+                            // walking down in room
+                            var r = RoomIndeces(pod);
+
+                            for (int room = r.end; room >= r.start; room--)
+                            {
+                                path.Add(room);
+                            }
+                        }
+                    }
+                }
+
+                foreach ((char pod, int i) in PodTypes.Select((pod, i) => (pod, i)))
+                {
+                    var r = RoomIndeces(pod);
+
+                    var gap = Gaps[i];
+
+                    for (int room = r.start; room <= r.end; room++)
+                    {
+                        
+                        List<int> leftPath = new();
+                        List<int> rightPath = new();
+
+                        outPaths.Add((room, Moving.Left), leftPath);
+                        outPaths.Add((room, Moving.Right), rightPath);
+
+                        // walk up in room
+                        for (int rnext = room + 1; rnext <= r.end; rnext++)
+                        {
+                            leftPath.Add(rnext);
+                            rightPath.Add(rnext);
+                        }
+
+                        // walking left from room
+                        for (int left = gap.from; left >= 0; left--)
+                        {
+                            leftPath.Add(left);
+                        }
+
+                        // walking right from room
+                        for (int right = gap.to; right < RoomOffset; right++)
+                        {
+                            rightPath.Add(right);
+                        }
+                    }
                 }
             }
 
@@ -229,137 +320,137 @@ namespace Solutions.Event2021
 
         public enum Pod { A, B, C, D }
 
-        private static Dictionary<(char, int), List<int>> homePaths = new()
-        {
-            { ('A', 0), [ 1, 8, 7 ] },
-            { ('A', 1), [ 8, 7 ] },
-            { ('A', 2), [ 8, 7 ] },
-            { ('A', 3), [ 2, 8, 7 ] },
-            { ('A', 4), [ 3, 2, 8, 7 ] },
-            { ('A', 5), [ 4, 3, 2, 8, 7 ] },
-            { ('A', 6), [ 5, 4, 3, 2, 8, 7 ] },
+        //private static Dictionary<(char, int), List<int>> homePaths = new()
+        //{
+        //    { ('A', 0), [ 1, 8, 7 ] },
+        //    { ('A', 1), [ 8, 7 ] },
+        //    { ('A', 2), [ 8, 7 ] },
+        //    { ('A', 3), [ 2, 8, 7 ] },
+        //    { ('A', 4), [ 3, 2, 8, 7 ] },
+        //    { ('A', 5), [ 4, 3, 2, 8, 7 ] },
+        //    { ('A', 6), [ 5, 4, 3, 2, 8, 7 ] },
 
-            { ('B', 0), [ 1, 2, 10, 9 ] },
-            { ('B', 1), [ 2, 10, 9 ] },
-            { ('B', 2), [ 10, 9 ] },
-            { ('B', 3), [ 10, 9 ] },
-            { ('B', 4), [ 3, 10, 9 ] },
-            { ('B', 5), [ 4, 3, 10, 9 ] },
-            { ('B', 6), [ 5, 4, 3, 10, 9 ] },
+        //    { ('B', 0), [ 1, 2, 10, 9 ] },
+        //    { ('B', 1), [ 2, 10, 9 ] },
+        //    { ('B', 2), [ 10, 9 ] },
+        //    { ('B', 3), [ 10, 9 ] },
+        //    { ('B', 4), [ 3, 10, 9 ] },
+        //    { ('B', 5), [ 4, 3, 10, 9 ] },
+        //    { ('B', 6), [ 5, 4, 3, 10, 9 ] },
 
-            { ('C', 0), [ 1, 2, 3, 12, 11 ] },
-            { ('C', 1), [ 2, 3, 12, 11 ] },
-            { ('C', 2), [ 3, 12, 11 ] },
-            { ('C', 3), [ 12, 11 ] },
-            { ('C', 4), [ 12, 11 ] },
-            { ('C', 5), [ 4, 12, 11 ] },
-            { ('C', 6), [ 5, 4, 12, 11 ] },
+        //    { ('C', 0), [ 1, 2, 3, 12, 11 ] },
+        //    { ('C', 1), [ 2, 3, 12, 11 ] },
+        //    { ('C', 2), [ 3, 12, 11 ] },
+        //    { ('C', 3), [ 12, 11 ] },
+        //    { ('C', 4), [ 12, 11 ] },
+        //    { ('C', 5), [ 4, 12, 11 ] },
+        //    { ('C', 6), [ 5, 4, 12, 11 ] },
 
-            { ('D', 0), [ 1, 2, 3, 4, 14, 13 ] },
-            { ('D', 1), [ 2, 3, 4, 14, 13 ] },
-            { ('D', 2), [ 3, 4, 14, 13 ] },
-            { ('D', 3), [ 4, 14, 13 ] },
-            { ('D', 4), [ 14, 13 ] },
-            { ('D', 5), [ 14, 13 ] },
-            { ('D', 6), [ 5, 14, 13 ] },
-        };
+        //    { ('D', 0), [ 1, 2, 3, 4, 14, 13 ] },
+        //    { ('D', 1), [ 2, 3, 4, 14, 13 ] },
+        //    { ('D', 2), [ 3, 4, 14, 13 ] },
+        //    { ('D', 3), [ 4, 14, 13 ] },
+        //    { ('D', 4), [ 14, 13 ] },
+        //    { ('D', 5), [ 14, 13 ] },
+        //    { ('D', 6), [ 5, 14, 13 ] },
+        //};
 
-        private static Dictionary<(char, int), List<int>> extendedHomePaths = new()
-        {
-            { ('A', 0), [ 1, 10, 9, 8, 7 ] },
-            { ('A', 1), [ 10, 9, 8, 7 ] },
-            { ('A', 2), [ 10, 9, 8, 7 ] },
-            { ('A', 3), [ 2, 10, 9, 8, 7 ] },
-            { ('A', 4), [ 3, 2, 10, 9, 8, 7 ] },
-            { ('A', 5), [ 4, 3, 2, 10, 9, 8, 7 ] },
-            { ('A', 6), [ 5, 4, 3, 2, 10, 9, 8, 7 ] },
+        //private static Dictionary<(char, int), List<int>> extendedHomePaths = new()
+        //{
+        //    { ('A', 0), [ 1, 10, 9, 8, 7 ] },
+        //    { ('A', 1), [ 10, 9, 8, 7 ] },
+        //    { ('A', 2), [ 10, 9, 8, 7 ] },
+        //    { ('A', 3), [ 2, 10, 9, 8, 7 ] },
+        //    { ('A', 4), [ 3, 2, 10, 9, 8, 7 ] },
+        //    { ('A', 5), [ 4, 3, 2, 10, 9, 8, 7 ] },
+        //    { ('A', 6), [ 5, 4, 3, 2, 10, 9, 8, 7 ] },
 
-            { ('B', 0), [ 1, 2, 14, 13, 12, 11 ] },
-            { ('B', 1), [ 2, 14, 13, 12, 11 ] },
-            { ('B', 2), [ 14, 13, 12, 11 ] },
-            { ('B', 3), [ 14, 13, 12, 11 ] },
-            { ('B', 4), [ 3, 14, 13, 12, 11 ] },
-            { ('B', 5), [ 4, 3, 14, 13, 12, 11 ] },
-            { ('B', 6), [ 5, 4, 3, 14, 13, 12, 11 ] },
+        //    { ('B', 0), [ 1, 2, 14, 13, 12, 11 ] },
+        //    { ('B', 1), [ 2, 14, 13, 12, 11 ] },
+        //    { ('B', 2), [ 14, 13, 12, 11 ] },
+        //    { ('B', 3), [ 14, 13, 12, 11 ] },
+        //    { ('B', 4), [ 3, 14, 13, 12, 11 ] },
+        //    { ('B', 5), [ 4, 3, 14, 13, 12, 11 ] },
+        //    { ('B', 6), [ 5, 4, 3, 14, 13, 12, 11 ] },
 
-            { ('C', 0), [ 1, 2, 3, 18, 17, 16, 15 ] },
-            { ('C', 1), [ 2, 3, 18, 17, 16, 15 ] },
-            { ('C', 2), [ 3, 18, 17, 16, 15 ] },
-            { ('C', 3), [ 18, 17, 16, 15 ] },
-            { ('C', 4), [ 18, 17, 16, 15 ] },
-            { ('C', 5), [ 4, 18, 17, 16, 15 ] },
-            { ('C', 6), [ 5, 4, 18, 17, 16, 15 ] },
+        //    { ('C', 0), [ 1, 2, 3, 18, 17, 16, 15 ] },
+        //    { ('C', 1), [ 2, 3, 18, 17, 16, 15 ] },
+        //    { ('C', 2), [ 3, 18, 17, 16, 15 ] },
+        //    { ('C', 3), [ 18, 17, 16, 15 ] },
+        //    { ('C', 4), [ 18, 17, 16, 15 ] },
+        //    { ('C', 5), [ 4, 18, 17, 16, 15 ] },
+        //    { ('C', 6), [ 5, 4, 18, 17, 16, 15 ] },
 
-            { ('D', 0), [ 1, 2, 3, 4, 22, 21, 20, 19 ] },
-            { ('D', 1), [ 2, 3, 4, 22, 21, 20, 19 ] },
-            { ('D', 2), [ 3, 4, 22, 21, 20, 19 ] },
-            { ('D', 3), [ 4, 22, 21, 20, 19 ] },
-            { ('D', 4), [ 22, 21, 20, 19 ] },
-            { ('D', 5), [ 22, 21, 20, 19 ] },
-            { ('D', 6), [ 5, 22, 21, 20, 19 ] },
-        };
+        //    { ('D', 0), [ 1, 2, 3, 4, 22, 21, 20, 19 ] },
+        //    { ('D', 1), [ 2, 3, 4, 22, 21, 20, 19 ] },
+        //    { ('D', 2), [ 3, 4, 22, 21, 20, 19 ] },
+        //    { ('D', 3), [ 4, 22, 21, 20, 19 ] },
+        //    { ('D', 4), [ 22, 21, 20, 19 ] },
+        //    { ('D', 5), [ 22, 21, 20, 19 ] },
+        //    { ('D', 6), [ 5, 22, 21, 20, 19 ] },
+        //};
 
-        private static Dictionary<(int, Moving), List<int>> outPaths = new()
-        {
-            { (7, Moving.Left), [ 8, 1, 0] },
-            { (8, Moving.Left), [ 1, 0 ] },
-            { (7, Moving.Right), [ 8, 2, 3, 4, 5, 6 ] },
-            { (8, Moving.Right), [ 2, 3, 4, 5, 6 ] },
+        //private static Dictionary<(int, Moving), List<int>> outPaths = new()
+        //{
+        //    { (7, Moving.Left), [ 8, 1, 0] },
+        //    { (8, Moving.Left), [ 1, 0 ] },
+        //    { (7, Moving.Right), [ 8, 2, 3, 4, 5, 6 ] },
+        //    { (8, Moving.Right), [ 2, 3, 4, 5, 6 ] },
 
-            { (9, Moving.Left), [ 10, 2, 1, 0] },
-            { (10, Moving.Left), [ 2, 1, 0] },
-            { (9, Moving.Right), [ 10, 3, 4, 5, 6 ] },
-            { (10, Moving.Right), [ 3, 4, 5, 6 ] },
+        //    { (9, Moving.Left), [ 10, 2, 1, 0] },
+        //    { (10, Moving.Left), [ 2, 1, 0] },
+        //    { (9, Moving.Right), [ 10, 3, 4, 5, 6 ] },
+        //    { (10, Moving.Right), [ 3, 4, 5, 6 ] },
 
-            { (11, Moving.Left), [ 12, 3, 2, 1, 0] },
-            { (12, Moving.Left), [ 3, 2, 1, 0] },
-            { (11, Moving.Right), [ 12, 4, 5, 6 ] },
-            { (12, Moving.Right), [ 4, 5, 6 ] },
+        //    { (11, Moving.Left), [ 12, 3, 2, 1, 0] },
+        //    { (12, Moving.Left), [ 3, 2, 1, 0] },
+        //    { (11, Moving.Right), [ 12, 4, 5, 6 ] },
+        //    { (12, Moving.Right), [ 4, 5, 6 ] },
 
-            { (13, Moving.Left), [ 14, 4, 3, 2, 1, 0] },
-            { (14, Moving.Left), [ 4, 3, 2, 1, 0] },
-            { (13, Moving.Right), [ 14, 5, 6 ] },
-            { (14, Moving.Right), [ 5, 6 ] },
-        };
+        //    { (13, Moving.Left), [ 14, 4, 3, 2, 1, 0] },
+        //    { (14, Moving.Left), [ 4, 3, 2, 1, 0] },
+        //    { (13, Moving.Right), [ 14, 5, 6 ] },
+        //    { (14, Moving.Right), [ 5, 6 ] },
+        //};
 
-        private static Dictionary<(int, Moving), List<int>> extendedOutPaths = new()
-        {
-            { (7, Moving.Left), [ 8, 9, 10, 1, 0] },
-            { (8, Moving.Left), [ 9, 10, 1, 0 ] },
-            { (9, Moving.Left), [ 10, 1, 0 ] },
-            { (10, Moving.Left), [ 1, 0 ] },
-            { (7, Moving.Right), [ 8, 9, 10, 2, 3, 4, 5, 6 ] },
-            { (8, Moving.Right), [ 9, 10, 2, 3, 4, 5, 6 ] },
-            { (9, Moving.Right), [ 10, 2, 3, 4, 5, 6 ] },
-            { (10, Moving.Right), [ 2, 3, 4, 5, 6 ] },
+        //private static Dictionary<(int, Moving), List<int>> extendedOutPaths = new()
+        //{
+        //    { (7, Moving.Left), [ 8, 9, 10, 1, 0] },
+        //    { (8, Moving.Left), [ 9, 10, 1, 0 ] },
+        //    { (9, Moving.Left), [ 10, 1, 0 ] },
+        //    { (10, Moving.Left), [ 1, 0 ] },
+        //    { (7, Moving.Right), [ 8, 9, 10, 2, 3, 4, 5, 6 ] },
+        //    { (8, Moving.Right), [ 9, 10, 2, 3, 4, 5, 6 ] },
+        //    { (9, Moving.Right), [ 10, 2, 3, 4, 5, 6 ] },
+        //    { (10, Moving.Right), [ 2, 3, 4, 5, 6 ] },
 
-            { (11, Moving.Left), [ 12, 13, 14, 2, 1, 0] },
-            { (12, Moving.Left), [ 13, 14, 2, 1, 0] },
-            { (13, Moving.Left), [ 14, 2, 1, 0] },
-            { (14, Moving.Left), [ 2, 1, 0] },
-            { (11, Moving.Right), [ 12, 13, 14, 3, 4, 5, 6 ] },
-            { (12, Moving.Right), [ 13, 14, 3, 4, 5, 6 ] },
-            { (13, Moving.Right), [ 14, 3, 4, 5, 6 ] },
-            { (14, Moving.Right), [ 3, 4, 5, 6 ] },
+        //    { (11, Moving.Left), [ 12, 13, 14, 2, 1, 0] },
+        //    { (12, Moving.Left), [ 13, 14, 2, 1, 0] },
+        //    { (13, Moving.Left), [ 14, 2, 1, 0] },
+        //    { (14, Moving.Left), [ 2, 1, 0] },
+        //    { (11, Moving.Right), [ 12, 13, 14, 3, 4, 5, 6 ] },
+        //    { (12, Moving.Right), [ 13, 14, 3, 4, 5, 6 ] },
+        //    { (13, Moving.Right), [ 14, 3, 4, 5, 6 ] },
+        //    { (14, Moving.Right), [ 3, 4, 5, 6 ] },
 
-            { (15, Moving.Left), [ 16, 17, 18, 3, 2, 1, 0] },
-            { (16, Moving.Left), [ 17, 18, 3, 2, 1, 0] },
-            { (17, Moving.Left), [ 17, 3, 2, 1, 0] },
-            { (18, Moving.Left), [ 3, 2, 1, 0] },
-            { (15, Moving.Right), [ 16, 17, 18, 4, 5, 6 ] },
-            { (16, Moving.Right), [ 17, 18, 4, 5, 6 ] },
-            { (17, Moving.Right), [ 18, 4, 5, 6 ] },
-            { (18, Moving.Right), [ 4, 5, 6 ] },
+        //    { (15, Moving.Left), [ 16, 17, 18, 3, 2, 1, 0] },
+        //    { (16, Moving.Left), [ 17, 18, 3, 2, 1, 0] },
+        //    { (17, Moving.Left), [ 17, 3, 2, 1, 0] },
+        //    { (18, Moving.Left), [ 3, 2, 1, 0] },
+        //    { (15, Moving.Right), [ 16, 17, 18, 4, 5, 6 ] },
+        //    { (16, Moving.Right), [ 17, 18, 4, 5, 6 ] },
+        //    { (17, Moving.Right), [ 18, 4, 5, 6 ] },
+        //    { (18, Moving.Right), [ 4, 5, 6 ] },
 
-            { (19, Moving.Left), [ 20, 21, 22, 4, 3, 2, 1, 0] },
-            { (20, Moving.Left), [ 21, 22, 4, 3, 2, 1, 0] },
-            { (21, Moving.Left), [ 22, 4, 3, 2, 1, 0] },
-            { (22, Moving.Left), [ 4, 3, 2, 1, 0] },
-            { (19, Moving.Right), [ 20, 21, 22, 5, 6 ] },
-            { (20, Moving.Right), [ 21, 22, 5, 6 ] },
-            { (21, Moving.Right), [ 22, 5, 6 ] },
-            { (22, Moving.Right), [ 5, 6 ] },
-        };
+        //    { (19, Moving.Left), [ 20, 21, 22, 4, 3, 2, 1, 0] },
+        //    { (20, Moving.Left), [ 21, 22, 4, 3, 2, 1, 0] },
+        //    { (21, Moving.Left), [ 22, 4, 3, 2, 1, 0] },
+        //    { (22, Moving.Left), [ 4, 3, 2, 1, 0] },
+        //    { (19, Moving.Right), [ 20, 21, 22, 5, 6 ] },
+        //    { (20, Moving.Right), [ 21, 22, 5, 6 ] },
+        //    { (21, Moving.Right), [ 22, 5, 6 ] },
+        //    { (22, Moving.Right), [ 5, 6 ] },
+        //};
 
         private static int EnergyCost(char pod) => pod switch
         {
@@ -399,7 +490,8 @@ namespace Solutions.Event2021
                 {
                     if (state.CanMoveHome(pod))
                     {
-                        var path = state.Extended ? extendedHomePaths[(pod, position)] : homePaths[(pod, position)];
+                        //var path = state.Extended ? extendedHomePaths[(pod, position)] : homePaths[(pod, position)];
+                        var path = state.homePaths[(pod, position)];
                         var energy = 0;
                         int previous = position;
                         while (path.Count > 0 && !state.IsOccupied(path.First()))
@@ -420,7 +512,8 @@ namespace Solutions.Event2021
                 }
                 else if (!state.IsInCorrectRoom(pod, position))
                 {
-                    var leftPath = state.Extended ? extendedOutPaths[(position, Moving.Left)] : outPaths[(position, Moving.Left)];
+                    //var leftPath = state.Extended ? extendedOutPaths[(position, Moving.Left)] : outPaths[(position, Moving.Left)];
+                    var leftPath = state.outPaths[(position, Moving.Left)];
                     var energy = 0;
                     int previous = position;
                     while (leftPath.Count > 0 && !state.IsOccupied(leftPath.First()))
@@ -438,7 +531,8 @@ namespace Solutions.Event2021
                         previous = next;
                     }
 
-                    var rightPath = state.Extended ? extendedOutPaths[(position, Moving.Right)] : outPaths[(position, Moving.Right)];
+                    //var rightPath = state.Extended ? extendedOutPaths[(position, Moving.Right)] : outPaths[(position, Moving.Right)];
+                    var rightPath = state.outPaths[(position, Moving.Right)];
                     energy = 0;
                     previous = position;
                     while (rightPath.Count > 0 && !state.IsOccupied(rightPath.First()))
