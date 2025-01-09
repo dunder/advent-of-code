@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Xunit;
@@ -26,53 +25,91 @@ namespace Solutions.Event2021
         //       # A1 #  # B1 #  # C1 #  # D1 #
         //       ######  ######  ######  ######
 
-        public enum P
-        {
-            H1 = 0,
-            H2,
-            H3,
-            H4,
-            H5,
-            H6,
-            H7,
-            A1,
-            A2,
-            B1,
-            B2,
-            C1,
-            C2,
-            D1,
-            D2,
-        }
+        // #####################################
+        // # 0 1      2      3      4      5 6 #
+        // ######  8 ### 10 ### 12 ### 14 ######
+        //      #  7 # #  9 # # 11 # # 13 #
+        //      ###### ###### ###### ######
 
         private class State : IEquatable<State>
         {
+            private readonly static int RoomOffset = 7;
+            private readonly HashSet<(int, int)> hiddenSteps = new();
+
             private string _encoded;
 
-            public State(P a1, P a2, P b1, P b2, P c1, P c2, P d1, P d2)
+            public State(int a1, int a2, int b1, int b2, int c1, int c2, int d1, int d2)
             {
                 StringBuilder sb = new("...............");
 
-                sb[(int)a1] = 'A';
-                sb[(int)a2] = 'A';
-                sb[(int)b1] = 'B';
-                sb[(int)b2] = 'B';
-                sb[(int)c1] = 'C';
-                sb[(int)c2] = 'C';
-                sb[(int)d1] = 'D';
-                sb[(int)d2] = 'D';
+                sb[a1] = 'A';
+                sb[a2] = 'A';
+                sb[b1] = 'B';
+                sb[b2] = 'B';
+                sb[c1] = 'C';
+                sb[c2] = 'C';
+                sb[d1] = 'D';
+                sb[d2] = 'D';
 
                 _encoded = sb.ToString();
+
+                InitializeHiddenSteps();
             }
 
             private State(string encoded)
             {
                 _encoded = encoded;
+
+                InitializeHiddenSteps();
+            }
+
+            private void InitializeHiddenSteps()
+            {
+                (int, int) Swap((int, int) tuple) => (tuple.Item2, tuple.Item1);
+
+                List<(int from, int to)> gaps = [(1, 2), (2, 3), (3, 4), (4, 5)];
+                foreach (var gap in gaps)
+                {
+                    hiddenSteps.Add(gap);
+                    hiddenSteps.Add(Swap(gap));
+                }
+
+                List<(char, int left, int right)> pods = [('A', 1, 2), ('B', 2, 3), ('C', 3, 4), ('D', 4, 5)];
+
+                foreach ((char pod, int left, int right) cnx in pods)
+                {
+                    var left = (RoomIndeces(cnx.pod).end, cnx.left);
+                    var right = (RoomIndeces(cnx.pod).end, cnx.right);
+
+                    hiddenSteps.Add(left);
+                    hiddenSteps.Add(Swap(left));
+                    hiddenSteps.Add(right);
+                    hiddenSteps.Add(Swap(right));
+                }
             }
 
             public static State Decode(string encoded)
             {
                 return new State(encoded);
+            }
+
+            public bool Extended => _encoded.Length != 15;
+
+            // problem 2 extension
+            public State Extend()
+            {
+                StringBuilder sb = new StringBuilder(_encoded);
+
+                sb.Insert(8, 'D');
+                sb.Insert(9, 'D');
+                sb.Insert(12, 'B');
+                sb.Insert(13, 'C');
+                sb.Insert(16, 'A');
+                sb.Insert(17, 'B');
+                sb.Insert(20, 'C');
+                sb.Insert(21, 'A');
+
+                return new State(sb.ToString());
             }
 
             public bool Equals(State other)
@@ -93,219 +130,287 @@ namespace Solutions.Event2021
                 return _encoded;
             }
 
-            public bool IsOccupied(P position) => _encoded[(int)position] != '.';
+            public bool IsOccupied(int position) => _encoded[position] != '.';
 
-            public static bool IsInHallway(P position) => (int)position < 7;
+            public static bool IsInHallway(int position) => position < RoomOffset;
 
-            // only checks if it is feasable to stop at the position when moving home, does not consider if 
-            // there are any occupied locations in the path, just checks if the position is a home position
-            // so A1 is always a valid home for A, but A2 is only valid if A1 is occupied by an A
-            public bool IsPossibleHomeMove(Pod pod, P position) => pod switch
+            public bool CanMoveHome(char pod)
             {
-                Pod.A => (int)position == 8 && _encoded[7] == 'A' || (int)position == 7,
-                Pod.B => (int)position == 10 && _encoded[9] == 'B' || (int)position == 9,
-                Pod.C => (int)position == 12 && _encoded[11] == 'C' || (int)position == 11,
-                Pod.D => (int)position == 14 && _encoded[13] == 'D' || (int)position == 13,
-                _ => throw new ArgumentOutOfRangeException(nameof(position)),
-            };
+                for (int i = 0; i < RoomCount; i++)
+                {
+                    string pattern = new string(pod, i) + new string('.', RoomCount - i);
 
-            public bool CanMoveHome(Pod pod) => Rooms(pod) == ".." || Rooms(pod) == $"{Letter(pod)}.";
+                    if (Rooms(pod) == pattern)
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
 
-            public bool IsInCorrectRoom(Pod pod, P position) => pod switch
+            public bool IsInCorrectRoom(char pod, int position)
             {
-                Pod.A => (int)position == 7 || ((int)position == 8 && _encoded[7] == 'A'),
-                Pod.B => (int)position == 9 || ((int)position == 10 && _encoded[9] == 'B'),
-                Pod.C => (int)position == 11 || ((int)position == 12 && _encoded[11] == 'C'),
-                Pod.D => (int)position == 13 || ((int)position == 14 && _encoded[13] == 'D'),
-                _ => throw new ArgumentOutOfRangeException(nameof(position)),
-            };
+                (int start, int end) = RoomIndeces(pod);
 
-            public State MoveTo(Pod pod, bool first, P position)
+                if (position < start || position > end)
+                {
+                    return false;
+                }
+
+                int roomsBehind = position - start;
+
+                return Rooms(pod).Substring(0, roomsBehind).All(c => pod == c);
+            }
+
+            public State MoveTo(char pod, int podnr, int position)
             {
                 StringBuilder encoded = new StringBuilder(_encoded);
 
-                int current = first ? _encoded.IndexOf(Letter(pod)) : _encoded.LastIndexOf(Letter(pod));
+                int current = -1;
+
+                for (int i = 0; i <= podnr; i++)
+                {
+                    current = _encoded.IndexOf(pod, current + 1);
+                }
 
                 encoded[current] = '.';
-                encoded[(int)position] = Convert.ToChar(Letter(pod));
+                encoded[position] = Convert.ToChar(pod);
 
                 return new State(encoded.ToString());
             }
 
-            public List<(Pod pod, P position)> Pods => 
-                [
-                    (Pod.A, (P)_encoded.IndexOf("A")),
-                    (Pod.A, (P)_encoded.LastIndexOf("A")),
-                    (Pod.B, (P)_encoded.IndexOf("B")),
-                    (Pod.B, (P)_encoded.LastIndexOf("B")),
-                    (Pod.C, (P)_encoded.IndexOf("C")),
-                    (Pod.C, (P)_encoded.LastIndexOf("C")),
-                    (Pod.D, (P)_encoded.IndexOf("D")),
-                    (Pod.D, (P)_encoded.LastIndexOf("D")),
-                ];
-
-            private string Letter(Pod pod) => pod switch
+            public List<(char pod, int position)> Pods
             {
-                Pod.A => "A",
-                Pod.B => "B",
-                Pod.C => "C",
-                Pod.D => "D",
+                get
+                {
+                    List<(char pod, int position)> pods = [];
+
+                    for (int i = 0; i < _encoded.Length; i++)
+                    {
+                        if (_encoded[i] == '.') { continue; }
+
+                        pods.Add((_encoded[i], i));
+                    }
+
+                    return pods.OrderBy(p => p.pod).ThenBy(p => p.position).ToList();
+                }
+            }
+
+            public int StepEnergyCost(char pod, int from, int to)
+            {
+                if (hiddenSteps.Contains((from, to)))
+                {
+                    return 2 * EnergyCost(pod);
+                }
+
+                return EnergyCost(pod);
+            }
+
+            public int RoomCount => Extended ? 4 : 2;
+
+
+            private (int start, int end) RoomIndeces(char pod) => pod switch
+            {
+                'A' => Extended ? (7, 10) : (7, 8),
+                'B' => Extended ? (11, 14) : (9, 10),
+                'C' => Extended ? (15, 18) : (11, 12),
+                'D' => Extended ? (19, 22) : (13, 14),
                 _ => throw new ArgumentOutOfRangeException(nameof(pod)),
             };
 
-            private string Rooms(Pod pod) => pod switch
-            {
-                Pod.A => _encoded.Substring(7, 2),
-                Pod.B => _encoded.Substring(9, 2),
-                Pod.C => _encoded.Substring(11, 2),
-                Pod.D => _encoded.Substring(13, 2),
-                _ => throw new ArgumentOutOfRangeException(nameof(pod)),
-            };
+            private string Rooms(char pod) => _encoded.Substring(RoomIndeces(pod).start, RoomCount);
 
-            public bool IsComplete => _encoded == ".......AABBCCDD";
+            public bool IsComplete => Extended ?
+                _encoded == ".......AAAABBBBCCCCDDDD" :
+                _encoded == ".......AABBCCDD";
         }
 
         private enum Moving { Left, Right }
 
         public enum Pod { A, B, C, D }
 
-        private static Dictionary<(Pod, P), List<P>> homePaths = new()
+        private static Dictionary<(char, int), List<int>> homePaths = new()
         {
-            { (Pod.A, P.H1), [ P.H2, P.A2, P.A1 ] },
-            { (Pod.A, P.H2), [ P.A2, P.A1 ] },
-            { (Pod.A, P.H3), [ P.A2, P.A1 ] },
-            { (Pod.A, P.H4), [ P.H3, P.A2, P.A1 ] },
-            { (Pod.A, P.H5), [ P.H4, P.H3, P.A2, P.A1 ] },
-            { (Pod.A, P.H6), [ P.H5, P.H4, P.H3, P.A2, P.A1 ] },
-            { (Pod.A, P.H7), [ P.H6, P.H5, P.H4, P.H3, P.A2, P.A1 ] },
+            { ('A', 0), [ 1, 8, 7 ] },
+            { ('A', 1), [ 8, 7 ] },
+            { ('A', 2), [ 8, 7 ] },
+            { ('A', 3), [ 2, 8, 7 ] },
+            { ('A', 4), [ 3, 2, 8, 7 ] },
+            { ('A', 5), [ 4, 3, 2, 8, 7 ] },
+            { ('A', 6), [ 5, 4, 3, 2, 8, 7 ] },
 
-            { (Pod.B, P.H1), [ P.H2, P.H3, P.B2, P.B1 ] },
-            { (Pod.B, P.H2), [ P.H3, P.B2, P.B1 ] },
-            { (Pod.B, P.H3), [ P.B2, P.B1 ] },
-            { (Pod.B, P.H4), [ P.B2, P.B1 ] },
-            { (Pod.B, P.H5), [ P.H4, P.B2, P.B1 ] },
-            { (Pod.B, P.H6), [ P.H5, P.H4, P.B2, P.B1 ] },
-            { (Pod.B, P.H7), [ P.H6, P.H5, P.H4, P.B2, P.B1 ] },
+            { ('B', 0), [ 1, 2, 10, 9 ] },
+            { ('B', 1), [ 2, 10, 9 ] },
+            { ('B', 2), [ 10, 9 ] },
+            { ('B', 3), [ 10, 9 ] },
+            { ('B', 4), [ 3, 10, 9 ] },
+            { ('B', 5), [ 4, 3, 10, 9 ] },
+            { ('B', 6), [ 5, 4, 3, 10, 9 ] },
 
-            { (Pod.C, P.H1), [ P.H2, P.H3, P.H4, P.C2, P.C1 ] },
-            { (Pod.C, P.H2), [ P.H3, P.H4, P.C2, P.C1 ] },
-            { (Pod.C, P.H3), [ P.H4, P.C2, P.C1 ] },
-            { (Pod.C, P.H4), [ P.C2, P.C1 ] },
-            { (Pod.C, P.H5), [ P.C2, P.C1 ] },
-            { (Pod.C, P.H6), [ P.H5, P.C2, P.C1 ] },
-            { (Pod.C, P.H7), [ P.H6, P.H5, P.C2, P.C1 ] },
+            { ('C', 0), [ 1, 2, 3, 12, 11 ] },
+            { ('C', 1), [ 2, 3, 12, 11 ] },
+            { ('C', 2), [ 3, 12, 11 ] },
+            { ('C', 3), [ 12, 11 ] },
+            { ('C', 4), [ 12, 11 ] },
+            { ('C', 5), [ 4, 12, 11 ] },
+            { ('C', 6), [ 5, 4, 12, 11 ] },
 
-            { (Pod.D, P.H1), [ P.H2, P.H3, P.H4, P.H5, P.D2, P.D1 ] },
-            { (Pod.D, P.H2), [ P.H3, P.H4, P.H5, P.D2, P.D1 ] },
-            { (Pod.D, P.H3), [ P.H4, P.H5, P.D2, P.D1 ] },
-            { (Pod.D, P.H4), [ P.H5, P.D2, P.D1 ] },
-            { (Pod.D, P.H5), [ P.D2, P.D1 ] },
-            { (Pod.D, P.H6), [ P.D2, P.D1 ] },
-            { (Pod.D, P.H7), [ P.H6, P.D2, P.D1 ] },
+            { ('D', 0), [ 1, 2, 3, 4, 14, 13 ] },
+            { ('D', 1), [ 2, 3, 4, 14, 13 ] },
+            { ('D', 2), [ 3, 4, 14, 13 ] },
+            { ('D', 3), [ 4, 14, 13 ] },
+            { ('D', 4), [ 14, 13 ] },
+            { ('D', 5), [ 14, 13 ] },
+            { ('D', 6), [ 5, 14, 13 ] },
         };
 
-        private static Dictionary<(P, Moving), List<P>> outPaths = new()
+        private static Dictionary<(char, int), List<int>> extendedHomePaths = new()
         {
-            { (P.A1, Moving.Left), [ P.A2, P.H2, P.H1] },
-            { (P.A2, Moving.Left), [ P.H2, P.H1 ] },
-            { (P.A1, Moving.Right), [ P.A2, P.H3, P.H4, P.H5, P.H6, P.H7 ] },
-            { (P.A2, Moving.Right), [ P.H3, P.H4, P.H5, P.H6, P.H7 ] },
+            { ('A', 0), [ 1, 10, 9, 8, 7 ] },
+            { ('A', 1), [ 10, 9, 8, 7 ] },
+            { ('A', 2), [ 10, 9, 8, 7 ] },
+            { ('A', 3), [ 2, 10, 9, 8, 7 ] },
+            { ('A', 4), [ 3, 2, 10, 9, 8, 7 ] },
+            { ('A', 5), [ 4, 3, 2, 10, 9, 8, 7 ] },
+            { ('A', 6), [ 5, 4, 3, 2, 10, 9, 8, 7 ] },
 
-            { (P.B1, Moving.Left), [ P.B2, P.H3, P.H2, P.H1] },
-            { (P.B2, Moving.Left), [ P.H3, P.H2, P.H1] },
-            { (P.B1, Moving.Right), [ P.B2, P.H4, P.H5, P.H6, P.H7 ] },
-            { (P.B2, Moving.Right), [ P.H4, P.H5, P.H6, P.H7 ] },
+            { ('B', 0), [ 1, 2, 14, 13, 12, 11 ] },
+            { ('B', 1), [ 2, 14, 13, 12, 11 ] },
+            { ('B', 2), [ 14, 13, 12, 11 ] },
+            { ('B', 3), [ 14, 13, 12, 11 ] },
+            { ('B', 4), [ 3, 14, 13, 12, 11 ] },
+            { ('B', 5), [ 4, 3, 14, 13, 12, 11 ] },
+            { ('B', 6), [ 5, 4, 3, 14, 13, 12, 11 ] },
 
-            { (P.C1, Moving.Left), [ P.C2, P.H4, P.H3, P.H2, P.H1] },
-            { (P.C2, Moving.Left), [ P.H4, P.H3, P.H2, P.H1] },
-            { (P.C1, Moving.Right), [ P.C2, P.H5, P.H6, P.H7 ] },
-            { (P.C2, Moving.Right), [ P.H5, P.H6, P.H7 ] },
+            { ('C', 0), [ 1, 2, 3, 18, 17, 16, 15 ] },
+            { ('C', 1), [ 2, 3, 18, 17, 16, 15 ] },
+            { ('C', 2), [ 3, 18, 17, 16, 15 ] },
+            { ('C', 3), [ 18, 17, 16, 15 ] },
+            { ('C', 4), [ 18, 17, 16, 15 ] },
+            { ('C', 5), [ 4, 18, 17, 16, 15 ] },
+            { ('C', 6), [ 5, 4, 18, 17, 16, 15 ] },
 
-            { (P.D1, Moving.Left), [ P.D2, P.H5, P.H4, P.H3, P.H2, P.H1] },
-            { (P.D2, Moving.Left), [ P.H5, P.H4, P.H3, P.H2, P.H1] },
-            { (P.D1, Moving.Right), [ P.D2, P.H6, P.H7 ] },
-            { (P.D2, Moving.Right), [ P.H6, P.H7 ] },
+            { ('D', 0), [ 1, 2, 3, 4, 22, 21, 20, 19 ] },
+            { ('D', 1), [ 2, 3, 4, 22, 21, 20, 19 ] },
+            { ('D', 2), [ 3, 4, 22, 21, 20, 19 ] },
+            { ('D', 3), [ 4, 22, 21, 20, 19 ] },
+            { ('D', 4), [ 22, 21, 20, 19 ] },
+            { ('D', 5), [ 22, 21, 20, 19 ] },
+            { ('D', 6), [ 5, 22, 21, 20, 19 ] },
         };
 
-        private static int EnergyCost(Pod pod) => pod switch
+        private static Dictionary<(int, Moving), List<int>> outPaths = new()
         {
-            Pod.A => 1,
-            Pod.B => 10,
-            Pod.C => 100,
-            Pod.D => 1000,
+            { (7, Moving.Left), [ 8, 1, 0] },
+            { (8, Moving.Left), [ 1, 0 ] },
+            { (7, Moving.Right), [ 8, 2, 3, 4, 5, 6 ] },
+            { (8, Moving.Right), [ 2, 3, 4, 5, 6 ] },
+
+            { (9, Moving.Left), [ 10, 2, 1, 0] },
+            { (10, Moving.Left), [ 2, 1, 0] },
+            { (9, Moving.Right), [ 10, 3, 4, 5, 6 ] },
+            { (10, Moving.Right), [ 3, 4, 5, 6 ] },
+
+            { (11, Moving.Left), [ 12, 3, 2, 1, 0] },
+            { (12, Moving.Left), [ 3, 2, 1, 0] },
+            { (11, Moving.Right), [ 12, 4, 5, 6 ] },
+            { (12, Moving.Right), [ 4, 5, 6 ] },
+
+            { (13, Moving.Left), [ 14, 4, 3, 2, 1, 0] },
+            { (14, Moving.Left), [ 4, 3, 2, 1, 0] },
+            { (13, Moving.Right), [ 14, 5, 6 ] },
+            { (14, Moving.Right), [ 5, 6 ] },
+        };
+
+        private static Dictionary<(int, Moving), List<int>> extendedOutPaths = new()
+        {
+            { (7, Moving.Left), [ 8, 9, 10, 1, 0] },
+            { (8, Moving.Left), [ 9, 10, 1, 0 ] },
+            { (9, Moving.Left), [ 10, 1, 0 ] },
+            { (10, Moving.Left), [ 1, 0 ] },
+            { (7, Moving.Right), [ 8, 9, 10, 2, 3, 4, 5, 6 ] },
+            { (8, Moving.Right), [ 9, 10, 2, 3, 4, 5, 6 ] },
+            { (9, Moving.Right), [ 10, 2, 3, 4, 5, 6 ] },
+            { (10, Moving.Right), [ 2, 3, 4, 5, 6 ] },
+
+            { (11, Moving.Left), [ 12, 13, 14, 2, 1, 0] },
+            { (12, Moving.Left), [ 13, 14, 2, 1, 0] },
+            { (13, Moving.Left), [ 14, 2, 1, 0] },
+            { (14, Moving.Left), [ 2, 1, 0] },
+            { (11, Moving.Right), [ 12, 13, 14, 3, 4, 5, 6 ] },
+            { (12, Moving.Right), [ 13, 14, 3, 4, 5, 6 ] },
+            { (13, Moving.Right), [ 14, 3, 4, 5, 6 ] },
+            { (14, Moving.Right), [ 3, 4, 5, 6 ] },
+
+            { (15, Moving.Left), [ 16, 17, 18, 3, 2, 1, 0] },
+            { (16, Moving.Left), [ 17, 18, 3, 2, 1, 0] },
+            { (17, Moving.Left), [ 17, 3, 2, 1, 0] },
+            { (18, Moving.Left), [ 3, 2, 1, 0] },
+            { (15, Moving.Right), [ 16, 17, 18, 4, 5, 6 ] },
+            { (16, Moving.Right), [ 17, 18, 4, 5, 6 ] },
+            { (17, Moving.Right), [ 18, 4, 5, 6 ] },
+            { (18, Moving.Right), [ 4, 5, 6 ] },
+
+            { (19, Moving.Left), [ 20, 21, 22, 4, 3, 2, 1, 0] },
+            { (20, Moving.Left), [ 21, 22, 4, 3, 2, 1, 0] },
+            { (21, Moving.Left), [ 22, 4, 3, 2, 1, 0] },
+            { (22, Moving.Left), [ 4, 3, 2, 1, 0] },
+            { (19, Moving.Right), [ 20, 21, 22, 5, 6 ] },
+            { (20, Moving.Right), [ 21, 22, 5, 6 ] },
+            { (21, Moving.Right), [ 22, 5, 6 ] },
+            { (22, Moving.Right), [ 5, 6 ] },
+        };
+
+        private static int EnergyCost(char pod) => pod switch
+        {
+            'A' => 1,
+            'B' => 10,
+            'C' => 100,
+            'D' => 1000,
             _ => throw new ArgumentOutOfRangeException(nameof(pod)),
         };
 
         private static State Parse(IList<string> input)
         {
-            List<(P position, char pod)> initialState =
+            List<(int position, char pod)> initialState =
                 [
-                    (P.A2, input[2][3]),
-                    (P.A1, input[3][3]),
-                    (P.B2, input[2][5]),
-                    (P.B1, input[3][5]),
-                    (P.C2, input[2][7]),
-                    (P.C1, input[3][7]),
-                    (P.D2, input[2][9]),
-                    (P.D1, input[3][9]),
+                    (8, input[2][3]),
+                    (7, input[3][3]),
+                    (10, input[2][5]),
+                    (9, input[3][5]),
+                    (12, input[2][7]),
+                    (11, input[3][7]),
+                    (14, input[2][9]),
+                    (13, input[3][9]),
                 ];
 
-            List<P> s = initialState.OrderBy(x => x.pod).Select(x => x.position).ToList();
+            List<int> s = initialState.OrderBy(x => x.pod).Select(x => x.position).ToList();
 
             return new State(s[0], s[1], s[2], s[3], s[4], s[5], s[6], s[7]);
         }
-
-        private static int StepEnergyCost(Pod pod, P from, P to) => (from, to) switch
-        {
-            (P.A2, P.H2) => EnergyCost(pod) * 2,
-            (P.H2, P.A2) => EnergyCost(pod) * 2,
-            (P.A2, P.H3) => EnergyCost(pod) * 2,
-            (P.H3, P.A2) => EnergyCost(pod) * 2,
-            (P.B2, P.H3) => EnergyCost(pod) * 2,
-            (P.H3, P.B2) => EnergyCost(pod) * 2,
-            (P.B2, P.H4) => EnergyCost(pod) * 2,
-            (P.H4, P.B2) => EnergyCost(pod) * 2,
-            (P.C2, P.H4) => EnergyCost(pod) * 2,
-            (P.H4, P.C2) => EnergyCost(pod) * 2,
-            (P.C2, P.H5) => EnergyCost(pod) * 2,
-            (P.H5, P.C2) => EnergyCost(pod) * 2,
-            (P.D2, P.H5) => EnergyCost(pod) * 2,
-            (P.H5, P.D2) => EnergyCost(pod) * 2,
-            (P.D2, P.H6) => EnergyCost(pod) * 2,
-            (P.H6, P.D2) => EnergyCost(pod) * 2,
-            (P.H2, P.H3) => EnergyCost(pod) * 2,
-            (P.H3, P.H2) => EnergyCost(pod) * 2,
-            (P.H3, P.H4) => EnergyCost(pod) * 2,
-            (P.H4, P.H3) => EnergyCost(pod) * 2,
-            (P.H4, P.H5) => EnergyCost(pod) * 2,
-            (P.H5, P.H4) => EnergyCost(pod) * 2,
-            (P.H5, P.H6) => EnergyCost(pod) * 2,
-            (P.H6, P.H5) => EnergyCost(pod) * 2,
-            _ => EnergyCost(pod)
-        };
 
         private static List<(State, int)> Neighbors(State state)
         {
             List<(State, int)> ns = new();
 
-            void AddPaths(Pod pod, P position, bool first)
+            void AddPaths(char pod, int position, int podnr)
             {
                 if (State.IsInHallway(position))
                 {
                     if (state.CanMoveHome(pod))
                     {
-                        var path = homePaths[(pod, position)];
+                        var path = state.Extended ? extendedHomePaths[(pod, position)] : homePaths[(pod, position)];
                         var energy = 0;
-                        P previous = position;
+                        int previous = position;
                         while (path.Count > 0 && !state.IsOccupied(path.First()))
                         {
-                            P next = path.First();
+                            int next = path.First();
 
-                            energy += StepEnergyCost(pod, previous, next);
+                            energy += state.StepEnergyCost(pod, previous, next);
                             
-                            if (state.IsPossibleHomeMove(pod, next))
+                            if (state.IsInCorrectRoom(pod, next))
                             {
-                                ns.Add((state.MoveTo(pod, first, next), energy));
+                                ns.Add((state.MoveTo(pod, podnr, next), energy));
                             }
 
                             path = path[1..];
@@ -315,36 +420,36 @@ namespace Solutions.Event2021
                 }
                 else if (!state.IsInCorrectRoom(pod, position))
                 {
-                    var leftPath = outPaths[(position, Moving.Left)];
+                    var leftPath = state.Extended ? extendedOutPaths[(position, Moving.Left)] : outPaths[(position, Moving.Left)];
                     var energy = 0;
-                    P previous = position;
+                    int previous = position;
                     while (leftPath.Count > 0 && !state.IsOccupied(leftPath.First()))
                     {
-                        P next = leftPath.First();
+                        int next = leftPath.First();
 
-                        energy += StepEnergyCost(pod, previous, next);
+                        energy += state.StepEnergyCost(pod, previous, next);
 
                         if (State.IsInHallway(next))
                         {
-                            ns.Add((state.MoveTo(pod, first, next), energy));
+                            ns.Add((state.MoveTo(pod, podnr, next), energy));
                         }
                         
                         leftPath = leftPath[1..];
                         previous = next;
                     }
 
-                    var rightPath = outPaths[(position, Moving.Right)];
+                    var rightPath = state.Extended ? extendedOutPaths[(position, Moving.Right)] : outPaths[(position, Moving.Right)];
                     energy = 0;
                     previous = position;
                     while (rightPath.Count > 0 && !state.IsOccupied(rightPath.First()))
                     {
-                        P next = rightPath.First();
+                        int next = rightPath.First();
 
-                        energy += StepEnergyCost(pod, previous, next);
+                        energy += state.StepEnergyCost(pod, previous, next);
 
                         if (State.IsInHallway(next))
                         {
-                            ns.Add((state.MoveTo(pod, first, next), energy));
+                            ns.Add((state.MoveTo(pod, podnr, next), energy));
                         };
                         
                         rightPath = rightPath[1..];
@@ -353,9 +458,9 @@ namespace Solutions.Event2021
                 }
             }
 
-            foreach ((int i, Pod pod, P position) in state.Pods.Select((state, i) => (i, state.pod, state.position)))
+            foreach ((int i, char pod, int position) in state.Pods.Select((state, i) => (i, state.pod, state.position)))
             {
-                AddPaths(pod, position, i % 2 == 0);
+                AddPaths(pod, position, i % state.RoomCount);
             }
 
             return ns;
@@ -400,7 +505,6 @@ namespace Solutions.Event2021
 
                     if (alt < Distance(pos))
                     {
-
                         prev[pos] = current;
                         distances[pos] = alt;
                         queue.Enqueue(pos, alt);
@@ -421,7 +525,11 @@ namespace Solutions.Event2021
 
         private static int Problem2(IList<string> input)
         {
-            return 0;
+            State startState = Parse(input);
+
+            startState = startState.Extend();
+
+            return Solve(startState);
         }
 
         [Fact]
@@ -451,24 +559,33 @@ namespace Solutions.Event2021
             Assert.Equal(12521, Problem1(exampleInput));
         }
 
-        [Theory]
-        [InlineData(P.H1, false)]
-        [InlineData(P.H2, false)]
-        [InlineData(P.H3, false)]
-        [InlineData(P.H4, false)]
-        [InlineData(P.H5, false)]
-        [InlineData(P.H6, false)]
-        [InlineData(P.H7, false)]
-        [InlineData(P.A1, true)]
-        [InlineData(P.A2, true)]
-        [InlineData(P.B1, true)]
-        [InlineData(P.B2, true)]
-        [InlineData(P.C1, true)]
-        [InlineData(P.C2, true)]
-        [InlineData(P.D1, true)]
-        [InlineData(P.D2, true)]
+        [Fact]
         [Trait("Event", "2021")]
-        public void IsOccupiedTest(P position, bool expected)
+        public void SecondStarExample()
+        {
+            var exampleInput = ReadExampleLineInput("Example");
+
+            Assert.Equal(44169, Problem2(exampleInput));
+        }
+
+        [Theory]
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(2, false)]
+        [InlineData(3, false)]
+        [InlineData(4, false)]
+        [InlineData(5, false)]
+        [InlineData(6, false)]
+        [InlineData(7, true)]
+        [InlineData(8, true)]
+        [InlineData(9, true)]
+        [InlineData(10, true)]
+        [InlineData(11, true)]
+        [InlineData(12, true)]
+        [InlineData(13, true)]
+        [InlineData(14, true)]
+        [Trait("Event", "2021")]
+        public void IsOccupiedTest(int position, bool expected)
         {
             var exampleInput = ReadExampleLineInput("Example");
 
@@ -478,23 +595,23 @@ namespace Solutions.Event2021
         }
 
         [Theory]
-        [InlineData(P.H1, true)]
-        [InlineData(P.H2, true)]
-        [InlineData(P.H3, true)]
-        [InlineData(P.H4, true)]
-        [InlineData(P.H5, true)]
-        [InlineData(P.H6, true)]
-        [InlineData(P.H7, true)]
-        [InlineData(P.A1, false)]
-        [InlineData(P.A2, false)]
-        [InlineData(P.B1, false)]
-        [InlineData(P.B2, false)]
-        [InlineData(P.C1, false)]
-        [InlineData(P.C2, false)]
-        [InlineData(P.D1, false)]
-        [InlineData(P.D2, false)]
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(2, true)]
+        [InlineData(3, true)]
+        [InlineData(4, true)]
+        [InlineData(5, true)]
+        [InlineData(6, true)]
+        [InlineData(7, false)]
+        [InlineData(8, false)]
+        [InlineData(9, false)]
+        [InlineData(10, false)]
+        [InlineData(11, false)]
+        [InlineData(12, false)]
+        [InlineData(13, false)]
+        [InlineData(14, false)]
         [Trait("Event", "2021")]
-        public void IsInHallwayTest(P position, bool expected)
+        public void IsInHallwayTest(int position, bool expected)
         {
             var exampleInput = ReadExampleLineInput("Example");
 
@@ -504,68 +621,16 @@ namespace Solutions.Event2021
         }
 
         [Theory]
-        [InlineData("A......A.......", Pod.A, P.A1, true)]
-        [InlineData("A......A.......", Pod.A, P.A2, true)]
-        [InlineData("A..............", Pod.A, P.A1, true)]
-        [InlineData("A..............", Pod.A, P.A2, false)]
-        [InlineData("B........B.....", Pod.B, P.B1, true)]
-        [InlineData("B........B.....", Pod.B, P.B2, true)]
-        [InlineData("B..............", Pod.B, P.B1, true)]
-        [InlineData("B..............", Pod.B, P.B2, false)]
-        [InlineData("C..........C...", Pod.C, P.C1, true)]
-        [InlineData("C..........C...", Pod.C, P.C2, true)]
-        [InlineData("C..............", Pod.C, P.C1, true)]
-        [InlineData("C..............", Pod.C, P.C2, false)]
-        [InlineData("D............D.", Pod.D, P.D1, true)]
-        [InlineData("D............D.", Pod.D, P.D2, true)]
-        [InlineData("D..............", Pod.D, P.D1, true)]
-        [InlineData("D..............", Pod.D, P.D2, false)]
+        [InlineData(".......AA.......", 'A', 7, true)]
+        [InlineData(".......AA.......", 'A', 8, true)]
+        [InlineData(".......AB.......", 'A', 7, true)]
+        [InlineData(".......BA.......", 'A', 8, false)]
         [Trait("Event", "2021")]
-        public void IsPossibleHomeMoveTest(string encodedState, Pod pod, P position, bool expected)
+        public void IsInCorrectRoomTest(string encodedState, char pod, int position, bool expected)
         {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            var state = State.Decode(encodedState);
-
-            Assert.Equal(expected, state.IsPossibleHomeMove(pod, position));
-        }
-
-        [Theory]
-        [InlineData(".......AA.......", Pod.A, P.A1, true)]
-        [InlineData(".......AA.......", Pod.A, P.A2, true)]
-        [InlineData(".......AB.......", Pod.A, P.A1, true)]
-        [InlineData(".......BA.......", Pod.A, P.A2, false)]
-        [Trait("Event", "2021")]
-        public void IsInCorrectRoomTest(string encodedState, Pod pod, P position, bool expected)
-        {
-            var exampleInput = ReadExampleLineInput("Example");
-
             var state = State.Decode(encodedState);
 
             Assert.Equal(expected, state.IsInCorrectRoom(pod, position));
-        }
-
-        [Fact]
-        [Trait("Event", "2021")]
-        public void NeighborsTest()
-        {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            var startState = Parse(exampleInput);
-
-            var ns = Neighbors(startState);
-
-
-            Assert.Equal(-1, ns.Count);
-        }
-
-        [Fact]
-        [Trait("Event", "2021")]
-        public void SecondStarExample()
-        {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            Assert.Equal(-1, Problem2(exampleInput));
         }
     }
 }
