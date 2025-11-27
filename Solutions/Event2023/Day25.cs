@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2023
 {
-    // --- Day X: Phrase ---
+    // --- Day 25: Snowverload ---
     public class Day25
     {
         private readonly ITestOutputHelper output;
@@ -45,13 +45,13 @@ namespace Solutions.Event2023
         [Fact]
         public void FirstStarExample()
         {
-            
+
         }
 
         [Fact]
         public void SecondStarExample()
         {
-            
+
         }
     }
 }
