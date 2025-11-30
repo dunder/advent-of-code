@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11205.157 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Solutions", "Solutions\Solutions.csproj", "{7A297364-B0FF-40F8-825D-D0D868B0C51B}"
 EndProject
@@ -9,10 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared", "Shared\Shared.csp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Shared.Tests", "Shared.Tests\Shared.Tests.csproj", "{06ADE1BE-960C-4E71-A817-1C9408D6074D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLI", "CLI\CLI.csproj", "{F3E5A819-443F-4EF0-AC3E-F0BAE9321859}"
+EndProject
 Global
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
-	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
@@ -30,12 +29,19 @@ Global
 		{06ADE1BE-960C-4E71-A817-1C9408D6074D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{06ADE1BE-960C-4E71-A817-1C9408D6074D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{06ADE1BE-960C-4E71-A817-1C9408D6074D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F3E5A819-443F-4EF0-AC3E-F0BAE9321859}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F3E5A819-443F-4EF0-AC3E-F0BAE9321859}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F3E5A819-443F-4EF0-AC3E-F0BAE9321859}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F3E5A819-443F-4EF0-AC3E-F0BAE9321859}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0C88EC0D-2405-4DCF-A9F9-BB048D928459}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

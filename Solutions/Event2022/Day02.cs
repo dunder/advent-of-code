@@ -22,8 +22,8 @@ namespace Solutions.Event2022
 
         private int Score(Shape shape, Outcome outcome)
         {
-            var outcomeScore = outcome switch 
-            { 
+            var outcomeScore = outcome switch
+            {
                 Outcome.Won => 6,
                 Outcome.Tie => 3,
                 Outcome.Lost => 0,
@@ -49,8 +49,8 @@ namespace Solutions.Event2022
             {
                 var parts = round.Split(" ");
                 var opponentsMove = parts[0];
-                var opponent = opponentsMove switch 
-                { 
+                var opponent = opponentsMove switch
+                {
                     "A" => Shape.Rock,
                     "B" => Shape.Paper,
                     "C" => Shape.Scissors,
@@ -144,18 +144,21 @@ namespace Solutions.Event2022
         }
 
         [Fact]
+        [Trait("Event", "2022")]
         public void FirstStarTest()
         {
             Assert.Equal(13924, FirstStar());
         }
 
         [Fact]
+        [Trait("Event", "2022")]
         public void SecondStarTest()
         {
             Assert.Equal(13448, SecondStar());
         }
 
         [Fact]
+        [Trait("Event", "2022")]
         public void FirstStarExample()
         {
             var example = new List<string>
@@ -169,6 +172,7 @@ namespace Solutions.Event2022
         }
 
         [Fact]
+        [Trait("Event", "2022")]
         public void SecondStarExample()
         {
             var example = new List<string>
