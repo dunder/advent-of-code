@@ -81,23 +81,5 @@ namespace Solutions.Event2025
 
             Assert.Equal(6616, Problem2(input));
         }
-
-        [Fact]
-        [Trait("Example", "2025")]
-        public void FirstStarExample()
-        {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            Assert.Equal(-1, Problem1(exampleInput));
-        }
-
-        [Fact]
-        [Trait("Example", "2025")]
-        public void SecondStarExample()
-        {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            Assert.Equal(-1, Problem2(exampleInput));
-        }
     }
 }
