@@ -416,4 +416,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Event2025\Input\" />
+  </ItemGroup>
+
 </Project>
