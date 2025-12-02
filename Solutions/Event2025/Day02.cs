@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2025
 {
-    // --- Day X: Phrase ---
+    // --- Day 2: Gift Shop ---
     public class Day02
     {
         private readonly ITestOutputHelper output;
@@ -18,14 +18,95 @@ namespace Solutions.Event2025
             this.output = output;
         }
 
-        private static int Problem1(IList<string> input)
+        private static long Problem1(IList<string> input)
         {
-            return 0;
+            var text = input[0];
+
+            var ranges = text.Split(",");
+
+            long sum = 0;
+
+            bool IsInvalid(long id)
+            {
+                var s = id.ToString();
+
+                // if length is odd we cannot split in half
+                if (s.Length % 2 != 0)
+                {
+                    return false;
+                }
+
+                var first = s.Substring(0, s.Length / 2);
+                var second = s.Substring(s.Length / 2);
+                if (first == second)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            foreach (var range in ranges)
+            {
+                var parts = range.Split("-");
+                var from = long.Parse(parts[0]);
+                var to = long.Parse(parts[1]);
+
+                for (long id = from;  id <= to; id++)
+                {
+                    if (IsInvalid(id))
+                    {
+                        sum += id;
+                    }
+                }
+            }
+
+            return sum;
         }
 
-        private static int Problem2(IList<string> input)
+        private static long Problem2(IList<string> input)
         {
-            return 0;
+            var text = input[0];
+
+            var ranges = text.Split(",");
+
+            long sum = 0;
+
+            bool IsInvalid(long id)
+            {
+                var s = id.ToString();
+
+                for (int chunkSize = s.Length / 2; chunkSize > 0; chunkSize--)
+                {
+                    if (s.Length % chunkSize == 0)
+                    {
+                        var chunks = s.Chunk(chunkSize).Select(chunk => new string(chunk)).ToList();
+                        if (chunks.All(part => part == chunks[0]))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
+
+            foreach (var range in ranges)
+            {
+                var parts = range.Split("-");
+                var from = long.Parse(parts[0]);
+                var to = long.Parse(parts[1]);
+
+                for (long id = from; id <= to; id++)
+                {
+                    if (IsInvalid(id))
+                    {
+                        sum += id;
+                    }
+                }
+            }
+
+            return sum;
         }
 
         [Fact]
@@ -34,7 +115,7 @@ namespace Solutions.Event2025
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(64215794229, Problem1(input));
         }
 
         [Fact]
@@ -43,7 +124,7 @@ namespace Solutions.Event2025
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(85513235135, Problem2(input));
         }
 
         [Fact]
@@ -52,7 +133,7 @@ namespace Solutions.Event2025
         {
             var exampleInput = ReadExampleLineInput("Example");
 
-            Assert.Equal(-1, Problem1(exampleInput));
+            Assert.Equal(1227775554, Problem1(exampleInput));
         }
 
         [Fact]
@@ -61,7 +142,7 @@ namespace Solutions.Event2025
         {
             var exampleInput = ReadExampleLineInput("Example");
 
-            Assert.Equal(-1, Problem2(exampleInput));
+            Assert.Equal(4174379265, Problem2(exampleInput));
         }
     }
 }
