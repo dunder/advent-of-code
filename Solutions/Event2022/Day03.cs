@@ -8,19 +8,38 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2022
 {
-    // --- Day X: Phrase ---
-    public class DayXX
+    // --- Day 3: Rucksack Reorganization ---
+    public class Day03
     {
         private readonly ITestOutputHelper output;
 
-        public DayXX(ITestOutputHelper output)
+        public Day03(ITestOutputHelper output)
         {
             this.output = output;
         }
 
         private static int Problem1(IList<string> input)
         {
-            return 0;
+            int sum = 0;
+
+            int Priority(char c) => c switch
+            {
+                >= 'a' and <= 'z' => c - 'a' + 1,
+                >= 'A' and <= 'Z' => c - 'A' + 27,
+                _ => throw new ArgumentOutOfRangeException(nameof(c), $"Bad character: {c}"),
+            };
+
+            foreach (var rucksack in input)
+            {
+                var compartment1 = rucksack.Substring(0, rucksack.Length / 2).ToHashSet();
+                var compartment2 = rucksack.Substring(rucksack.Length / 2).ToHashSet();
+
+                var error = compartment1.Intersect(compartment2).Single();
+
+                sum += Priority(error);
+            }
+
+            return sum;
         }
 
         private static int Problem2(IList<string> input)
@@ -34,7 +53,7 @@ namespace Solutions.Event2022
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(7908, Problem1(input));
         }
 
         [Fact]
@@ -43,7 +62,7 @@ namespace Solutions.Event2022
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(2838, Problem2(input));
         }
 
         [Fact]
@@ -52,7 +71,7 @@ namespace Solutions.Event2022
         {
             var exampleInput = ReadExampleLineInput("Example");
 
-            Assert.Equal(-1, Problem1(exampleInput));
+            Assert.Equal(157, Problem1(exampleInput));
         }
 
         [Fact]
@@ -61,7 +80,7 @@ namespace Solutions.Event2022
         {
             var exampleInput = ReadExampleLineInput("Example");
 
-            Assert.Equal(-1, Problem2(exampleInput));
+            Assert.Equal(70, Problem2(exampleInput));
         }
     }
 }

@@ -6,14 +6,14 @@ using Xunit.Abstractions;
 using static Solutions.InputReader;
 
 
-namespace Solutions.Event2022
+namespace Solutions.Event2025
 {
     // --- Day X: Phrase ---
-    public class DayXX
+    public class Day04
     {
         private readonly ITestOutputHelper output;
 
-        public DayXX(ITestOutputHelper output)
+        public Day04(ITestOutputHelper output)
         {
             this.output = output;
         }
@@ -29,7 +29,7 @@ namespace Solutions.Event2022
         }
 
         [Fact]
-        [Trait("Event", "2022")]
+        [Trait("Event", "2025")]
         public void FirstStarTest()
         {
             var input = ReadLineInput();
@@ -38,7 +38,7 @@ namespace Solutions.Event2022
         }
 
         [Fact]
-        [Trait("Event", "2022")]
+        [Trait("Event", "2025")]
         public void SecondStarTest()
         {
             var input = ReadLineInput();
@@ -47,7 +47,7 @@ namespace Solutions.Event2022
         }
 
         [Fact]
-        [Trait("Example", "2022")]
+        [Trait("Example", "2025")]
         public void FirstStarExample()
         {
             var exampleInput = ReadExampleLineInput("Example");
@@ -56,7 +56,7 @@ namespace Solutions.Event2022
         }
 
         [Fact]
-        [Trait("Example", "2022")]
+        [Trait("Example", "2025")]
         public void SecondStarExample()
         {
             var exampleInput = ReadExampleLineInput("Example");
