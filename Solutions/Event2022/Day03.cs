@@ -18,16 +18,16 @@ namespace Solutions.Event2022
             this.output = output;
         }
 
+        private static int Priority(char c) => c switch
+        {
+            >= 'a' and <= 'z' => c - 'a' + 1,
+            >= 'A' and <= 'Z' => c - 'A' + 27,
+            _ => throw new ArgumentOutOfRangeException(nameof(c), $"Bad character: {c}"),
+        };
+
         private static int Problem1(IList<string> input)
         {
             int sum = 0;
-
-            int Priority(char c) => c switch
-            {
-                >= 'a' and <= 'z' => c - 'a' + 1,
-                >= 'A' and <= 'Z' => c - 'A' + 27,
-                _ => throw new ArgumentOutOfRangeException(nameof(c), $"Bad character: {c}"),
-            };
 
             foreach (var rucksack in input)
             {
@@ -44,7 +44,23 @@ namespace Solutions.Event2022
 
         private static int Problem2(IList<string> input)
         {
-            return 0;
+            List<string[]> groups = input.Chunk(3).ToList();
+
+            int sum = 0;
+
+            foreach (var group in groups)
+            {
+                var x = group.Select(g => g.ToHashSet()).ToList();
+
+                var intersection = x[0];
+
+                intersection.IntersectWith(x[1]);
+                intersection.IntersectWith(x[2]);
+
+                sum += Priority(intersection.Single());
+            }
+
+            return sum;
         }
 
         [Fact]
