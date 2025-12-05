@@ -23,27 +23,53 @@ namespace Solutions.Event2025
             public bool IsWithin(long id) => id >= Start && id <= End;
         }
 
+        private static (List<Range> ranges, List<long> ids) Parse(IList<string> input)
+        {
+            bool readingRanges = true;
+
+            List<Range> ranges = [];
+            List<long> ids = [];
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                string line = input[i];
+
+                if (string.IsNullOrEmpty(line))
+                {
+                    readingRanges = false;
+                    continue;
+                }
+
+                if (readingRanges)
+                {
+                    ranges.Add(ToRange(line));
+                }
+                else
+                {
+                    ids.Add(long.Parse(line));
+                }
+            }
+
+            return (ranges, ids);
+        }
+
+        private static Range ToRange(string line)
+        {
+            var parts = line.Split("-");
+
+            return new Range(long.Parse(parts[0]), long.Parse(parts[1]));
+        }
+
         private static long Problem1(IList<string> input)
         {
-            input = input.Where(line => !string.IsNullOrEmpty(line)).ToList();
-
-            var ranges = input.Where(line => line.Contains("-")).Select(line => {
-
-                var parts = line.Split("-");
-                return new Range(long.Parse(parts[0]), long.Parse(parts[1]));
-            });
-            var ids = input.Where(line => !line.Contains("-")).Select(line => long.Parse(line)).ToList();
+            var (ranges, ids) = Parse(input);
 
             return ids.Count(id => ranges.Any(range => range.IsWithin(id)));
         }
 
         private static long Problem2(IList<string> input)
         {
-            var ranges = input.Where(line => line.Contains("-")).Select(line =>
-            {
-                var parts = line.Split("-");
-                return new Range(long.Parse(parts[0]), long.Parse(parts[1]));
-            });
+            var (ranges, _) = Parse(input);
 
             var sortedRanges = ranges.OrderBy(range => range.Start).ThenBy(range => range.End).ToList();
 
