@@ -1,5 +1,4 @@
-﻿using MoreLinq.Extensions;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -131,7 +130,7 @@ namespace Solutions.Event2024
             {
                 var up = row.Where(r => OutsideField((r.x, r.y - 1))).Select(r => r.x).OrderBy(x => x).ToList();
                 var down = row.Where(r => OutsideField((r.x, r.y + 1))).Select(r => r.x).OrderBy(x => x).ToList();
-                
+
                 count += CountContinous(up);
                 count += CountContinous(down);
             }

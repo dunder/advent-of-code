@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MoreLinq;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -20,35 +21,29 @@ namespace Solutions.Event2025
 
         private static long Problem1(IList<string> input)
         {
-            long total = 0;
-
             var operations = input.Last().Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            List<List<int>> values = [];
+            List<List<int>> values = input
+                .Take(input.Count - 1)
+                .Select(line => line
+                    .Split(" ", StringSplitOptions.RemoveEmptyEntries)
+                    .Select(int.Parse)
+                    .ToList())
+                .ToList();
 
-            for (int i = 0; i < input.Count - 1; i++)
+            return operations.Select((operation, i) =>
             {
-                var lineValues = input[i].Split(" ", StringSplitOptions.RemoveEmptyEntries).Select(int.Parse).ToList();
+                var valuesForOperation = values.Select(group => group[i]).ToList();
 
-                values.Add(lineValues);
-            }
-
-            for (int column = 0; column < operations.Count; column++)
-            {
-                var operation = operations[column];
-                long subTotal = operation == "+" ? 0 : 1;
-
-                for (int row = 0; row < values.Count; row++)
+                if (operation == "+")
                 {
-                    var columnValue = values[row][column];
-
-                    subTotal = operation == "*" ? subTotal * columnValue : subTotal + columnValue;
-
+                    return valuesForOperation.Aggregate(0L, (value, acc) => acc + value);
                 }
-                total += subTotal;
-            }
-
-            return total;
+                else
+                {
+                    return valuesForOperation.Aggregate(1L, (value, acc) => acc * value);
+                }
+            }).Sum();
         }
 
         private static long Problem2(IList<string> input)
@@ -60,39 +55,28 @@ namespace Solutions.Event2025
 
             int depth = input.Count - 1;
             int width = input.First().Length;
-            List<string> values = Enumerable.Repeat("", width).ToList();
 
-            for (int row = 0; row < input.Count - 1; row++)
-            {
-                for (int column = 0; column < width; column++)
-                {
-                    var value = input[row][column] == ' ' ? "" : input[row][column].ToString();
-                    values[column] += value ;
-                }
-            }
-
-            long total = 0;
-            long subTotal = operations.First() == "+" ? 0 : 1;
-            var operation = operations[0];
-            int oi = 0;
-
-            for (int i = 0; i < values.Count;i++)
-            {
-                if (values[i] == "")
-                {
-                    total += subTotal;
-                    oi++;
-                    operation = operations[oi];
-                    subTotal = operation == "+" ? 0 : 1;
-                    continue;
-                }
-
-                var columnValue = int.Parse(values[i]);
-
-                subTotal = operation == "*" ? subTotal * columnValue : subTotal + columnValue;
-            }
-
-            return total + subTotal;
+            return input
+                .Take(depth)
+                .Select(line => line.ToCharArray().Select(c => c.ToString()).ToList())
+                .ToList()
+                .Aggregate((line1, line2) => line1.Zip(line2).Select(z => "" + z.First + z.Second).ToList())
+                .Select(s => s.Trim())
+                .Split("")
+                .ToList()
+                .Select(columnStrings => columnStrings.Select(int.Parse).ToList())
+                .Select((columnValues, column) => {
+                    string operation = operations[column];
+                    if (operation == "+")
+                    {
+                        return columnValues.Aggregate(0L, (value, acc) => acc + value);
+                    }
+                    else
+                    {
+                        return columnValues.Aggregate(1L, (value, acc) => acc * value);
+                    }
+                })
+                .Sum();
         }
 
         [Fact]
