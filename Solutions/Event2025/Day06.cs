@@ -23,27 +23,21 @@ namespace Solutions.Event2025
         {
             var operations = input.Last().Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
 
-            List<List<int>> values = input
+            return input
                 .Take(input.Count - 1)
                 .Select(line => line
                     .Split(" ", StringSplitOptions.RemoveEmptyEntries)
-                    .Select(int.Parse)
+                    .Select(long.Parse)
                     .ToList())
-                .ToList();
-
-            return operations.Select((operation, i) =>
-            {
-                var valuesForOperation = values.Select(group => group[i]).ToList();
-
-                if (operation == "+")
-                {
-                    return valuesForOperation.Aggregate(0L, (value, acc) => acc + value);
-                }
-                else
-                {
-                    return valuesForOperation.Aggregate(1L, (value, acc) => acc * value);
-                }
-            }).Sum();
+                .Aggregate((line1, line2) => line1
+                    .Zip(line2)
+                    .Select((p, i) =>
+                    {
+                        var operation = operations[i];
+                        return operation == "+" ? p.First + p.Second : p.First * p.Second;
+                    })
+                    .ToList())
+                .Sum();
         }
 
         private static long Problem2(IList<string> input)
@@ -63,8 +57,7 @@ namespace Solutions.Event2025
                 .Aggregate((line1, line2) => line1.Zip(line2).Select(z => "" + z.First + z.Second).ToList())
                 .Select(s => s.Trim())
                 .Split("")
-                .ToList()
-                .Select(columnStrings => columnStrings.Select(int.Parse).ToList())
+                .Select(columnStrings => columnStrings.Select(int.Parse))
                 .Select((columnValues, column) => {
                     string operation = operations[column];
                     if (operation == "+")
