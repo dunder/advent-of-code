@@ -52,7 +52,8 @@ namespace Solutions.Event2025
                 .Select(s => s.Trim())
                 .Split("")
                 .Select(columnStrings => columnStrings.Select(int.Parse))
-                .Select((columnValues, column) => {
+                .Select((columnValues, column) =>
+                {
                     string operation = operations[column];
                     if (operation == "+")
                     {

@@ -49,6 +49,15 @@ namespace CLI.Download
 
                 await File.WriteAllTextAsync(targetFile, normalizedContent);
 
+
+                string exampleFile = Path.Combine("..", "Solutions", $"Event{settings.Event}", "Input", $"Day{settings.Day:D2}Example.txt");
+
+                if (!File.Exists(exampleFile))
+                {
+                    await File.WriteAllTextAsync(exampleFile, normalizedContent);
+                    Console.WriteLine($"Created example input file: {exampleFile}");
+                }
+
                 AnsiConsole.MarkupLine($"[green]Success:[/] Input downloaded to: {targetFile}");
 
                 return Exit.Success;
