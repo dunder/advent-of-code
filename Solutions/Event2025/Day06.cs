@@ -42,16 +42,10 @@ namespace Solutions.Event2025
 
         private static long Problem2(IList<string> input)
         {
-            string operationsRow = input.Last();
-            var operations = operationsRow.Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
-
-            List<int> operationIndexes = [];
-
-            int depth = input.Count - 1;
-            int width = input.First().Length;
+            var operations = input.Last().Split(" ", StringSplitOptions.RemoveEmptyEntries).ToList();
 
             return input
-                .Take(depth)
+                .Take(input.Count - 1)
                 .Select(line => line.ToCharArray().Select(c => c.ToString()).ToList())
                 .ToList()
                 .Aggregate((line1, line2) => line1.Zip(line2).Select(z => "" + z.First + z.Second).ToList())
