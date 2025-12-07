@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2022
 {
-    // --- Day 07: Phrase ---
+    // --- Day 7: No Space Left On Device ---
     public class Day07
     {
         private readonly ITestOutputHelper output;
