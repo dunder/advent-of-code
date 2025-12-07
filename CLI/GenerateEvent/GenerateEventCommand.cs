@@ -1,6 +1,5 @@
 ﻿using Spectre.Console;
 using Spectre.Console.Cli;
-using System.Net;
 
 namespace CLI.Download
 {
@@ -15,7 +14,7 @@ namespace CLI.Download
             {
                 string problemFile = Path.Combine("..", "Solutions", $"Event{settings.Event}", $"Day{day:D2}.cs");
 
-                if (!File.Exists(problemFile))
+                if (File.Exists(problemFile))
                 {
                     AnsiConsole.MarkupLine($"[yellow]File already exists[/]:{problemFile}");
                 }
@@ -43,9 +42,9 @@ namespace CLI.Download
             using static Solutions.InputReader;
 
 
-            namespace Solutions.Event2025
+            namespace Solutions.Event{{@event}}
             {
-                // --- Day X: Phrase ---
+                // --- Day {{dayString}}: Phrase ---
                 public class Day{{dayString}}
                 {
                     private readonly ITestOutputHelper output;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -8,12 +8,12 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2022
 {
-    // --- Day X: Phrase ---
-    public class DayXX
+    // --- Day 10: Phrase ---
+    public class Day10
     {
         private readonly ITestOutputHelper output;
 
-        public DayXX(ITestOutputHelper output)
+        public Day10(ITestOutputHelper output)
         {
             this.output = output;
         }
