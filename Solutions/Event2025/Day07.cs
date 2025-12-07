@@ -46,33 +46,10 @@ namespace Solutions.Event2025
                     {
                         splitters.Add((x, y));
                     }
-
                 }
             }
 
             return (map, start, splitters);
-        }
-
-        private static List<List<(int x, int y)>> ParseMap2(IList<string> input)
-        {
-            int maxx = input.First().Length;
-            int maxy = input.Count;
-
-            List<List<int>> splitters = [];
-
-            for (var y = 1; y < maxy; y++)
-            {
-                var line = input[y];
-
-                List<int> lineSplitters = line.Where((c, i) => c == '^').Select((c, i) => i).ToList();
-
-                if (lineSplitters.Any())
-                {
-                    splitters.Add(lineSplitters);
-                }
-            }
-
-            return splitters.Select((line, y) => line.Select(x => (x, y)).ToList()).ToList();
         }
 
         private static int Problem1(IList<string> input)
