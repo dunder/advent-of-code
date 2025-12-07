@@ -1,5 +1,4 @@
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -8,7 +7,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2022
 {
-    // --- Day 06: Phrase ---
+    // --- Day 6: Tuning Trouble ---
     public class Day06
     {
         private readonly ITestOutputHelper output;
@@ -20,11 +19,41 @@ namespace Solutions.Event2022
 
         private static int Problem1(IList<string> input)
         {
+            var buffer = input[0];
+
+            for (int i = 0; i < buffer.Length - 3; i++)
+            {
+                var test = buffer.Substring(i, 4);
+
+                var set = test.Select(c => c).ToHashSet();
+
+                if (set.Count == 4)
+                {
+                    return i + 4;
+                }
+
+            }
+
             return 0;
         }
 
         private static int Problem2(IList<string> input)
         {
+            var buffer = input[0];
+
+            for (int i = 0; i < buffer.Length - 13; i++)
+            {
+                var test = buffer.Substring(i, 14);
+
+                var set = test.Select(c => c).ToHashSet();
+
+                if (set.Count == 14)
+                {
+                    return i + 14;
+                }
+
+            }
+
             return 0;
         }
 
@@ -34,7 +63,7 @@ namespace Solutions.Event2022
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(1640, Problem1(input));
         }
 
         [Fact]
@@ -43,25 +72,31 @@ namespace Solutions.Event2022
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(3613, Problem2(input));
         }
 
-        [Fact]
+        [Theory]
+        [InlineData("mjqjpqmgbljsphdztnvjfqwrcgsmlb", 7)]
+        [InlineData("bvwbjplbgvbhsrlpgdmjqwftvncz", 5)]
+        [InlineData("nppdvjthqldpwncqszvftbrmjlhg", 6)]
+        [InlineData("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", 10)]
+        [InlineData("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", 11)]
         [Trait("Example", "2022")]
-        public void FirstStarExample()
+        public void FirstStarExample(string buffer, int expected)
         {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            Assert.Equal(-1, Problem1(exampleInput));
+            Assert.Equal(expected, Problem1([buffer]));
         }
 
-        [Fact]
+        [Theory]
+        [InlineData("mjqjpqmgbljsphdztnvjfqwrcgsmlb", 19)]
+        [InlineData("bvwbjplbgvbhsrlpgdmjqwftvncz", 23)]
+        [InlineData("nppdvjthqldpwncqszvftbrmjlhg", 23)]
+        [InlineData("nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg", 29)]
+        [InlineData("zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw", 26)]
         [Trait("Example", "2022")]
-        public void SecondStarExample()
+        public void SecondStarExample(string buffer, int expected)
         {
-            var exampleInput = ReadExampleLineInput("Example");
-
-            Assert.Equal(-1, Problem2(exampleInput));
+            Assert.Equal(expected, Problem2([buffer]));
         }
     }
 }
