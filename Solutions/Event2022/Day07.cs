@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.PortableExecutable;
 using Xunit;
 using Xunit.Abstractions;
 using static Solutions.InputReader;
@@ -18,8 +19,62 @@ namespace Solutions.Event2022
             this.output = output;
         }
 
+        private class Directory
+        {
+            public Directory (string name, Directory parent)
+            {
+                Name = name;
+                Parent = parent;
+            }
+            public Directory Parent { get; private set; }
+            public string Name { get; }
+            public List<Directory> Directories { get; } = [];
+            public List<File> Files { get; } = [];
+        }
+
+        private record File(string Name, int Size);
+
         private static int Problem1(IList<string> input)
         {
+            Dictionary<string, Directory> disk = [];
+
+            Directory current = null;
+
+            for (int i = 0; i < input.Count; i++)
+            {
+                string line = input[i];
+
+                if (line.StartsWith("$ cd"))
+                {
+                    string name = line.Substring("$ cd ".Length);
+
+                    Directory directory = new Directory(name, current);
+
+                }
+                else if (line.StartsWith("$ ls"))
+                {
+
+                    for (i = i + 1; i < input.Count; i++)
+                    {
+                        string content = input[i];
+
+                        if (content.StartsWith("dir "))
+                        {
+
+                        }
+                        else
+                        {
+
+                        }
+
+                        if (i + 1 >= input.Count || input[i + 1].StartsWith("$"))
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
             return 0;
         }
 
