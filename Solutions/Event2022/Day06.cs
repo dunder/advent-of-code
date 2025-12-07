@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Xunit;
 using Xunit.Abstractions;
@@ -17,44 +18,31 @@ namespace Solutions.Event2022
             this.output = output;
         }
 
-        private static int Problem1(IList<string> input)
+        private static int ToStart(string buffer, int length)
         {
-            var buffer = input[0];
-
-            for (int i = 0; i < buffer.Length - 3; i++)
+            for (int i = 0; i < buffer.Length - (length-1); i++)
             {
-                var test = buffer.Substring(i, 4);
+                var test = buffer.Substring(i, length);
 
                 var set = test.Select(c => c).ToHashSet();
 
-                if (set.Count == 4)
+                if (set.Count == length)
                 {
-                    return i + 4;
+                    return i + length;
                 }
 
             }
 
-            return 0;
+            throw new ArgumentException($"Not found");
+        }
+        private static int Problem1(IList<string> input)
+        {
+            return ToStart(input[0], 4);
         }
 
         private static int Problem2(IList<string> input)
         {
-            var buffer = input[0];
-
-            for (int i = 0; i < buffer.Length - 13; i++)
-            {
-                var test = buffer.Substring(i, 14);
-
-                var set = test.Select(c => c).ToHashSet();
-
-                if (set.Count == 14)
-                {
-                    return i + 14;
-                }
-
-            }
-
-            return 0;
+            return ToStart(input[0], 14);
         }
 
         [Fact]
