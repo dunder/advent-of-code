@@ -54,7 +54,7 @@ namespace CLI.Download
 
                 if (!File.Exists(exampleFile))
                 {
-                    await File.WriteAllTextAsync(exampleFile, normalizedContent);
+                    File.Create(exampleFile);
                     Console.WriteLine($"Created example input file: {exampleFile}");
                 }
 
