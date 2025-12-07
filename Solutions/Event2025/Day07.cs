@@ -1,6 +1,4 @@
 ﻿using MoreLinq.Extensions;
-using Shared.Tree;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -154,16 +152,16 @@ namespace Solutions.Event2025
 
                 var leftCount = Count(left);
 
-                if (left != null && !cache.ContainsKey(left.Splitter))
+                if (left != null)
                 {
-                    cache.Add(left.Splitter, leftCount);
+                    cache.TryAdd(left.Splitter, leftCount);
                 }
 
                 var rightCount = Count(right);
 
-                if (right != null && !cache.ContainsKey(right.Splitter))
+                if (right != null)
                 {
-                    cache.Add(right.Splitter, rightCount);
+                    cache.TryAdd(right.Splitter, rightCount);
                 }
 
                 return leftCount + rightCount;
