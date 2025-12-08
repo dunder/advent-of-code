@@ -18,23 +18,62 @@ namespace Solutions.Event2025
             this.output = output;
         }
 
-        private record JunctionBox(int x, int y, int z)
-        {
+        private record JunctionBox(int x, int y, int z);
 
+        private class JunctionBoxRig
+        {
+            public JunctionBoxRig(List<JunctionBox> junctionBoxes)
+            {
+                JunctionBoxes = junctionBoxes;
+                Distances = [];
+
+                for (int i = 0; i < JunctionBoxes.Count; i++)
+                {
+                    JunctionBox a = JunctionBoxes[i];
+
+                    for (int j = i + 1; j < JunctionBoxes.Count; j++)
+                    {
+                        JunctionBox b = JunctionBoxes[j];
+
+                        Distances.Add(Distance(a, b), (a, b));
+                    }
+                }
+            }
+
+            public List<HashSet<JunctionBox>> Circuits { get; } = [];
+
+            public List<JunctionBox> JunctionBoxes { get; private set; }
+            public Dictionary<double, (JunctionBox, JunctionBox)> Distances { get; private set; }
+            public IEnumerable<(JunctionBox a, JunctionBox b)> JunctionBoxPairsByDistance => Distances.OrderBy(d => d.Key).Select(kvp => kvp.Value);
+
+            public void Connect(JunctionBox a, JunctionBox b)
+            {
+                int circuitAIndex = Circuits.FindIndex(circuit => circuit.Contains(a));
+                int circuitBIndex = Circuits.FindIndex(circuit => circuit.Contains(b));
+
+                if (circuitAIndex == -1 && circuitBIndex == -1)
+                {
+                    Circuits.Add([a, b]);
+                }
+                else if (circuitAIndex > -1 && circuitBIndex > -1 && circuitAIndex != circuitBIndex)
+                {
+                    Circuits[circuitAIndex].UnionWith(Circuits[circuitBIndex]);
+                    Circuits.RemoveAt(circuitBIndex);
+                }
+                else if (circuitAIndex > -1)
+                {
+                    Circuits[circuitAIndex].Add(b);
+                }
+                else if (circuitBIndex > -1)
+                {
+                    Circuits[circuitBIndex].Add(a);
+                }
+            }
         }
 
-        private static double Distance(JunctionBox p1, JunctionBox p2)
+        private static JunctionBoxRig Parse(IList<string> input)
         {
-            return Math.Sqrt(
-                Math.Pow(p2.x - p1.x, 2) +
-                Math.Pow(p2.y - p1.y, 2) +
-                Math.Pow(p2.z - p1.z, 2)
-            );
-        }
-
-        private static int CountLargest(IList<string> input, int count)
-        {
-            var junctionBoxes = input
+            List<JunctionBox> junctionBoxes = input
                 .Select(line =>
                 {
                     var parts = line.Split(",").Select(int.Parse).ToList();
@@ -42,117 +81,51 @@ namespace Solutions.Event2025
                 })
                 .ToList();
 
-            Dictionary<double, (JunctionBox, JunctionBox)> distances = [];
+            return new JunctionBoxRig(junctionBoxes);
+        }
 
-            for (int i = 0; i < junctionBoxes.Count; i++)
-            {
-                JunctionBox a = junctionBoxes[i];
+        private static double Distance(JunctionBox p1, JunctionBox p2)
+        {
+            return Math.Sqrt(Math.Pow(p2.x - p1.x, 2) + Math.Pow(p2.y - p1.y, 2) + Math.Pow(p2.z - p1.z, 2));
+        }
 
-                for (int j = i + 1; j < junctionBoxes.Count; j++)
-                {
-                    JunctionBox b = junctionBoxes[j];
+        private static int CountLargest(IList<string> input, int count)
+        {
+            JunctionBoxRig rig = Parse(input);
 
-                    distances.Add(Distance(a, b), (a, b));
-                }
-            }
-
-            var shortestPairs = distances.OrderBy(d => d.Key).Select(kvp => kvp.Value).Take(count).ToList();
-
-            List<HashSet<JunctionBox>> circuits = [];
-
-            foreach (var pair in shortestPairs)
+            foreach (var pair in rig.JunctionBoxPairsByDistance.Take(count).ToList())
             {
                 (JunctionBox a, JunctionBox b) = pair;
-                int circuitAIndex = circuits.FindIndex(circuit => circuit.Contains(a));
-                int circuitBIndex = circuits.FindIndex(circuit => circuit.Contains(b));
 
-                if (circuitAIndex == -1 && circuitBIndex == -1)
-                {
-                    circuits.Add([a, b]);
-                }
-                else if (circuitAIndex > -1 && circuitBIndex > -1 && circuitAIndex != circuitBIndex)
-                {
-                    circuits[circuitAIndex].UnionWith(circuits[circuitBIndex]);
-                    circuits.RemoveAt(circuitBIndex);
-                }
-                else if (circuitAIndex > -1)
-                {
-                    circuits[circuitAIndex].Add(b);
-                }
-                else if (circuitBIndex > -1)
-                {
-                    circuits[circuitBIndex].Add(a);
-                }
+                rig.Connect(a, b);
             }
 
-            var largest = circuits.Select(v => v.Count).OrderByDescending(x => x).Take(3);
+            var largest = rig.Circuits.Select(v => v.Count).OrderByDescending(x => x).Take(3);
 
             return largest.Aggregate(1, (a, v) => a * v);
         }
 
         private static long ConnectAll(IList<string> input)
         {
-            var junctionBoxes = input
-                .Select(line =>
-                {
-                    var parts = line.Split(",").Select(int.Parse).ToList();
-                    return new JunctionBox(parts[0], parts[1], parts[2]);
-                })
-                .ToList();
-
-            Dictionary<double, (JunctionBox, JunctionBox)> distances = [];
-
-            for (int i = 0; i < junctionBoxes.Count; i++)
-            {
-                JunctionBox a = junctionBoxes[i];
-
-                for (int j = i + 1; j < junctionBoxes.Count; j++)
-                {
-                    JunctionBox b = junctionBoxes[j];
-
-                    distances.Add(Distance(a, b), (a, b));
-                }
-            }
-
-            var shortestPairs = distances.OrderBy(d => d.Key).Select(kvp => kvp.Value).ToList();
-
-            List<HashSet<JunctionBox>> circuits = [];
+            JunctionBoxRig rig = Parse(input);
 
             (JunctionBox a, JunctionBox b)? lastPair = null;
 
-            foreach (var pair in shortestPairs)
+            foreach (var pair in rig.JunctionBoxPairsByDistance)
             {
                 (JunctionBox a, JunctionBox b) = pair;
-                int circuitAIndex = circuits.FindIndex(circuit => circuit.Contains(a));
-                int circuitBIndex = circuits.FindIndex(circuit => circuit.Contains(b));
 
-                if (circuitAIndex == -1 && circuitBIndex == -1)
-                {
-                    circuits.Add([a, b]);
-                }
-                else if (circuitAIndex > -1 && circuitBIndex > -1 && circuitAIndex != circuitBIndex)
-                {
-                    circuits[circuitAIndex].UnionWith(circuits[circuitBIndex]);
-                    circuits.RemoveAt(circuitBIndex);
-                }
-                else if (circuitAIndex > -1)
-                {
-                    circuits[circuitAIndex].Add(b);
-                }
-                else if (circuitBIndex > -1)
-                {
-                    circuits[circuitBIndex].Add(a);
-                }
+                rig.Connect(a, b);
 
                 lastPair = pair;
 
-                if (circuits.Any(c => c.Count == junctionBoxes.Count))
+                if (rig.Circuits.Any(c => c.Count == rig.JunctionBoxes.Count))
                 {
                     break;
                 }
             }
 
-            var largest = circuits.Select(v => v.Count).OrderByDescending(x => x).Take(3);
+            var largest = rig.Circuits.Select(v => v.Count).OrderByDescending(x => x).Take(3);
 
             return (long)lastPair.Value.a.x * lastPair.Value.b.x;
         }
