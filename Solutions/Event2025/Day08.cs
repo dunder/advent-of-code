@@ -8,7 +8,7 @@ using static Solutions.InputReader;
 
 namespace Solutions.Event2025
 {
-    // --- Day 08: Phrase ---
+    // --- Day 8: Playground ---
     public class Day08
     {
         private readonly ITestOutputHelper output;
@@ -41,7 +41,6 @@ namespace Solutions.Event2025
                     return new JunctionBox(parts[0], parts[1], parts[2]);
                 })
                 .ToList();
-
 
             Dictionary<double, (JunctionBox, JunctionBox)> distances = [];
 
@@ -91,14 +90,81 @@ namespace Solutions.Event2025
             return largest.Aggregate(1, (a, v) => a * v);
         }
 
+        private static long ConnectAll(IList<string> input)
+        {
+            var junctionBoxes = input
+                .Select(line =>
+                {
+                    var parts = line.Split(",").Select(int.Parse).ToList();
+                    return new JunctionBox(parts[0], parts[1], parts[2]);
+                })
+                .ToList();
+
+            Dictionary<double, (JunctionBox, JunctionBox)> distances = [];
+
+            for (int i = 0; i < junctionBoxes.Count; i++)
+            {
+                JunctionBox a = junctionBoxes[i];
+
+                for (int j = i + 1; j < junctionBoxes.Count; j++)
+                {
+                    JunctionBox b = junctionBoxes[j];
+
+                    distances.Add(Distance(a, b), (a, b));
+                }
+            }
+
+            var shortestPairs = distances.OrderBy(d => d.Key).Select(kvp => kvp.Value).ToList();
+
+            List<HashSet<JunctionBox>> circuits = [];
+
+            (JunctionBox a, JunctionBox b)? lastPair = null;
+
+            foreach (var pair in shortestPairs)
+            {
+                (JunctionBox a, JunctionBox b) = pair;
+                int circuitAIndex = circuits.FindIndex(circuit => circuit.Contains(a));
+                int circuitBIndex = circuits.FindIndex(circuit => circuit.Contains(b));
+
+                if (circuitAIndex == -1 && circuitBIndex == -1)
+                {
+                    circuits.Add([a, b]);
+                }
+                else if (circuitAIndex > -1 && circuitBIndex > -1 && circuitAIndex != circuitBIndex)
+                {
+                    circuits[circuitAIndex].UnionWith(circuits[circuitBIndex]);
+                    circuits.RemoveAt(circuitBIndex);
+                }
+                else if (circuitAIndex > -1)
+                {
+                    circuits[circuitAIndex].Add(b);
+                }
+                else if (circuitBIndex > -1)
+                {
+                    circuits[circuitBIndex].Add(a);
+                }
+
+                lastPair = pair;
+
+                if (circuits.Any(c => c.Count == junctionBoxes.Count))
+                {
+                    break;
+                }
+            }
+
+            var largest = circuits.Select(v => v.Count).OrderByDescending(x => x).Take(3);
+
+            return (long)lastPair.Value.a.x * lastPair.Value.b.x;
+        }
+
         private static int Problem1(IList<string> input)
         {
             return CountLargest(input, 1000);
         }
 
-        private static int Problem2(IList<string> input)
+        private static long Problem2(IList<string> input)
         {
-            return 0;
+            return ConnectAll(input);
         }
 
         [Fact]
@@ -116,7 +182,7 @@ namespace Solutions.Event2025
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem2(input));
+            Assert.Equal(8995844880, Problem2(input));
         }
 
         [Fact]
@@ -134,7 +200,7 @@ namespace Solutions.Event2025
         {
             var exampleInput = ReadExampleLineInput("Example");
 
-            Assert.Equal(-1, Problem2(exampleInput));
+            Assert.Equal(25272, ConnectAll(exampleInput));
         }
     }
 }
