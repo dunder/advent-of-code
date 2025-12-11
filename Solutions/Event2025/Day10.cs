@@ -191,7 +191,7 @@ namespace Solutions.Event2025
         {
             var input = ReadLineInput();
 
-            Assert.Equal(-1, Problem1(input));
+            Assert.Equal(375, Problem1(input));
         }
 
         [Fact]
