@@ -10,9 +10,12 @@ namespace CLI.Download
             // https://adventofcode.com/2025/about
             int days = settings.Event < 2025 ? 25 : 12;
 
+            string eventDirectoryPath = Path.Combine("..", "Solutions", $"Event{settings.Event}");
+            var eventDirectory = Directory.CreateDirectory(eventDirectoryPath);            
+
             foreach (var day in Enumerable.Range(1, days))
             {
-                string problemFile = Path.Combine("..", "Solutions", $"Event{settings.Event}", $"Day{day:D2}.cs");
+                string problemFile = Path.Combine(eventDirectory.FullName, $"Day{day:D2}.cs");
 
                 if (File.Exists(problemFile))
                 {
